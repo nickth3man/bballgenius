@@ -1,8 +1,18 @@
-import { BoxRenderable, type KeyEvent, ScrollBoxRenderable, TextRenderable } from '@opentui/core';
 import {
+  BoxRenderable,
+  type CliRenderer,
+  type KeyEvent,
+  ScrollBoxRenderable,
+  TextRenderable,
+} from '@opentui/core';
+import { getErrorMessage } from '../errors.js';
+import {
+  type BoxScoreRow,
+  type GameShotRow,
   loadBoxScoreWithTeamDedup,
   loadGameShots,
   loadRecentGames,
+  type RecentGameRow,
 } from '../queries/gameCenter.js';
 import { ansiToStyledText, drawHalfCourt, formatTable } from '../utils/formatters.js';
 import { Theme } from '../utils/theme.js';
@@ -26,19 +36,19 @@ export class GameCenterTab {
   private readonly shotChartText: TextRenderable;
 
   // State
-  private games: any[] = [];
+  private games: RecentGameRow[] = [];
   private selectedGameIdx = 0;
 
-  private boxScores: any[] = [];
+  private boxScores: BoxScoreRow[] = [];
   private selectedPlayerIdx = -1; // -1 means "All Players"
 
-  private shots: any[] = [];
+  private shots: GameShotRow[] = [];
 
   // Focus Management: 0 = games, 1 = box score, 2 = shot chart
   private focusIndex = 0;
   private focusablePanels: BoxRenderable[] = [];
 
-  constructor(renderer: any) {
+  constructor(renderer: CliRenderer) {
     // Parent container spanning 100% of workspace width/height
     this.container = new BoxRenderable(renderer, {
       id: 'game-center-container',
@@ -152,8 +162,8 @@ export class GameCenterTab {
         this.gameListText.content = ansiToStyledText('No games found in database.');
         this.container.requestRender();
       }
-    } catch (e: any) {
-      this.gameListText.content = ansiToStyledText(`Error loading games:\n${e.message}`);
+    } catch (e: unknown) {
+      this.gameListText.content = ansiToStyledText(`Error loading games:\n${getErrorMessage(e)}`);
       this.container.requestRender();
     }
   }
@@ -332,8 +342,10 @@ export class GameCenterTab {
 
       this.renderBoxScore();
       this.renderShotChart();
-    } catch (e: any) {
-      this.boxScoreText.content = ansiToStyledText(`Error loading game details:\n${e.message}`);
+    } catch (e: unknown) {
+      this.boxScoreText.content = ansiToStyledText(
+        `Error loading game details:\n${getErrorMessage(e)}`,
+      );
       this.shotChartText.content = ansiToStyledText('');
       this.container.requestRender();
     }

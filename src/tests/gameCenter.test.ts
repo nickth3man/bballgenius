@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { closeDb, initDb, query } from '../db.js';
+import type { GameShotRow } from '../queries/gameCenter.js';
 import { GameCenterTab } from '../tabs/gameCenter.js';
 import { assertNoAnsiLeaks } from './helpers/ansi.js';
 import { loadBoxScoreWithTeamDedup, loadGameShots, loadRecentGames } from './helpers/queries.js';
@@ -103,7 +104,7 @@ describe.serial('Game Center box score deduplication', () => {
     const games = await loadRecentGames(20);
     expect(games.length).toBeGreaterThan(0);
 
-    let shots: Record<string, unknown>[] = [];
+    let shots: GameShotRow[] = [];
     for (const game of games) {
       const candidate = await loadGameShots(String(game.game_id));
       if (candidate.length > 0) {

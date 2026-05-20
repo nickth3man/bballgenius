@@ -24,14 +24,17 @@ const TIME_MACHINE_SHORTCUTS = [
   'Enter      Select highlighted player',
   'Tab        Insert tab in search, or cycle focus when not typing',
   'Esc        Blur search, focus stats panel',
+  'C          Toggle Player/Team Mode',
 ] as const;
 
 const SQL_SANDBOX_SHORTCUTS = [
   'Ctrl+R/E   Run SQL query',
-  'Up/Down    Navigate schema (schema focused)',
+  'Type       Filter schema tables/columns (schema focused)',
+  'Up/Down    Navigate schema tree',
   'Enter      Expand table / insert column name',
-  'Tab        Insert tab in editor, or cycle focus when not typing',
-  'Esc        Blur SQL input, focus schema',
+  'Tab        Accept autocomplete, or cycle focus when not typing',
+  '↑↓         Cycle autocomplete suggestions (SQL input)',
+  'Esc        Blur input, focus schema tree',
 ] as const;
 
 /**

@@ -14,7 +14,7 @@ import {
 
 const LEBRON_PLAYER_ID = '2544';
 
-function countUniquePlayerIds(rows: { player_id: unknown }[]): number {
+function countUniquePlayerIds<T extends { player_id: unknown }>(rows: T[]): number {
   return new Set(rows.map((r) => String(r.player_id))).size;
 }
 
@@ -34,8 +34,8 @@ describe('Mutation / break-it verification (Level 1)', () => {
     let brokenError: Error | null = null;
     try {
       await loadPlayerAwardsBrokenColumn(LEBRON_PLAYER_ID);
-    } catch (e: any) {
-      brokenError = e;
+    } catch (e: unknown) {
+      brokenError = e instanceof Error ? e : new Error(String(e));
     }
     expect(brokenError).not.toBeNull();
     expect(String(brokenError?.message ?? brokenError)).toMatch(
@@ -75,8 +75,8 @@ describe('Mutation / break-it verification (Level 1)', () => {
     expect(games.length).toBeGreaterThan(0);
 
     let gameId: string | null = null;
-    let filtered: { shot_result: unknown }[] = [];
-    let unfiltered: { shot_result: unknown }[] = [];
+    let filtered: Awaited<ReturnType<typeof loadGameShots>> = [];
+    let unfiltered: Awaited<ReturnType<typeof loadGameShotsBrokenFilter>> = [];
 
     const fgResultPattern = /made|missed|^1$|^0$/i;
 

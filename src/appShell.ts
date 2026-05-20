@@ -347,7 +347,7 @@ export function createAppShell(renderer: CliRenderer): AppShell {
   const attachKeyHandlers = (handlers: AppShellHandlers = {}) => {
     handlersRef.current = handlers;
 
-    (renderer.keyInput as any).on('keypress', routeKeyPress);
+    renderer.keyInput.on('keypress', routeKeyPress);
   };
 
   refreshFooterStatus();

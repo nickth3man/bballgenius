@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
-import { BoxRenderable, KeyEvent, TextRenderable } from '@opentui/core';
+import { BoxRenderable, KeyEvent, type StyledText, TextRenderable } from '@opentui/core';
 import { createTestRenderer, KeyCodes } from '@opentui/core/testing';
 import { type AppShell, createAppShell, makeTestKeyEvent } from '../appShell.js';
 import { closeDb, initDb } from '../db.js';
@@ -8,6 +8,11 @@ import { SqlSandboxTab } from '../tabs/sqlSandbox.js';
 import { TimeMachineTab } from '../tabs/timeMachine.js';
 import { ansiToStyledText } from '../utils/formatters.js';
 import { Theme } from '../utils/theme.js';
+import { styledPlainText } from './helpers/ansi.js';
+
+function textContent(content: string | StyledText): string {
+  return typeof content === 'string' ? content : styledPlainText(content);
+}
 
 function makeKeyEvent(name: string, modifiers?: { shift?: boolean }): KeyEvent {
   return new KeyEvent({
@@ -46,9 +51,12 @@ function readHelpVisible(shell: AppShell): boolean | undefined {
   return undefined;
 }
 
+type TestRendererHarness = Awaited<ReturnType<typeof createTestRenderer>>;
+type HubTab = GameCenterTab | TimeMachineTab | SqlSandboxTab;
+
 describe('TUI Hub Shell & Navigation Integration Tests', () => {
-  let virtualUI: any;
-  let tabs: any[] = [];
+  let virtualUI: TestRendererHarness;
+  let tabs: HubTab[] = [];
   let activeTabIdx = 0;
 
   beforeAll(async () => {
@@ -237,7 +245,7 @@ describe('TUI Hub Shell & Navigation Integration Tests', () => {
     const initialGameId = gameCenter['games'][0].game_id;
 
     // Simulate hitting "down" arrow to move selected game index
-    const keyHandled = gameCenter.handleKeyPress({ name: 'down' } as any);
+    const keyHandled = gameCenter.handleKeyPress(makeKeyEvent('down'));
     expect(keyHandled).toBe(true);
     await virtualUI.renderOnce();
     await new Promise((resolve) => setTimeout(resolve, 300));
@@ -283,7 +291,7 @@ describe('TUI Hub Shell & Navigation Integration Tests', () => {
 
     // Simulate pressing "Enter" on the table node to expand it
     sqlSandbox['selectedSchemaIdx'] = 0;
-    const enterHandled = sqlSandbox.handleKeyPress({ name: 'enter' } as any);
+    const enterHandled = sqlSandbox.handleKeyPress(makeKeyEvent('enter'));
     expect(enterHandled).toBe(true);
 
     // Since loading columns is async, we allow some microticks for rebuildSchemaNodes() to execute
@@ -301,6 +309,102 @@ describe('TUI Hub Shell & Navigation Integration Tests', () => {
     const secondNode = sqlSandbox['schemaNodes'][1];
     expect(secondNode.type).toBe('column');
     expect(secondNode.tableName).toBe(firstNode.name);
+
+    renderer.destroy();
+  });
+
+  test('should support autocomplete suggestions and Tab insertion on SQL Sandbox', async () => {
+    virtualUI = await createTestRenderer({ width: 80, height: 24 });
+    const renderer = virtualUI.renderer;
+
+    const sqlSandbox = new SqlSandboxTab(renderer);
+    renderer.root.add(sqlSandbox.container);
+    sqlSandbox.container.visible = true;
+
+    await sqlSandbox.init();
+    await virtualUI.renderOnce();
+
+    // Set input value to "SEL" to trigger autocomplete suggestion "SELECT"
+    sqlSandbox['sqlInput'].value = 'SEL';
+    sqlSandbox['currentQuery'] = 'SEL';
+    sqlSandbox['updateAutocomplete']();
+
+    expect(sqlSandbox['autocompleteSuggestions']).toContain('SELECT');
+
+    // Handle keypress "tab" on SQL Sandbox to accept the autocomplete suggestion
+    const keyHandled = sqlSandbox.handleKeyPress(makeKeyEvent('tab'));
+    expect(keyHandled).toBe(true);
+
+    expect(sqlSandbox['sqlInput'].value).toBe('SELECT ');
+
+    renderer.destroy();
+  });
+
+  test('should support filtering table schemas on SQL Sandbox', async () => {
+    virtualUI = await createTestRenderer({ width: 80, height: 24 });
+    const renderer = virtualUI.renderer;
+
+    const sqlSandbox = new SqlSandboxTab(renderer);
+    renderer.root.add(sqlSandbox.container);
+    sqlSandbox.container.visible = true;
+
+    await sqlSandbox.init();
+    await virtualUI.renderOnce();
+
+    const originalCount = sqlSandbox['schemaNodes'].length;
+
+    // Filter by table "dim_player"
+    sqlSandbox['schemaFilterInput'].value = 'dim_player';
+    sqlSandbox['schemaFilterQuery'] = 'dim_player';
+    await sqlSandbox['rebuildSchemaNodes']();
+
+    // Verify list is filtered
+    expect(sqlSandbox['schemaNodes'].length).toBeLessThan(originalCount);
+    expect(sqlSandbox['schemaNodes'][0].name).toBe('dim_player');
+
+    renderer.destroy();
+  });
+
+  test('should support player career statistics totals/averages rendering and Team Comparison mode toggling on TimeMachineTab', async () => {
+    virtualUI = await createTestRenderer({ width: 100, height: 32 });
+    const renderer = virtualUI.renderer;
+
+    const timeMachine = new TimeMachineTab(renderer);
+    renderer.root.add(timeMachine.container);
+    timeMachine.container.visible = true;
+
+    await timeMachine.init();
+    await virtualUI.renderOnce();
+
+    // Verify totals/averages exist on Career stats view
+    const renderedStatsText = textContent(timeMachine['statsText'].content);
+    expect(renderedStatsText).toContain('Totals & Averages');
+
+    // Trigger toggle mode (Player -> Team Compare) via handleKeyPress 'c'
+    timeMachine['focusIndex'] = 1;
+    timeMachine['searchInput'].blur();
+    expect(timeMachine.isInputFocused()).toBe(false);
+
+    const toggleHandled = timeMachine.handleKeyPress(makeKeyEvent('c'));
+    expect(toggleHandled).toBe(true);
+    expect(timeMachine['mode']).toBe('team');
+
+    // Verify inputs and panel are switched
+    expect(timeMachine['teamSearchPanel'].visible).toBe(true);
+    expect(timeMachine['searchPanel'].visible).toBe(false);
+
+    // Use teams/seasons present in the CI fixture boxscore slice (2025-26)
+    timeMachine['teamAInput'].value = 'LAL 2025';
+    timeMachine['teamAQuery'] = 'LAL 2025';
+    timeMachine['teamBInput'].value = 'PHI 2025';
+    timeMachine['teamBQuery'] = 'PHI 2025';
+
+    await timeMachine['loadTeamData']('A');
+    await timeMachine['loadTeamData']('B');
+
+    const renderedCompareText = textContent(timeMachine['statsText'].content);
+    expect(renderedCompareText).toContain('HISTORICAL TEAM COMPARISON');
+    expect(renderedCompareText).toContain('Metric');
 
     renderer.destroy();
   });

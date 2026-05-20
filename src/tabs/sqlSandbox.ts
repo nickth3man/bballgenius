@@ -1,13 +1,47 @@
 import {
   BoxRenderable,
+  type CliRenderer,
   InputRenderable,
   type KeyEvent,
   ScrollBoxRenderable,
   TextRenderable,
 } from '@opentui/core';
 import { getColumns, getTables, query } from '../db.js';
+import { getErrorMessage } from '../errors.js';
+import type { DbRow } from '../types.js';
 import { ansiToStyledText, formatTable } from '../utils/formatters.js';
 import { Theme } from '../utils/theme.js';
+
+const SQL_KEYWORDS = [
+  'SELECT',
+  'FROM',
+  'WHERE',
+  'JOIN',
+  'ORDER BY',
+  'GROUP BY',
+  'LIMIT',
+  'AND',
+  'OR',
+  'INSERT',
+  'UPDATE',
+  'DELETE',
+  'CREATE',
+  'TABLE',
+  'AS',
+  'ON',
+  'INNER',
+  'LEFT',
+  'RIGHT',
+  'OUTER',
+  'BY',
+  'DESC',
+  'ASC',
+  'COUNT',
+  'SUM',
+  'AVG',
+  'MIN',
+  'MAX',
+];
 
 interface SchemaNode {
   type: 'table' | 'column';
@@ -28,9 +62,11 @@ export class SqlSandboxTab {
   private readonly resultsPanel: BoxRenderable;
 
   // UI Widgets
+  private readonly schemaFilterInput: InputRenderable;
   private readonly schemaScroll: ScrollBoxRenderable;
   private readonly schemaText: TextRenderable;
   private readonly sqlInput: InputRenderable;
+  private readonly autocompleteText: TextRenderable;
   private readonly resultsScroll: ScrollBoxRenderable;
   private readonly resultsText: TextRenderable;
 
@@ -39,19 +75,24 @@ export class SqlSandboxTab {
   private expandedTables: Set<string> = new Set();
   private schemaNodes: SchemaNode[] = [];
   private selectedSchemaIdx = 0;
+  private schemaFilterQuery = '';
+  private tableColumns: Map<string, { name: string; type: string }[]> = new Map();
 
   private currentQuery = 'SELECT * FROM dim_team LIMIT 10;';
-  private queryResult: any[] = [];
+  private queryResult: DbRow[] = [];
   private executionTimeMs = 0;
   private rowsReturned = 0;
   private errorMessage = '';
+  private autocompleteSuggestions: string[] = [];
+  private selectedSuggestIdx = 0;
 
   // Focus Management
   // 0 = Schema Browser, 1 = SQL Input, 2 = Results Grid
   private focusIndex = 1; // Start focused on SQL Input for immediate typing
+  private schemaFocusTarget: 'filter' | 'tree' = 'filter';
   private focusablePanels: BoxRenderable[] = [];
 
-  constructor(renderer: any) {
+  constructor(renderer: CliRenderer) {
     // Parent container
     this.container = new BoxRenderable(renderer, {
       id: 'sql-sandbox-container',
@@ -73,6 +114,14 @@ export class SqlSandboxTab {
       focusedBorderColor: Theme.borderFocused,
       title: 'Database Schema',
       titleAlignment: Theme.titleAlignment,
+      flexDirection: 'column',
+    });
+
+    this.schemaFilterInput = new InputRenderable(renderer, {
+      id: 'sandbox-schema-filter-input',
+      width: '100%',
+      placeholder: 'Type to filter...',
+      backgroundColor: '#222530',
     });
 
     this.schemaScroll = new ScrollBoxRenderable(renderer, {
@@ -88,6 +137,7 @@ export class SqlSandboxTab {
     });
 
     this.schemaScroll.add(this.schemaText);
+    this.leftPanel.add(this.schemaFilterInput);
     this.leftPanel.add(this.schemaScroll);
 
     // Right Column: Input + Results
@@ -120,6 +170,12 @@ export class SqlSandboxTab {
     });
     this.sqlInput.value = this.currentQuery;
 
+    this.autocompleteText = new TextRenderable(renderer, {
+      id: 'sandbox-autocomplete-text',
+      content: '',
+      wrapMode: 'none',
+    });
+
     const sqlInstructions = new TextRenderable(renderer, {
       id: 'sandbox-sql-instructions',
       content:
@@ -127,6 +183,7 @@ export class SqlSandboxTab {
     });
 
     this.inputPanel.add(this.sqlInput);
+    this.inputPanel.add(this.autocompleteText);
     this.inputPanel.add(sqlInstructions);
 
     // Results Panel
@@ -168,11 +225,17 @@ export class SqlSandboxTab {
     this.focusablePanels = [this.leftPanel, this.inputPanel, this.resultsPanel];
 
     // Wire events
-    (this.sqlInput as any).on('input', () => {
-      this.currentQuery = this.sqlInput.value;
+    this.schemaFilterInput.on('input', () => {
+      this.schemaFilterQuery = this.schemaFilterInput.value;
+      this.rebuildSchemaNodes().then(() => this.renderSchema());
     });
 
-    (this.sqlInput as any).on('enter', () => {
+    this.sqlInput.on('input', () => {
+      this.currentQuery = this.sqlInput.value;
+      this.updateAutocomplete();
+    });
+
+    this.sqlInput.on('enter', () => {
       this.runQuery();
     });
   }
@@ -183,10 +246,14 @@ export class SqlSandboxTab {
   async init() {
     try {
       this.tables = await getTables();
+      for (const table of this.tables) {
+        const cols = await getColumns(table);
+        this.tableColumns.set(table, cols);
+      }
       await this.rebuildSchemaNodes();
       this.renderSchema();
-    } catch (e: any) {
-      this.schemaText.content = ansiToStyledText(`Error loading schema:\n${e.message}`);
+    } catch (e: unknown) {
+      this.schemaText.content = ansiToStyledText(`Error loading schema:\n${getErrorMessage(e)}`);
       this.container.requestRender();
     }
   }
@@ -195,6 +262,7 @@ export class SqlSandboxTab {
    * Focuses active widget and panel (OpenTUI focusable + focusedBorderColor).
    */
   focus() {
+    this.schemaFilterInput.blur();
     this.schemaScroll.blur();
     this.sqlInput.blur();
     this.resultsScroll.blur();
@@ -208,7 +276,11 @@ export class SqlSandboxTab {
     });
 
     if (this.focusIndex === 0) {
-      this.schemaScroll.focus();
+      if (this.schemaFocusTarget === 'filter') {
+        this.schemaFilterInput.focus();
+      } else {
+        this.schemaScroll.focus();
+      }
     } else if (this.focusIndex === 1) {
       this.sqlInput.focus();
     } else {
@@ -223,6 +295,9 @@ export class SqlSandboxTab {
    */
   cycleFocus() {
     this.focusIndex = (this.focusIndex + 1) % this.focusablePanels.length;
+    if (this.focusIndex === 0) {
+      this.schemaFocusTarget = 'filter';
+    }
     this.focus();
   }
 
@@ -232,6 +307,9 @@ export class SqlSandboxTab {
   cycleFocusBackward(): void {
     this.focusIndex =
       (this.focusIndex - 1 + this.focusablePanels.length) % this.focusablePanels.length;
+    if (this.focusIndex === 0) {
+      this.schemaFocusTarget = 'filter';
+    }
     this.focus();
   }
 
@@ -259,13 +337,21 @@ export class SqlSandboxTab {
   }
 
   isInputFocused(): boolean {
-    return this.sqlInput.focused;
+    return this.schemaFilterInput.focused || this.sqlInput.focused;
   }
 
   blurInput() {
-    this.sqlInput.blur();
-    this.focusIndex = 0; // Move focus to Schema browser
-    this.focus();
+    if (this.sqlInput.focused) {
+      this.sqlInput.blur();
+      this.focusIndex = 0;
+      this.schemaFocusTarget = 'tree';
+      this.focus();
+    } else if (this.schemaFilterInput.focused) {
+      this.schemaFilterInput.blur();
+      this.focusIndex = 1;
+      this.schemaFocusTarget = 'filter';
+      this.focus();
+    }
   }
 
   private scrollSchemaIntoView() {
@@ -312,6 +398,44 @@ export class SqlSandboxTab {
         this.toggleOrInsertSchemaNode();
         return true;
       }
+      if (event.name === 'tab') {
+        if (event.shift) {
+          this.cycleFocusBackward();
+        } else {
+          this.cycleFocus();
+        }
+        return true;
+      }
+    } else if (this.focusIndex === 1) {
+      // SQL Input focused
+      if (event.name === 'tab') {
+        if (this.autocompleteSuggestions.length > 0 && !event.shift) {
+          this.acceptAutocomplete();
+          return true;
+        } else {
+          if (event.shift) {
+            this.cycleFocusBackward();
+          } else {
+            this.cycleFocus();
+          }
+          return true;
+        }
+      }
+      if (this.autocompleteSuggestions.length > 0) {
+        if (event.name === 'up') {
+          this.selectedSuggestIdx =
+            (this.selectedSuggestIdx - 1 + this.autocompleteSuggestions.length) %
+            this.autocompleteSuggestions.length;
+          this.updateAutocomplete();
+          return true;
+        }
+        if (event.name === 'down') {
+          this.selectedSuggestIdx =
+            (this.selectedSuggestIdx + 1) % this.autocompleteSuggestions.length;
+          this.updateAutocomplete();
+          return true;
+        }
+      }
     } else if (this.focusIndex === 2) {
       // Results Grid focused
       return this.resultsScroll.handleKeyPress(event);
@@ -340,6 +464,7 @@ export class SqlSandboxTab {
       const curVal = this.sqlInput.value;
       this.sqlInput.value = `${curVal} ${textToInsert}`;
       this.currentQuery = this.sqlInput.value;
+      this.updateAutocomplete();
 
       // Shift focus to SQL input
       this.focusIndex = 1;
@@ -351,31 +476,123 @@ export class SqlSandboxTab {
    * Rebuilds list of schema nodes (tables and columns) based on expand/collapse state.
    */
   private async rebuildSchemaNodes() {
+    const q = (this.schemaFilterQuery || '').trim().toLowerCase();
     const newNodes: SchemaNode[] = [];
 
     for (const table of this.tables) {
+      const cols = this.tableColumns.get(table) || [];
+      const tableMatches = table.toLowerCase().includes(q);
+      const matchingCols = cols.filter((c) => c.name.toLowerCase().includes(q));
+
+      // If we have a filter, and neither the table nor any of its columns match, skip it
+      if (q && !tableMatches && matchingCols.length === 0) {
+        continue;
+      }
+
+      // If we have a filter and there are matching columns, we should auto-expand this table
+      const isExpanded = this.expandedTables.has(table) || (q && matchingCols.length > 0);
+
       newNodes.push({ type: 'table', name: table });
 
-      if (this.expandedTables.has(table)) {
-        try {
-          const cols = await getColumns(table);
-          cols.forEach((c) => {
-            newNodes.push({
-              type: 'column',
-              name: c.name,
-              tableName: table,
-              columnType: c.type,
-            });
+      if (isExpanded) {
+        // If there's a filter, only show the matching columns, otherwise show all
+        const colsToShow = q ? matchingCols : cols;
+        colsToShow.forEach((c) => {
+          newNodes.push({
+            type: 'column',
+            name: c.name,
+            tableName: table,
+            columnType: c.type,
           });
-        } catch (_e) {
-          // Ignore
-        }
+        });
       }
     }
 
     this.schemaNodes = newNodes;
     if (this.selectedSchemaIdx >= this.schemaNodes.length) {
       this.selectedSchemaIdx = Math.max(0, this.schemaNodes.length - 1);
+    }
+  }
+
+  private getAutocompleteSuggestions(): string[] {
+    const queryStr = this.currentQuery || '';
+    // Find the last word being typed. We can split by whitespace, commas, parens, semicolons.
+    const words = queryStr.split(/[\s,()[\]{}";]+/);
+    const lastWord = words[words.length - 1] || '';
+    if (!lastWord) {
+      return [];
+    }
+
+    const lastWordLower = lastWord.toLowerCase();
+
+    // Collect all candidate strings: keywords, table names, and column names
+    const candidates: string[] = [...SQL_KEYWORDS];
+    for (const table of this.tables) {
+      if (!candidates.includes(table)) {
+        candidates.push(table);
+      }
+      const cols = this.tableColumns.get(table) || [];
+      for (const col of cols) {
+        if (!candidates.includes(col.name)) {
+          candidates.push(col.name);
+        }
+      }
+    }
+
+    // Filter candidates that start with or contain the last word
+    // Let's prioritize candidates that START with the last word, then candidates that CONTAIN the last word.
+    const startsWithMatches = candidates.filter(
+      (c) => c.toLowerCase().startsWith(lastWordLower) && c.toLowerCase() !== lastWordLower,
+    );
+    const containsMatches = candidates.filter(
+      (c) =>
+        !c.toLowerCase().startsWith(lastWordLower) &&
+        c.toLowerCase().includes(lastWordLower) &&
+        c.toLowerCase() !== lastWordLower,
+    );
+
+    return [...startsWithMatches, ...containsMatches];
+  }
+
+  private updateAutocomplete() {
+    this.autocompleteSuggestions = this.getAutocompleteSuggestions();
+
+    // Reset selectedSuggestIdx if it is out of bounds
+    if (this.selectedSuggestIdx >= this.autocompleteSuggestions.length) {
+      this.selectedSuggestIdx = 0;
+    }
+
+    if (this.autocompleteSuggestions.length === 0) {
+      this.autocompleteText.content = '';
+    } else {
+      // Build visual line for suggestions
+      const suggestionLines = this.autocompleteSuggestions.map((s, idx) => {
+        const isSelected = idx === this.selectedSuggestIdx;
+        if (isSelected) {
+          return `\x1b[1;37;45m ${s} \x1b[0m`;
+        }
+        return `\x1b[90m${s}\x1b[0m`;
+      });
+      this.autocompleteText.content = ansiToStyledText(
+        `Suggestions: ${suggestionLines.join('  ')}`,
+      );
+    }
+    this.container.requestRender();
+  }
+
+  private acceptAutocomplete() {
+    if (this.autocompleteSuggestions.length === 0) return;
+    const selected = this.autocompleteSuggestions[this.selectedSuggestIdx];
+
+    const val = this.sqlInput.value;
+    const lastWordMatch = val.match(/([\s,()[\]{}";]+)?([^\s,()[\]{}";]+)$/);
+    if (lastWordMatch) {
+      const prefix = lastWordMatch[1] || '';
+      const newVal = `${val.slice(0, val.length - lastWordMatch[0].length) + prefix + selected} `;
+      this.sqlInput.value = newVal;
+      this.currentQuery = newVal;
+      this.selectedSuggestIdx = 0;
+      this.updateAutocomplete();
     }
   }
 
@@ -425,8 +642,8 @@ export class SqlSandboxTab {
       this.rowsReturned = this.queryResult.length;
 
       this.renderResults();
-    } catch (e: any) {
-      this.errorMessage = e.message;
+    } catch (e: unknown) {
+      this.errorMessage = getErrorMessage(e);
       this.queryResult = [];
       this.rowsReturned = 0;
       this.executionTimeMs = performance.now() - start;

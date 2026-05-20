@@ -27,9 +27,9 @@
         "noNonNullAssertion": "off"
       },
       "suspicious": {
-        "noExplicitAny": "warn",
+        "noExplicitAny": "error",
         "noControlCharactersInRegex": "off",
-        "noImplicitAnyLet": "warn",
+        "noImplicitAnyLet": "error",
         "noAssignInExpressions": "off"
       }
     }

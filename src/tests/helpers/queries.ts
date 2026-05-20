@@ -1,4 +1,5 @@
 import { query } from '../../db.js';
+import type { BoxScoreRow, GameShotRow } from '../../queries/gameCenter.js';
 
 // ---------------------------------------------------------------------------
 // Production queries — single source of truth.
@@ -11,8 +12,11 @@ export {
 } from '../../queries/gameCenter.js';
 
 export {
+  findTeam,
   loadCareerStats,
   loadPlayerAwards,
+  loadTeamRoster,
+  loadTeamSeasonStats,
 } from '../../queries/timeMachine.js';
 
 // ---------------------------------------------------------------------------
@@ -21,8 +25,8 @@ export {
 // ---------------------------------------------------------------------------
 
 /** Buggy variant: join dim_team without dedup — triggers duplicate player rows. */
-export async function loadBoxScoreWithoutTeamDedup(gameId: string) {
-  return query(
+export async function loadBoxScoreWithoutTeamDedup(gameId: string): Promise<BoxScoreRow[]> {
+  return query<BoxScoreRow>(
     `
     SELECT
       b.player_id,
@@ -45,8 +49,8 @@ export async function loadBoxScoreWithoutTeamDedup(gameId: string) {
 }
 
 /** Broken variant: missing is_field_goal filter — includes non-shot events. */
-export async function loadGameShotsBrokenFilter(gameId: string) {
-  return query(
+export async function loadGameShotsBrokenFilter(gameId: string): Promise<GameShotRow[]> {
+  return query<GameShotRow>(
     `
     SELECT player_id, team_id, action_type, shot_result, x, y
     FROM fact_pbp_events

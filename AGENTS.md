@@ -61,7 +61,8 @@ To allow robust full-suite integration tests in resource-constrained or headless
 Key terms:
 - **CI Fixture:** A pruned, committed ~2.8 MB DuckDB database (`data/fixtures/nba.ci.duckdb`) containing all core table schemas and a representative slice of historical and deduplication edge-case statistics.
 - **Flat Peer Overrides:** Configuration rules forcing third-party dependencies (like `bun-ffi-structs`) to defer peer compilation directly to the project's root TypeScript 6.0.3 version.
-- **Pre-commit Guards:** Shell validations preventing focused tests (`.only`/`.skip`) or golden snapshot modifications from entering the git tree in CI.
+- **Pre-commit Guards:** Shell validations preventing focused tests (`.only`/`.skip`), golden snapshot modifications, and any Biome warnings from entering CI (`scripts/ci-guards.sh`).
+- **Lint policy:** `noExplicitAny` and `noImplicitAnyLet` are **errors** in `biome.json`; CI requires **zero warnings** from `biome lint` (guards enforce this even if a rule is later downgraded to `warn`).
 
 ### API Reference
 #### `resolveDbPath(): string` (defined in `src/db.ts:11-22`)
@@ -82,7 +83,9 @@ const activePath = resolveDbPath(); // e.g., 'data/fixtures/nba.ci.duckdb'
 
 ### Automation & Script Details
 - **`scripts/build-ci-fixture.ts`** (`bun run fixture:build`): Connects to the local full `data/nba.duckdb` and extracts a subset of games, players (LeBron, Bob Cousy), shot coordinates, and awards. Executes `CHECKPOINT` to eliminate extraneous WAL files.
-- **`scripts/ci-guards.sh`** (run in CI and `bun run ci`): Scans `src/tests/` using ripgrep (`rg`) to reject `.only(` or `.skip(` patterns, and ensures `UPDATE_SNAPSHOTS` is not enabled in Actions.
+- **`scripts/ci-guards.sh`** (run in CI and `bun run ci`): Scans `src/tests/` using ripgrep (`rg`) to reject `.only(` or `.skip(` patterns, ensures `UPDATE_SNAPSHOTS` is not enabled in Actions, and fails if `biome lint` reports any warnings.
+- **`format:check`** (`bun run format:check`): Applies Biome format/write fixes then fails if `git diff` is non-empty (committed sources must already be formatted).
+- **`audit`** (`bun run audit`): Fails on **moderate** (and above) dependency advisories via `bun audit --audit-level=moderate`.
 - **`scripts/apply-branch-protection.sh`**: Helper script to programmatically enforce the aggregate `"CI"` check on the `main` branch via GitHub Branch Protection API.
 - **Common Pitfalls:**
   - *Mismatching snapshots:* Regenerating snapshots with `UPDATE_SNAPSHOTS=1` against local full `nba.duckdb` instead of the CI fixture. Always set `NBA_DUCKDB_PATH=data/fixtures/nba.ci.duckdb` before updating.
@@ -145,7 +148,9 @@ const activePath = resolveDbPath(); // e.g., 'data/fixtures/nba.ci.duckdb'
 
 ### Don't
 - **Never** stage or commit the 1.5 GB `data/nba.duckdb` file (gitignored).
-- **Never** allow `.only(` or `.skip(` in test commits (blocked in CI by `scripts/ci-guards.sh:9`).
+- **Never** allow `.only(` or `.skip(` in test commits (blocked in CI by `scripts/ci-guards.sh`).
+- **Never** commit `any` types or untyped `let` bindings (`noExplicitAny` / `noImplicitAnyLet` are Biome errors).
+- **Never** merge with Biome warnings or unformatted `src/` / `scripts/` (blocked by guards + `format:check`).
 - **Never** permit raw ANSI sequence leaking or raw escape patterns to bleed into snapshot assertions (`src/tests/helpers/ansi.ts:15-18`).
 
 ## Testing Strategy

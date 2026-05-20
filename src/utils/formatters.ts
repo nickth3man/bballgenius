@@ -1,7 +1,8 @@
 /**
  * BBallGenius Terminal Hub Formatting Utilities
  */
-import { createTextAttributes, parseColor, StyledText } from '@opentui/core';
+import { createTextAttributes, parseColor, StyledText, type TextChunk } from '@opentui/core';
+import type { TableDataRow } from '../types.js';
 import { ansiBrightGreen, ansiBrightRed, ansiGreen, ansiRed, isNoColor } from './theme.js';
 
 export { isNoColor } from './theme.js';
@@ -19,7 +20,7 @@ export function stripAnsi(text: string): string {
  */
 export function formatTable(
   headers: string[],
-  rows: any[],
+  rows: TableDataRow[],
   options: {
     alignments?: ('left' | 'right')[];
     maxRows?: number;
@@ -139,8 +140,8 @@ export function formatTable(
  * @param activePlayerId Optional ID of player to highlight their shots specially
  */
 export function drawHalfCourt(
-  shots: { x: number; y: number; shot_result: string; player_id?: any }[],
-  activePlayerId?: any,
+  shots: { x: number; y: number; shot_result: string; player_id?: string | number | null }[],
+  activePlayerId?: string | number | null,
 ): string[] {
   const rows = 18;
   const cols = 40;
@@ -270,14 +271,14 @@ export function drawHalfCourt(
  * avoids escape sequences leaking/breaking in rendering.
  */
 export function ansiToStyledText(text: string): StyledText {
-  const chunks: any[] = [];
+  const chunks: TextChunk[] = [];
   const regex = /\x1b\[([0-9;]*)m/g;
 
   let lastIndex = 0;
-  let match;
+  let match: RegExpExecArray | null = null;
 
-  let currentFg: any;
-  let currentBg: any;
+  let currentFg: string | undefined;
+  let currentBg: string | undefined;
   let isBold = false;
   let isDim = false;
   let isItalic = false;
@@ -429,7 +430,7 @@ function createChunk(
     underline?: boolean;
   },
 ) {
-  const chunk: any = {
+  const chunk: TextChunk = {
     __isChunk: true as const,
     text,
   };

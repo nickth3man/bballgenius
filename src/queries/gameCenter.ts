@@ -1,5 +1,36 @@
 import { query } from '../db.js';
 
+export interface RecentGameRow {
+  game_id: string;
+  game_date: string;
+  season_year: string;
+  home_team: string;
+  away_team: string;
+  home_name: string;
+  away_name: string;
+}
+
+export interface BoxScoreRow {
+  player_id: string;
+  full_name: string;
+  team_abbrev: string;
+  points: number | string;
+  assists: number | string;
+  reb: number | string;
+  steals: number | string;
+  blocks: number | string;
+  min: number | string;
+}
+
+export interface GameShotRow {
+  player_id: string;
+  team_id: string;
+  action_type: string;
+  shot_result: string;
+  x: number;
+  y: number;
+}
+
 /**
  * Loads recent games with deduplicated team abbreviations.
  *
@@ -8,8 +39,8 @@ import { query } from '../db.js';
  *
  * Single source of truth: used by GameCenterTab.init() and test helpers.
  */
-export async function loadRecentGames(limit = 40): Promise<any[]> {
-  return query(`
+export async function loadRecentGames(limit = 40): Promise<RecentGameRow[]> {
+  return query<RecentGameRow>(`
     WITH team_dedup AS (
       SELECT DISTINCT ON (team_id) team_id, team_abbrev, team_name
       FROM dim_team
@@ -39,8 +70,8 @@ export async function loadRecentGames(limit = 40): Promise<any[]> {
  *
  * Single source of truth: used by GameCenterTab.loadGameDetails() and test helpers.
  */
-export async function loadBoxScoreWithTeamDedup(gameId: string): Promise<any[]> {
-  return query(
+export async function loadBoxScoreWithTeamDedup(gameId: string): Promise<BoxScoreRow[]> {
+  return query<BoxScoreRow>(
     `
     WITH team_dedup AS (
       SELECT DISTINCT ON (team_id) team_id, team_abbrev
@@ -75,8 +106,8 @@ export async function loadBoxScoreWithTeamDedup(gameId: string): Promise<any[]> 
  *
  * Single source of truth: used by GameCenterTab.loadGameDetails() and test helpers.
  */
-export async function loadGameShots(gameId: string): Promise<any[]> {
-  return query(
+export async function loadGameShots(gameId: string): Promise<GameShotRow[]> {
+  return query<GameShotRow>(
     `
     SELECT
       player_id,

@@ -1,12 +1,13 @@
 import { createCliRenderer } from '@opentui/core';
 import { createAppShell } from './appShell.js';
 import { closeDb, initDb } from './db.js';
+import { getErrorMessage } from './errors.js';
 
 async function main() {
   try {
     await initDb();
-  } catch (e: any) {
-    console.error('CRITICAL: Failed to initialize DuckDB connection:', e.message);
+  } catch (e: unknown) {
+    console.error('CRITICAL: Failed to initialize DuckDB connection:', getErrorMessage(e));
     process.exit(1);
   }
 

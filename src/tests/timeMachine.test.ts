@@ -1,8 +1,15 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { closeDb, initDb } from '../db.js';
+import type { PlayerAwardRow } from '../queries/timeMachine.js';
 import { TimeMachineTab } from '../tabs/timeMachine.js';
 import { assertNoAnsiLeaks, styledPlainText } from './helpers/ansi.js';
-import { loadCareerStats, loadPlayerAwards } from './helpers/queries.js';
+import {
+  findTeam,
+  loadCareerStats,
+  loadPlayerAwards,
+  loadTeamRoster,
+  loadTeamSeasonStats,
+} from './helpers/queries.js';
 
 const LEBRON_PLAYER_ID = '2544';
 
@@ -33,7 +40,7 @@ describe('Career Time-Machine awards loading', () => {
   });
 
   test('awards query for LeBron (2544) succeeds without binder error', async () => {
-    let awards: Record<string, unknown>[];
+    let awards: PlayerAwardRow[];
     try {
       awards = await loadPlayerAwards(LEBRON_PLAYER_ID);
     } catch (e: unknown) {
@@ -79,6 +86,45 @@ describe('Career Time-Machine awards loading', () => {
     }
   });
 
+  test('renderStats includes career totals and averages when stats exist', () => {
+    const statsText = { content: '' as string | { chunks: { text: string }[] } };
+    const tab = Object.create(TimeMachineTab.prototype) as Record<string, unknown>;
+    Object.assign(tab, {
+      careerStats: [
+        {
+          season_year: '2023-24',
+          is_playoffs: false,
+          gp: 10,
+          gs: 10,
+          min: 200,
+          pts: 150,
+          ast: 50,
+          reb: 40,
+          stl: 5,
+          blk: 2,
+          ts_pct: 0.55,
+          per: 20,
+          bpm: 5,
+          vorp: 1,
+        },
+      ],
+      statsText,
+      container: { requestRender: () => {} },
+    });
+
+    (tab.renderStats as () => void)();
+
+    const plain =
+      typeof statsText.content === 'string'
+        ? statsText.content
+        : styledPlainText(statsText.content as Parameters<typeof styledPlainText>[0]);
+
+    expect(plain).toContain('Regular Season Career Totals & Averages');
+    expect(plain).toContain('GP: 10');
+    expect(plain).toContain('PPG: 15.0');
+    assertNoAnsiLeaks(plain);
+  });
+
   test('renderStats shows plain message when careerStats is empty', () => {
     const statsText = { content: '' as string | { chunks: { text: string }[] } };
     const tab = Object.create(TimeMachineTab.prototype) as Record<string, unknown>;
@@ -110,5 +156,48 @@ describe('Career Time-Machine awards loading', () => {
         expect(val === null || typeof val === 'number').toBe(true);
       }
     }
+  });
+
+  test('findTeam, loadTeamSeasonStats, and loadTeamRoster query functions are healthy', async () => {
+    // Use LAL 2025 — present in the CI fixture boxscore slice (2025-26 season)
+    const team = await findTeam('LAL');
+    expect(team).not.toBeNull();
+    if (!team) {
+      return;
+    }
+    expect(team.team_abbrev).toBe('LAL');
+
+    const stats = await loadTeamSeasonStats(team.team_id, '2025');
+    expect(stats).not.toBeNull();
+    if (!stats) {
+      return;
+    }
+    expect(Number(stats.gp)).toBeGreaterThan(0);
+    expect(Number(stats.ppg)).toBeGreaterThan(0);
+
+    const roster = await loadTeamRoster(team.team_id, '2025');
+    expect(Array.isArray(roster)).toBe(true);
+    expect(roster.length).toBeGreaterThan(0);
+    expect(roster[0]).toHaveProperty('full_name');
+    expect(roster[0]).toHaveProperty('ppg');
+  });
+
+  test('parseTeamQuery parsing patterns are correctly extracted', () => {
+    interface TeamQueryParser {
+      parseTeamQuery(query: string): { teamQuery: string; year: string } | null;
+    }
+    const tab = Object.create(TimeMachineTab.prototype) as TeamQueryParser;
+
+    const res1 = tab.parseTeamQuery('Bulls 1996');
+    expect(res1).toEqual({ teamQuery: 'Bulls', year: '1996' });
+
+    const res2 = tab.parseTeamQuery('1996 Chicago Bulls');
+    expect(res2).toEqual({ teamQuery: 'Chicago Bulls', year: '1996' });
+
+    const res3 = tab.parseTeamQuery('GSW 2024-25');
+    expect(res3).toEqual({ teamQuery: 'GSW', year: '2024' });
+
+    const res4 = tab.parseTeamQuery('NoYearInThisQuery');
+    expect(res4).toBeNull();
   });
 });
