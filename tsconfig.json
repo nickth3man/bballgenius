@@ -9,5 +9,6 @@
     "forceConsistentCasingInFileNames": true,
     "rootDir": "./src"
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*"],
+  "exclude": ["src/tests/**"]
 }
