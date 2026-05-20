@@ -53,6 +53,41 @@ bun run ci:integration
 bun run fixture:build
 ```
 
+## CI/CD Infrastructure & API
+
+### Overview
+To allow robust full-suite integration tests in resource-constrained or headless CI environments without downloading a 1.5 GB database, BBallGenius employs a **CI DuckDB Fixture** strategy coupled with unified static checks and peer dependency overrides.
+
+Key terms:
+- **CI Fixture:** A pruned, committed ~2.8 MB DuckDB database (`data/fixtures/nba.ci.duckdb`) containing all core table schemas and a representative slice of historical and deduplication edge-case statistics.
+- **Flat Peer Overrides:** Configuration rules forcing third-party dependencies (like `bun-ffi-structs`) to defer peer compilation directly to the project's root TypeScript 6.0.3 version.
+- **Pre-commit Guards:** Shell validations preventing focused tests (`.only`/`.skip`) or golden snapshot modifications from entering the git tree in CI.
+
+### API Reference
+#### `resolveDbPath(): string` (defined in `src/db.ts:11-22`)
+Dynamically determines the path to the DuckDB connection file based on environmental contexts.
+
+- **Parameters:** None.
+- **Returns:** `string` (resolved database path).
+- **Behavior:**
+  1. If `process.env.NBA_DUCKDB_PATH` is specified, it returns that path (highest priority override).
+  2. If running under `CI=true` or `GITHUB_ACTIONS=true` and `data/fixtures/nba.ci.duckdb` exists, it falls back to the committed CI fixture database.
+  3. Defaults to the local development database path (`data/nba.duckdb`).
+
+```ts
+import { resolveDbPath } from './db.js';
+
+const activePath = resolveDbPath(); // e.g., 'data/fixtures/nba.ci.duckdb'
+```
+
+### Automation & Script Details
+- **`scripts/build-ci-fixture.ts`** (`bun run fixture:build`): Connects to the local full `data/nba.duckdb` and extracts a subset of games, players (LeBron, Bob Cousy), shot coordinates, and awards. Executes `CHECKPOINT` to eliminate extraneous WAL files.
+- **`scripts/ci-guards.sh`** (run in CI and `bun run ci`): Scans `src/tests/` using ripgrep (`rg`) to reject `.only(` or `.skip(` patterns, and ensures `UPDATE_SNAPSHOTS` is not enabled in Actions.
+- **`scripts/apply-branch-protection.sh`**: Helper script to programmatically enforce the aggregate `"CI"` check on the `main` branch via GitHub Branch Protection API.
+- **Common Pitfalls:**
+  - *Mismatching snapshots:* Regenerating snapshots with `UPDATE_SNAPSHOTS=1` against local full `nba.duckdb` instead of the CI fixture. Always set `NBA_DUCKDB_PATH=data/fixtures/nba.ci.duckdb` before updating.
+  - *Extraneous WAL files:* Quitting the database without closing connectionsSync, causing a `nba.ci.duckdb.wal` to be committed. Always cleanly disconnect connections.
+
 ## Code Style & Conventions
 
 ### Formatting

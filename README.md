@@ -251,21 +251,67 @@ flowchart TB
 
 Resolves the DuckDB file path, opens a cached connection, and returns row objects (JSON-safe types).
 
+#### `resolveDbPath(): string`
+**Purpose:** Resolves the correct file path to the DuckDB connection file depending on the running environment. It enables seamless integration testing in headless CI runners by automatically falling back to a committed minimal fixture database instead of requiring the full 1.5 GB dataset.
+
+**Signature & Types:**
 ```ts
-import { initDb, query, resolveDbPath } from './db.js';
+export function resolveDbPath(): string
+```
+- **Parameters:** None.
+- **Returns:** `string` (The absolute or relative file path to the target DuckDB database).
 
-console.log(resolveDbPath()); // e.g. data/nba.duckdb
+**Error Handling & Edge Cases:**
+- Returns the path string even if the file itself does not yet exist.
+- Downstream initialization (`initDb()`) will throw a critical file-access/missing-database exception if the resolved path points to a missing file at application startup.
+
+**Example Usage:**
+```ts
+import { resolveDbPath, initDb } from './db.js';
+
+// Resolve path based on environments
+const dbPath = resolveDbPath();
+console.log(`Target database path: ${dbPath}`);
+
+// Connection setup
 await initDb();
-const rows = await query('SELECT 1 AS n');
 ```
 
-Override for tests:
+#### `initDb(): Promise<any>`
+**Purpose:** Opens and caches a connection to the resolved database file path.
 
-```bash
-NBA_DUCKDB_PATH=data/fixtures/nba.ci.duckdb bun test src/tests --concurrency=1
+**Signature:**
+```ts
+export async function initDb(): Promise<any>
 ```
 
-Throws if the database file is missing or invalid.
+#### `query(sql, params?): Promise<any[]>`
+**Purpose:** Executes an arbitrary SQL string against the connected DuckDB instance.
+
+**Signature:**
+```ts
+export async function query(sql: string, params?: any[]): Promise<any[]>
+```
+- **Error Handling:** Throws a binder or parsing error if SQL syntax is invalid or references non-existent columns (tested heavily by mutation guards in `src/tests/mutation.test.ts`).
+
+---
+
+### CI/CD Automation Scripts (`scripts/`)
+
+#### 1. `scripts/build-ci-fixture.ts`
+- **What it does:** Extracts a highly targeted slice of statistical records from the full 1.5 GB database to build the lightweight ~2.8 MB committed `data/fixtures/nba.ci.duckdb`.
+- **Design Decisions:** Focuses on preserving key games, deduplication edge-cases (Minneapolis vs LA Lakers), and exact player data used across visual render snapshots and SQL parsing tests. Runs `CHECKPOINT` to prevent `.wal` side-car commits.
+- **Usage:**
+  ```bash
+  bun run fixture:build
+  ```
+
+#### 2. `scripts/ci-guards.sh`
+- **What it does:** Rejects commits that contain focused (`.only`) or skipped (`.skip`) test instructions, preventing disabled test suites from bypassing CI history. It also blocks snapshot updates (`UPDATE_SNAPSHOTS=1`) in non-interactive CI environments.
+- **Pitfalls to Avoid:** Committing test suites containing `.only` or `.skip` which block full pipeline validation. Run `bun run ci` locally before staging to run the guards.
+
+#### 3. `scripts/apply-branch-protection.sh`
+- **What it does:** Invokes the GitHub Repository branch-protection REST endpoint to enforce the aggregate `"CI"` check on `main`. Requires authenticated `gh` admin permissions.
 
 ### `createAppShell(renderer)` — `src/appShell.ts`
 

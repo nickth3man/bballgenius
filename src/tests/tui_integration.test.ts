@@ -287,7 +287,7 @@ describe('TUI Hub Shell & Navigation Integration Tests', () => {
     expect(enterHandled).toBe(true);
 
     // Since loading columns is async, we allow some microticks for rebuildSchemaNodes() to execute
-    await new Promise((resolve) => setTimeout(resolve, 50));
+    await new Promise((resolve) => setTimeout(resolve, 300));
     await virtualUI.renderOnce();
 
     // Verify the table expanded state updated
