@@ -2,6 +2,7 @@ import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { closeDb, initDb } from '../db.js';
 import type { PlayerAwardRow } from '../queries/timeMachine.js';
 import { TimeMachineTab } from '../tabs/timeMachine.js';
+import { parseTeamQuery } from '../utils/teamQuery.js';
 import { assertNoAnsiLeaks, styledPlainText } from './helpers/ansi.js';
 import {
   findTeam,
@@ -183,21 +184,16 @@ describe('Career Time-Machine awards loading', () => {
   });
 
   test('parseTeamQuery parsing patterns are correctly extracted', () => {
-    interface TeamQueryParser {
-      parseTeamQuery(query: string): { teamQuery: string; year: string } | null;
-    }
-    const tab = Object.create(TimeMachineTab.prototype) as TeamQueryParser;
-
-    const res1 = tab.parseTeamQuery('Bulls 1996');
+    const res1 = parseTeamQuery('Bulls 1996');
     expect(res1).toEqual({ teamQuery: 'Bulls', year: '1996' });
 
-    const res2 = tab.parseTeamQuery('1996 Chicago Bulls');
+    const res2 = parseTeamQuery('1996 Chicago Bulls');
     expect(res2).toEqual({ teamQuery: 'Chicago Bulls', year: '1996' });
 
-    const res3 = tab.parseTeamQuery('GSW 2024-25');
+    const res3 = parseTeamQuery('GSW 2024-25');
     expect(res3).toEqual({ teamQuery: 'GSW', year: '2024' });
 
-    const res4 = tab.parseTeamQuery('NoYearInThisQuery');
+    const res4 = parseTeamQuery('NoYearInThisQuery');
     expect(res4).toBeNull();
   });
 });

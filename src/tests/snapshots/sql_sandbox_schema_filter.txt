@@ -1,0 +1,24 @@
+────────────────────────────────────────────────────────────────────────────────
+ [F1/1] Game Center   │   [F2/2] Career Time-Machine   │    [F3/3] SQL Sandbox
+────────────────────────────────────────────────────────────────────────────────
+┌─Database Schema──┐┌─SQL Input (Ctrl+R / Ctrl+E Execute)──────────────────────┐
+│dim_player        ││SELECT * FROM dim_team LIMIT 10;                          │
+│ ▶ ▶ dim_player   ││                                                          │
+│                  ││Tip: Enter any standard DuckDB SQL statement.             │
+│                  ││Keys: [Ctrl+R] or [Ctrl+E] Run, [Enter] Execute/Auto-     │
+│                  │└──────────────────────────────────────────────────────────┘
+│                  │┌─Query Results────────────────────────────────────────────┐
+│                  ││No query has been executed yet.                           │
+│                  ││                                                          │
+│                  ││                                                          │
+│                  ││                                                          │
+│                  ││                                                          │
+│                  ││                                                          │
+│                  ││                                                          │
+│                  ││                                                          │
+│                  ││                                                          │
+│                  ││                                                          │
+│                  ││                                                          │
+│                  ││                                                          │
+└──────────────────┘└──────────────────────────────────────────────────────────┘
+            [BBallGKeys:oF1-3/1-3lTabuShift+Tab:?d|mEscmquit(1.5GB)

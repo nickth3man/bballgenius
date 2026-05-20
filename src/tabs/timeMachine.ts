@@ -19,6 +19,7 @@ import {
   type TeamRosterRow,
 } from '../queries/timeMachine.js';
 import type { DbRow } from '../types.js';
+import { parseTeamQuery } from '../utils/teamQuery.js';
 
 interface PlayerSuggestion {
   player_id: string;
@@ -862,29 +863,9 @@ export class TimeMachineTab {
     this.focus();
   }
 
-  private parseTeamQuery(input: string): { teamQuery: string; year: string } | null {
-    const trimmed = input.trim();
-    if (!trimmed) return null;
-
-    // Regex to match a 4-digit year anywhere in the input (optionally followed by a dash and suffix)
-    const yearMatch = trimmed.match(/\b(19\d{2}|20\d{2})(-\d{2,4})?\b/);
-    if (!yearMatch) {
-      return null;
-    }
-
-    const matchedStr = yearMatch[0];
-    const year = yearMatch[1];
-    const teamQuery = trimmed.replace(matchedStr, '').replace(/\s+/g, ' ').trim();
-    if (!teamQuery) {
-      return null;
-    }
-
-    return { teamQuery, year };
-  }
-
   private async loadTeamData(type: 'A' | 'B') {
     const inputStr = type === 'A' ? this.teamAQuery : this.teamBQuery;
-    const parsed = this.parseTeamQuery(inputStr);
+    const parsed = parseTeamQuery(inputStr);
     if (!parsed) {
       if (type === 'A') {
         this.teamAData = null;

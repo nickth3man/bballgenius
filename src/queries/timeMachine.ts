@@ -177,7 +177,7 @@ export async function loadTeamRoster(
     JOIN dim_game g ON b.game_id = g.game_id
     WHERE b.team_id = $1 AND g.season_year LIKE $2
     GROUP BY p.player_id, p.full_name
-    ORDER BY ppg DESC
+    ORDER BY ppg DESC, p.full_name ASC
     LIMIT 15
   `,
     [teamId, `${seasonYearPattern}%`],

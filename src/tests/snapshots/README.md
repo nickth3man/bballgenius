@@ -7,6 +7,8 @@ These text files store normalized `captureCharFrame()` output from OpenTUI test 
 | File | Captures |
 |------|----------|
 | `game_center_init.txt` | Game Center tab after `createAppShell()` + `initTabs()` at 80×24 |
+| `time_machine_team_compare.txt` | Time Machine team mode, LAL 2025 vs PHI 2025 at 120×32 (footer normalized in test) |
+| `sql_sandbox_schema_filter.txt` | SQL Sandbox with schema filter `dim_player` at 80×24 |
 
 Test: `src/tests/golden_snapshot.test.ts`.
 

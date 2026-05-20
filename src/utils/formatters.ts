@@ -419,6 +419,19 @@ export function ansiToStyledText(text: string): StyledText {
   return new StyledText(chunks);
 }
 
+/** Converts rgb(r,g,b) and ansi256 tokens to hex before OpenTUI parseColor. */
+function colorToParseable(input: string): string {
+  const rgbMatch = input.match(/^rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$/);
+  if (rgbMatch) {
+    const toHex = (n: string) => Number(n).toString(16).padStart(2, '0');
+    return `#${toHex(rgbMatch[1])}${toHex(rgbMatch[2])}${toHex(rgbMatch[3])}`;
+  }
+  if (input.startsWith('ansi256:')) {
+    return '#888888';
+  }
+  return input;
+}
+
 function createChunk(
   text: string,
   style: {
@@ -436,21 +449,11 @@ function createChunk(
   };
 
   if (style.fg) {
-    if (style.fg.startsWith('rgb(') || style.fg.startsWith('ansi256:')) {
-      // rgb(R,G,B) parsed natively
-      // ansi256:I parsed natively by converting to hex or mapping
-      chunk.fg = parseColor(style.fg.startsWith('ansi256:') ? '#888888' : style.fg);
-    } else {
-      chunk.fg = parseColor(style.fg);
-    }
+    chunk.fg = parseColor(colorToParseable(style.fg));
   }
 
   if (style.bg) {
-    if (style.bg.startsWith('rgb(')) {
-      chunk.bg = parseColor(style.bg);
-    } else {
-      chunk.bg = parseColor(style.bg);
-    }
+    chunk.bg = parseColor(colorToParseable(style.bg));
   }
 
   const attributes = createTextAttributes(style);

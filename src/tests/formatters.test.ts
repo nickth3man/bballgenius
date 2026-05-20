@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test';
+import { parseColor } from '@opentui/core';
 import {
   ansiToStyledText,
   drawHalfCourt,
@@ -262,12 +263,13 @@ describe('ANSI to StyledText Parser (ansiToStyledText)', () => {
     expect(styled.chunks[0].attributes).toBeDefined();
   });
 
-  test('should parse 24-bit RGB foreground escape sequences', () => {
+  test('should parse 24-bit RGB foreground escape sequences as hex for parseColor', () => {
     const styled = ansiToStyledText('\x1b[38;2;56;62;90m│\x1b[0m');
     expect(styled.chunks.length).toBeGreaterThanOrEqual(1);
     const pipeChunk = styled.chunks.find((c) => c.text.includes('│'));
     expect(pipeChunk).toBeDefined();
     expect(pipeChunk!.fg).toBeTruthy();
+    expect(pipeChunk!.fg!.equals(parseColor('#383e5a'))).toBe(true);
   });
 
   test('should return StyledText for empty input without throwing', () => {

@@ -157,8 +157,12 @@ const activePath = resolveDbPath(); // e.g., 'data/fixtures/nba.ci.duckdb'
 
 - **Unit Tests:** Formatter logic and ANSI-to-StyledText parsers are entirely database-free (`src/tests/formatters.test.ts`).
 - **Integration Tests:** Execute virtual keyboard keystrokes, panel focus cycling, and input blurs using an OpenTUI `createTestRenderer` mock (`src/tests/tui_integration.test.ts`).
-- **Regression / Snapshot Tests:** Compares real render buffers with a deterministic, normalized golden visual snapshot (`src/tests/golden_snapshot.test.ts`).
-- **Database Path in CI:** Set `NBA_DUCKDB_PATH=data/fixtures/nba.ci.duckdb` to run the complete 80-test integration suite quickly inside GitHub Actions.
+- **Structured span tests:** `captureSpans()` assertions in `src/tests/spans_frame.test.ts` (focus/tab bar colors without parsing ANSI).
+- **Regression / Snapshot Tests:** Compares real render buffers with a deterministic, normalized golden visual snapshot (`src/tests/golden_snapshot.test.ts`; snapshots under `src/tests/snapshots/`).
+- **Agent smoke (fast loop):** `NBA_DUCKDB_PATH=data/fixtures/nba.ci.duckdb bash scripts/agent-smoke.sh` runs formatters + TUI integration + golden tests (~30s).
+- **Keyboard map for agents:** `src/utils/keyboard-map.json` (source: `KEYBOARD_MAP` in `src/utils/keyboardHelp.ts`). Optional PTY exploration: `docs/agent-tui.md`.
+- **Spans JSON dump:** `bun run scripts/capture-spans-dump.ts [tabIndex]` with the CI fixture path set.
+- **Database Path in CI:** Set `NBA_DUCKDB_PATH=data/fixtures/nba.ci.duckdb` to run the complete integration suite quickly inside GitHub Actions.
 
 ## Security & Compliance
 - **Secrets:** No API keys or external secrets are required; all database work is performed in-process via local DuckDB SQLite-style file connections.
