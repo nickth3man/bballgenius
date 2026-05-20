@@ -27,6 +27,7 @@ The app shell (`src/appShell.ts`) owns global key routing, tab visibility, a dyn
 - **team_dedup** — SQL CTE that picks the latest franchise name per `team_id` (e.g. Minneapolis → LA Lakers) so box scores do not duplicate players.
 - **StyledText** — OpenTUI structured text produced by `ansiToStyledText()` so escape codes do not break layout or leak into `plainText`.
 - **Mutation helpers** — Intentionally broken queries in `src/tests/helpers/queries.ts` prove tests catch SQL regressions.
+- **CI fixture** — Committed `data/fixtures/nba.ci.duckdb` (~3 MB) subset used for PR integration tests; see [`data/fixtures/README.md`](data/fixtures/README.md).
 
 ## Requirements
 
@@ -49,12 +50,26 @@ bun start
 
 On first launch the app connects to `data/nba.duckdb`, renders the hub, and loads Game Center. Press `?` anytime for the full shortcut list.
 
+To run the full test suite locally without the large database:
+
+```bash
+bun run ci:integration   # uses committed data/fixtures/nba.ci.duckdb
+```
+
 ## Database setup
 
-The database path is fixed in `src/db.ts`:
+Connection path is resolved in `src/db.ts` via `resolveDbPath()`:
+
+| Priority | Path | When |
+|----------|------|------|
+| 1 | `process.env.NBA_DUCKDB_PATH` | Explicit override (tests, local scripts) |
+| 2 | `data/fixtures/nba.ci.duckdb` | `CI=true` or `GITHUB_ACTIONS=true` and fixture exists |
+| 3 | `data/nba.duckdb` | Default for local development and `bun start` |
 
 ```ts
-DuckDBInstance.fromCache('data/nba.duckdb');
+import { initDb, resolveDbPath } from './db.js';
+
+await initDb(); // opens resolveDbPath()
 ```
 
 1. Create the directory: `mkdir -p data`
@@ -96,11 +111,19 @@ Source of truth for help text: `src/utils/keyboardHelp.ts`.
 src/
   index.ts              # Entry: DB init, OpenTUI renderer, app shell
   appShell.ts           # Tabs, key router, footer, help overlay
-  db.ts                 # DuckDB connection and query helpers
+  db.ts                 # DuckDB path resolution, connection, query helpers
   queries/              # Production SQL (game center, time machine)
   tabs/                 # GameCenterTab, TimeMachineTab, SqlSandboxTab
   utils/                # formatters, theme, keyboardHelp
   tests/                # Bun test suite (unit + integration)
+data/
+  nba.duckdb            # Full database (gitignored, local only)
+  fixtures/
+    nba.ci.duckdb       # CI subset (committed, ~3 MB)
+scripts/
+  build-ci-fixture.ts   # Build nba.ci.duckdb from full database
+  ci-guards.sh          # Block .only/.skip and UPDATE_SNAPSHOTS in CI
+  apply-branch-protection.sh
 ```
 
 ### Scripts
@@ -108,37 +131,53 @@ src/
 | Command | Description |
 |---------|-------------|
 | `bun start` | Run the TUI |
-| `bun test src/tests --concurrency=1` | Full suite (requires DB) |
+| `bun test src/tests --concurrency=1` | Full suite (requires `data/nba.duckdb` or set `NBA_DUCKDB_PATH`) |
 | `bun run test:unit` | DB-free formatter/parser tests |
 | `bun run test:regression` | Shell, mutation, visual, golden snapshots |
+| `bun run typecheck` | Typecheck entire codebase (`tsconfig.json`) |
+| `bun run lint` | Biome lint (`biome ci`) |
+| `bun run lint:fix` | Biome check with auto-fix |
+| `bun run fixture:build` | Rebuild `data/fixtures/nba.ci.duckdb` from full local DB |
+| `bun run ci:integration` | Full test suite against CI fixture |
+| `bun run ci` | Local mirror of PR CI (guards, lint, typecheck, unit, integration, audit) |
 
 Always pass `--concurrency=1` for the full suite so DuckDB and OpenTUI tests do not race.
 
-`bunx tsc --noEmit` typechecks application code under `src/` (test files are excluded from `tsconfig.json` because they use OpenTUI test mocks).
+Both application and test code are fully checked with `bun run typecheck` under a unified `tsconfig.json`.
 
 ### Updating golden snapshots
 
+Golden frames must be regenerated against the **same database** CI uses:
+
 ```bash
-UPDATE_SNAPSHOTS=1 bun test src/tests/golden_snapshot.test.ts --concurrency=1
+NBA_DUCKDB_PATH=data/fixtures/nba.ci.duckdb UPDATE_SNAPSHOTS=1 \
+  bun test src/tests/golden_snapshot.test.ts --concurrency=1
 ```
 
-See `src/tests/snapshots/README.md`.
+See [`src/tests/snapshots/README.md`](src/tests/snapshots/README.md).
 
 ## Testing
 
 ### Tiers
 
-1. **Unit** (`test:unit`) — `formatters.test.ts` only; safe for CI without the database.
-2. **Integration** — All files under `src/tests/`; opens `data/nba.duckdb` in `beforeAll` hooks.
-3. **Regression** (`test:regression`) — App shell wiring, mutations, visual frames, golden snapshot.
+| Tier | Command | Database |
+|------|---------|----------|
+| **Unit** | `bun run test:unit` | None |
+| **Integration** | `bun run ci:integration` or `bun test src/tests --concurrency=1` | CI fixture or full `nba.duckdb` |
+| **Regression** | `bun run test:regression` | Same as integration |
+
+The full suite is **80 tests** across 11 files when run with the CI fixture.
 
 ### Running locally
 
 ```bash
-# No database required
+# No database
 bun run test:unit
 
-# Full suite (~80 tests) with database present
+# CI fixture (~80 tests, no 1.5 GB download)
+bun run ci:integration
+
+# Full local database
 bun test src/tests --concurrency=1
 ```
 
@@ -150,11 +189,30 @@ Based on the official [Bun + GitHub Actions guide](https://bun.sh/docs/guides/ru
 
 | Job | When | What |
 |-----|------|------|
+| **guards** | Every push / PR | Reject `.only` / `.skip` in tests; block `UPDATE_SNAPSHOTS=1` |
+| **lint** | Every push / PR | `bun run lint` (Biome) |
+| **typecheck** | Every push / PR | `bun run typecheck` (unified tsconfig) |
 | **unit** | Every push / PR | `bun run test:unit` |
-| **typecheck** | Every push / PR | `bunx tsc --noEmit` |
-| **integration** | Manual `workflow_dispatch` only | Full suite + regression (needs `data/nba.duckdb` on the runner) |
+| **integration** | Every push / PR | Full suite against `data/fixtures/nba.ci.duckdb` |
+| **audit** | Every push / PR | `bun audit` |
+| **CI** (aggregate) | Every push / PR | All of the above must pass — **required on `main`** |
+| **integration-full** | Manual `workflow_dispatch` | Full suite against `data/nba.duckdb` (~1.5 GB) |
 
-To run integration tests in Actions: use **Actions → CI → Run workflow**, enable **Run full test suite**, and ensure the runner workspace contains `data/nba.duckdb` (e.g. self-hosted runner or a future download step). PR checks do not require the 1.5 GB artifact.
+Run the same checks locally before pushing:
+
+```bash
+bun run ci
+```
+
+**Branch protection:** `main` requires the **CI** status check. Re-apply with:
+
+```bash
+bash scripts/apply-branch-protection.sh
+```
+
+**CI fixture:** [`data/fixtures/README.md`](data/fixtures/README.md) — rebuild with `bun run fixture:build` after changing fixture scope.
+
+**Full-database CI:** Actions → CI → Run workflow → enable **Run tests against full data/nba.duckdb**.
 
 ## Architecture
 
@@ -162,20 +220,22 @@ To run integration tests in Actions: use **Actions → CI → Run workflow**, en
 flowchart TB
   subgraph entry [Entry]
     index[index.ts]
-    db[db.ts]
+    db[db.ts resolveDbPath]
   end
   subgraph shell [App shell]
     router[createAppShellKeyRouter]
     tabs[GameCenter / TimeMachine / SqlSandbox]
   end
   subgraph data [Data]
-    duck[(data/nba.duckdb)]
+    full[(data/nba.duckdb)]
+    fixture[(data/fixtures/nba.ci.duckdb)]
     queries[queries/*.ts]
   end
   index --> db
   index --> shell
   tabs --> queries
-  queries --> duck
+  queries --> full
+  queries --> fixture
   router --> tabs
 ```
 
@@ -187,15 +247,22 @@ flowchart TB
 
 ## API reference (core modules)
 
-### `initDb()` / `query(sql, params?)` — `src/db.ts`
+### `resolveDbPath()` / `initDb()` / `query(sql, params?)` — `src/db.ts`
 
-Opens a cached DuckDB connection to `data/nba.duckdb` and returns row objects (JSON-safe types).
+Resolves the DuckDB file path, opens a cached connection, and returns row objects (JSON-safe types).
 
 ```ts
-import { initDb, query } from './db.js';
+import { initDb, query, resolveDbPath } from './db.js';
 
+console.log(resolveDbPath()); // e.g. data/nba.duckdb
 await initDb();
 const rows = await query('SELECT 1 AS n');
+```
+
+Override for tests:
+
+```bash
+NBA_DUCKDB_PATH=data/fixtures/nba.ci.duckdb bun test src/tests --concurrency=1
 ```
 
 Throws if the database file is missing or invalid.
@@ -226,10 +293,10 @@ Terminal table layout, half-court shot plot, and ANSI → `StyledText` parsing. 
 ## Common pitfalls
 
 - **Running tests without `--concurrency=1`** — Can cause flaky DuckDB or OpenTUI failures.
-- **Committing `data/nba.duckdb`** — Gitignored on purpose; never add the 1.5 GB file.
+- **Committing `data/nba.duckdb`** — Gitignored on purpose; never add the 1.5 GB file. The CI fixture (`data/fixtures/nba.ci.duckdb`) is committed instead.
 - **Expecting Tab to type in SQL/search** — Global Tab cycles panels only when the input is not focused; use Tab inside the field while typing.
-- **Golden snapshot drift** — Intentional UI changes require `UPDATE_SNAPSHOTS=1` and a careful diff review.
-- **CI integration without the DB** — Default PR CI runs unit + typecheck only; full tests are manual dispatch.
+- **Golden snapshot drift** — Regenerate with `NBA_DUCKDB_PATH=data/fixtures/nba.ci.duckdb` so snapshots match CI; review the diff before committing.
+- **Fixture out of date** — After changing queries or test data needs, run `bun run fixture:build` and `bun run ci`.
 
 ## Related projects
 

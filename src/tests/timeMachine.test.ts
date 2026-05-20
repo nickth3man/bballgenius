@@ -1,15 +1,26 @@
-import { expect, test, describe, beforeAll, afterAll } from 'bun:test';
-import { initDb, closeDb } from '../db.js';
+import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import { closeDb, initDb } from '../db.js';
 import { TimeMachineTab } from '../tabs/timeMachine.js';
-import { loadPlayerAwards, loadCareerStats } from './helpers/queries.js';
 import { assertNoAnsiLeaks, styledPlainText } from './helpers/ansi.js';
+import { loadCareerStats, loadPlayerAwards } from './helpers/queries.js';
 
 const LEBRON_PLAYER_ID = '2544';
 
 const CAREER_STATS_COLUMNS = [
-  'season_year', 'is_playoffs', 'gp', 'gs', 'min',
-  'pts', 'ast', 'reb', 'stl', 'blk',
-  'ts_pct', 'per', 'bpm', 'vorp',
+  'season_year',
+  'is_playoffs',
+  'gp',
+  'gs',
+  'min',
+  'pts',
+  'ast',
+  'reb',
+  'stl',
+  'blk',
+  'ts_pct',
+  'per',
+  'bpm',
+  'vorp',
 ] as const;
 
 describe('Career Time-Machine awards loading', () => {
@@ -70,12 +81,14 @@ describe('Career Time-Machine awards loading', () => {
 
   test('renderStats shows plain message when careerStats is empty', () => {
     const statsText = { content: '' as string | { chunks: { text: string }[] } };
-    const tab = Object.create(TimeMachineTab.prototype) as TimeMachineTab;
-    tab['careerStats'] = [];
-    tab['statsText'] = statsText;
-    tab['container'] = { requestRender: () => {} };
+    const tab = Object.create(TimeMachineTab.prototype) as Record<string, unknown>;
+    Object.assign(tab, {
+      careerStats: [],
+      statsText,
+      container: { requestRender: () => {} },
+    });
 
-    tab['renderStats']();
+    (tab.renderStats as () => void)();
 
     const plain =
       typeof statsText.content === 'string'

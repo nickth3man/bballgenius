@@ -63,7 +63,7 @@ export async function loadBoxScoreWithTeamDedup(gameId: string): Promise<any[]> 
     WHERE b.game_id = $1
     ORDER BY b.team_id, b.points DESC
   `,
-    [gameId]
+    [gameId],
   );
 }
 
@@ -91,6 +91,6 @@ export async function loadGameShots(gameId: string): Promise<any[]> {
       AND x IS NOT NULL
       AND y IS NOT NULL
   `,
-    [gameId]
+    [gameId],
   );
 }

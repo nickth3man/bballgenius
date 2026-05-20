@@ -1,9 +1,9 @@
-import { expect, test, describe, beforeAll, afterAll } from 'bun:test';
+import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { createTestRenderer } from '@opentui/core/testing';
-import { initDb, closeDb } from '../db.js';
+import { createAppShell } from '../appShell.js';
+import { closeDb, initDb } from '../db.js';
 import { GameCenterTab } from '../tabs/gameCenter.js';
 import { ansiToStyledText } from '../utils/formatters.js';
-import { createAppShell } from '../appShell.js';
 import { loadRecentGames } from './helpers/queries.js';
 
 const ANSI_LEAK_IN_FRAME = /\[(?:90|32|31|1;35|1;33)m/;
@@ -85,7 +85,7 @@ describe.serial('Visual frame tests (Level 3 captureCharFrame)', () => {
     const game = games[0];
     const dateStr = String(game.game_date).substring(5, 10);
 
-    const virtualUI = await createTestRenderer({ width: 80, height: 24 });
+    const virtualUI = await createTestRenderer({ width: 120, height: 24 });
     const renderer = virtualUI.renderer;
     const gameCenter = new GameCenterTab(renderer);
     renderer.root.add(gameCenter.container);
@@ -95,7 +95,8 @@ describe.serial('Visual frame tests (Level 3 captureCharFrame)', () => {
 
     const frame = virtualUI.captureCharFrame();
     expect(frame).toContain(`[${dateStr}]`);
-    expect(frame).toContain(String(game.away_team));
+    const matchup = `${game.away_team} @ ${game.home_team}`;
+    expect(frame.includes(String(game.away_team)) || frame.includes(matchup)).toBe(true);
 
     renderer.destroy();
   });

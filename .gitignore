@@ -3,5 +3,6 @@ dist/
 .DS_Store
 *.log
 
-# Local DuckDB dataset (download separately; ~1.5 GB)
-data/*.duckdb
+# Local full DuckDB dataset (download separately; ~1.5 GB)
+data/nba.duckdb
+data/**/*.wal

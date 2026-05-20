@@ -1,24 +1,13 @@
-import {
-  BoxRenderable,
-  TextRenderable,
-  KeyEvent,
-  type CliRenderer,
-} from "@opentui/core";
-
-import { ansiToStyledText } from "./utils/formatters.js";
-
-import { Theme } from "./utils/theme.js";
-
-import { buildHelpLines } from "./utils/keyboardHelp.js";
-
-import { GameCenterTab } from "./tabs/gameCenter.js";
-
-import { TimeMachineTab } from "./tabs/timeMachine.js";
-
-import { SqlSandboxTab } from "./tabs/sqlSandbox.js";
+import { BoxRenderable, type CliRenderer, KeyEvent, TextRenderable } from '@opentui/core';
+import { GameCenterTab } from './tabs/gameCenter.js';
+import { SqlSandboxTab } from './tabs/sqlSandbox.js';
+import { TimeMachineTab } from './tabs/timeMachine.js';
+import { ansiToStyledText } from './utils/formatters.js';
+import { buildHelpLines } from './utils/keyboardHelp.js';
+import { Theme } from './utils/theme.js';
 
 /** Compact global shortcut hint shown in the footer. */
-const FOOTER_SHORTCUTS_HINT = "Keys: F1-3/1-3 Tab Shift+Tab ? | Esc quit";
+const FOOTER_SHORTCUTS_HINT = 'Keys: F1-3/1-3 Tab Shift+Tab ? | Esc quit';
 
 export interface AppShellTab {
   readonly id: string;
@@ -92,13 +81,13 @@ export function updateAppStatus(shell: AppShell, message: string): void {
 
 export function createAppShell(renderer: CliRenderer): AppShell {
   const rootBox = new BoxRenderable(renderer, {
-    id: "root-container",
+    id: 'root-container',
 
-    width: "100%",
+    width: '100%',
 
-    height: "100%",
+    height: '100%',
 
-    flexDirection: "column",
+    flexDirection: 'column',
 
     backgroundColor: Theme.background,
   });
@@ -106,27 +95,27 @@ export function createAppShell(renderer: CliRenderer): AppShell {
   renderer.root.add(rootBox);
 
   const headerBox = new BoxRenderable(renderer, {
-    id: "header-box",
+    id: 'header-box',
 
-    width: "100%",
+    width: '100%',
 
     height: 3,
 
-    border: ["top", "bottom"],
+    border: ['top', 'bottom'],
 
     borderColor: Theme.borderNormal,
 
-    backgroundColor: "#16161e",
+    backgroundColor: '#16161e',
 
-    justifyContent: "center",
+    justifyContent: 'center',
 
-    alignItems: "center",
+    alignItems: 'center',
   });
 
   const tabBarText = new TextRenderable(renderer, {
-    id: "tab-bar-text",
+    id: 'tab-bar-text',
 
-    content: "",
+    content: '',
   });
 
   headerBox.add(tabBarText);
@@ -134,23 +123,23 @@ export function createAppShell(renderer: CliRenderer): AppShell {
   rootBox.add(headerBox);
 
   const workspaceBox = new BoxRenderable(renderer, {
-    id: "workspace-box",
+    id: 'workspace-box',
 
-    width: "100%",
+    width: '100%',
 
     flexGrow: 1,
 
-    flexDirection: "column",
+    flexDirection: 'column',
   });
 
   rootBox.add(workspaceBox);
 
   const helpOverlay = new BoxRenderable(renderer, {
-    id: "help-overlay",
+    id: 'help-overlay',
 
-    width: "100%",
+    width: '100%',
 
-    height: "100%",
+    height: '100%',
 
     visible: false,
 
@@ -168,11 +157,11 @@ export function createAppShell(renderer: CliRenderer): AppShell {
   });
 
   const helpText = new TextRenderable(renderer, {
-    id: "help-text",
+    id: 'help-text',
 
-    content: ansiToStyledText(buildHelpLines().join("\n")),
+    content: ansiToStyledText(buildHelpLines().join('\n')),
 
-    wrapMode: "word",
+    wrapMode: 'word',
   });
 
   helpOverlay.add(helpText);
@@ -180,17 +169,17 @@ export function createAppShell(renderer: CliRenderer): AppShell {
   workspaceBox.add(helpOverlay);
 
   const footerBox = new BoxRenderable(renderer, {
-    id: "footer-box",
+    id: 'footer-box',
 
-    width: "100%",
+    width: '100%',
 
     height: 1,
 
-    backgroundColor: "#16161e",
+    backgroundColor: '#16161e',
 
-    justifyContent: "space-between",
+    justifyContent: 'space-between',
 
-    alignItems: "center",
+    alignItems: 'center',
 
     paddingX: 1,
 
@@ -198,19 +187,19 @@ export function createAppShell(renderer: CliRenderer): AppShell {
   });
 
   const footerLeftText = new TextRenderable(renderer, {
-    id: "footer-left-text",
+    id: 'footer-left-text',
 
-    content: "[BBallGenius] Terminal Hub | DuckDB: nba.duckdb (1.5GB)",
+    content: '[BBallGenius] Terminal Hub | DuckDB: nba.duckdb (1.5GB)',
   });
 
   const footerCenterText = new TextRenderable(renderer, {
-    id: "footer-center-text",
+    id: 'footer-center-text',
 
-    content: "",
+    content: '',
   });
 
   const footerRightText = new TextRenderable(renderer, {
-    id: "footer-right-text",
+    id: 'footer-right-text',
 
     content: FOOTER_SHORTCUTS_HINT,
   });
@@ -235,7 +224,7 @@ export function createAppShell(renderer: CliRenderer): AppShell {
 
   let helpVisible = false;
 
-  let transientStatus = "";
+  let transientStatus = '';
 
   tabs.forEach((tab) => {
     workspaceBox.add(tab.container);
@@ -244,7 +233,7 @@ export function createAppShell(renderer: CliRenderer): AppShell {
   const refreshFooterStatus = () => {
     const tab = tabs[activeTabIdx];
 
-    const tabLine = tab.getStatusLine?.() ?? "";
+    const tabLine = tab.getStatusLine?.() ?? '';
 
     const parts: string[] = [];
 
@@ -259,7 +248,7 @@ export function createAppShell(renderer: CliRenderer): AppShell {
     if (parts.length === 0) {
       footerCenterText.content = `Tab: ${tab.name}`;
     } else {
-      footerCenterText.content = parts.join(" | ");
+      footerCenterText.content = parts.join(' | ');
     }
   };
 
@@ -304,9 +293,7 @@ export function createAppShell(renderer: CliRenderer): AppShell {
       return ` \x1b[90m${shortcut} ${tab.name}\x1b[0m `;
     });
 
-    tabBarText.content = ansiToStyledText(
-      tabHeaders.join("  \x1b[38;2;56;62;90m│\x1b[0m  "),
-    );
+    tabBarText.content = ansiToStyledText(tabHeaders.join('  \x1b[38;2;56;62;90m│\x1b[0m  '));
   };
 
   const switchTab = (tabIdx: number) => {
@@ -360,7 +347,7 @@ export function createAppShell(renderer: CliRenderer): AppShell {
   const attachKeyHandlers = (handlers: AppShellHandlers = {}) => {
     handlersRef.current = handlers;
 
-    (renderer.keyInput as any).on("keypress", routeKeyPress);
+    (renderer.keyInput as any).on('keypress', routeKeyPress);
   };
 
   refreshFooterStatus();
@@ -435,7 +422,7 @@ export function createAppShellKeyRouter(
     process.exit(0);
   };
 
-  const switchTabByDigit = (digit: number) => {
+  const _switchTabByDigit = (digit: number) => {
     const tabIdx = digit - 1;
 
     if (tabIdx >= 0 && tabIdx < deps.tabs.length) {
@@ -446,13 +433,13 @@ export function createAppShellKeyRouter(
   };
 
   return (event: KeyEvent) => {
-    if (event.ctrl && event.name === "c") {
+    if (event.ctrl && event.name === 'c') {
       shutdown();
 
       return;
     }
 
-    if (event.name === "?") {
+    if (event.name === '?') {
       deps.toggleHelp();
 
       event.stopPropagation();
@@ -463,7 +450,7 @@ export function createAppShellKeyRouter(
     }
 
     if (deps.isHelpVisible()) {
-      if (event.name === "escape") {
+      if (event.name === 'escape') {
         deps.toggleHelp();
 
         event.stopPropagation();
@@ -476,7 +463,7 @@ export function createAppShellKeyRouter(
       return;
     }
 
-    if (event.name === "f1" || event.name === "1") {
+    if (event.name === 'f1' || event.name === '1') {
       deps.switchTab(0);
 
       event.stopPropagation();
@@ -486,7 +473,7 @@ export function createAppShellKeyRouter(
       return;
     }
 
-    if (event.name === "f2" || event.name === "2") {
+    if (event.name === 'f2' || event.name === '2') {
       deps.switchTab(1);
 
       event.stopPropagation();
@@ -496,7 +483,7 @@ export function createAppShellKeyRouter(
       return;
     }
 
-    if (event.name === "f3" || event.name === "3") {
+    if (event.name === 'f3' || event.name === '3') {
       deps.switchTab(2);
 
       event.stopPropagation();
@@ -506,7 +493,7 @@ export function createAppShellKeyRouter(
       return;
     }
 
-    if (event.name === "tab") {
+    if (event.name === 'tab') {
       const activeTab = deps.tabs[deps.getActiveTabIdx()];
 
       if (activeTab.isInputFocused()) {
@@ -528,7 +515,7 @@ export function createAppShellKeyRouter(
       return;
     }
 
-    if (event.name === "escape") {
+    if (event.name === 'escape') {
       const activeTab = deps.tabs[deps.getActiveTabIdx()];
 
       if (activeTab.isInputFocused()) {
@@ -583,8 +570,8 @@ export function makeTestKeyEvent(
 
     raw: name,
 
-    eventType: "press",
+    eventType: 'press',
 
-    source: "raw",
+    source: 'raw',
   });
 }

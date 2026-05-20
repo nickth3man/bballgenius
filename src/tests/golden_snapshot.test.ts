@@ -1,10 +1,10 @@
-import { expect, test, describe, beforeAll, afterAll } from 'bun:test';
+import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { createTestRenderer } from '@opentui/core/testing';
-import { readFileSync, writeFileSync, existsSync } from 'fs';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
-import { initDb, closeDb } from '../db.js';
 import { createAppShell } from '../appShell.js';
+import { closeDb, initDb } from '../db.js';
 import { normalizeFrameForSnapshot } from './helpers/ansi.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -33,12 +33,10 @@ describe('Golden frame snapshots (Level 5)', () => {
     const frame = normalizeFrameForSnapshot(virtualUI.captureCharFrame());
 
     if (UPDATE_SNAPSHOTS || !existsSync(GAME_CENTER_SNAPSHOT)) {
-      writeFileSync(GAME_CENTER_SNAPSHOT, frame + '\n', 'utf8');
+      writeFileSync(GAME_CENTER_SNAPSHOT, `${frame}\n`, 'utf8');
     }
 
-    const golden = normalizeFrameForSnapshot(
-      readFileSync(GAME_CENTER_SNAPSHOT, 'utf8')
-    );
+    const golden = normalizeFrameForSnapshot(readFileSync(GAME_CENTER_SNAPSHOT, 'utf8'));
 
     expect(frame).toBe(golden);
 

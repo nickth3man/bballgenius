@@ -1,5 +1,5 @@
-import { expect, test, describe, beforeAll, afterAll } from 'bun:test';
-import { initDb, closeDb, query, getTables, getColumns } from '../db.js';
+import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import { closeDb, getColumns, getTables, initDb, query } from '../db.js';
 
 describe('DuckDB Integration', () => {
   beforeAll(async () => {
@@ -19,7 +19,7 @@ describe('DuckDB Integration', () => {
   test('should retrieve tables from schema', async () => {
     const tables = await getTables();
     expect(tables.length).toBeGreaterThan(0);
-    
+
     // Check key historical/factual tables are listed
     expect(tables).toContain('dim_player');
     expect(tables).toContain('dim_game');
@@ -54,7 +54,7 @@ describe('DuckDB Integration', () => {
   test('should retrieve columns for fact_player_awards and verify "award" exists instead of "award_name"', async () => {
     const columns = await getColumns('fact_player_awards');
     const colNames = columns.map((c) => c.name);
-    
+
     expect(colNames).toContain('award');
     expect(colNames).not.toContain('award_name'); // Verifies the fix for the Binder Error!
   });

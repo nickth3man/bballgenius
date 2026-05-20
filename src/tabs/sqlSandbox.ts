@@ -1,6 +1,12 @@
-import { BoxRenderable, TextRenderable, ScrollBoxRenderable, InputRenderable, KeyEvent } from '@opentui/core';
-import { query, getTables, getColumns } from '../db.js';
-import { formatTable, ansiToStyledText } from '../utils/formatters.js';
+import {
+  BoxRenderable,
+  InputRenderable,
+  type KeyEvent,
+  ScrollBoxRenderable,
+  TextRenderable,
+} from '@opentui/core';
+import { getColumns, getTables, query } from '../db.js';
+import { ansiToStyledText, formatTable } from '../utils/formatters.js';
 import { Theme } from '../utils/theme.js';
 
 interface SchemaNode {
@@ -334,7 +340,7 @@ export class SqlSandboxTab {
       const curVal = this.sqlInput.value;
       this.sqlInput.value = `${curVal} ${textToInsert}`;
       this.currentQuery = this.sqlInput.value;
-      
+
       // Shift focus to SQL input
       this.focusIndex = 1;
       this.focus();
@@ -346,10 +352,10 @@ export class SqlSandboxTab {
    */
   private async rebuildSchemaNodes() {
     const newNodes: SchemaNode[] = [];
-    
+
     for (const table of this.tables) {
       newNodes.push({ type: 'table', name: table });
-      
+
       if (this.expandedTables.has(table)) {
         try {
           const cols = await getColumns(table);
@@ -361,12 +367,12 @@ export class SqlSandboxTab {
               columnType: c.type,
             });
           });
-        } catch (e) {
+        } catch (_e) {
           // Ignore
         }
       }
     }
-    
+
     this.schemaNodes = newNodes;
     if (this.selectedSchemaIdx >= this.schemaNodes.length) {
       this.selectedSchemaIdx = Math.max(0, this.schemaNodes.length - 1);
@@ -417,15 +423,17 @@ export class SqlSandboxTab {
       this.queryResult = await query(sql);
       this.executionTimeMs = performance.now() - start;
       this.rowsReturned = this.queryResult.length;
-      
+
       this.renderResults();
     } catch (e: any) {
       this.errorMessage = e.message;
       this.queryResult = [];
       this.rowsReturned = 0;
       this.executionTimeMs = performance.now() - start;
-      
-      this.resultsText.content = ansiToStyledText(`\x1b[1;31mSQL Error:\x1b[0m\n${this.errorMessage}\n\nExecution Time: ${this.executionTimeMs.toFixed(1)}ms`);
+
+      this.resultsText.content = ansiToStyledText(
+        `\x1b[1;31mSQL Error:\x1b[0m\n${this.errorMessage}\n\nExecution Time: ${this.executionTimeMs.toFixed(1)}ms`,
+      );
       this.container.requestRender();
     }
   }
@@ -435,7 +443,9 @@ export class SqlSandboxTab {
    */
   private renderResults() {
     if (this.queryResult.length === 0) {
-      this.resultsText.content = ansiToStyledText(`Statement executed successfully.\nReturned 0 rows.\n\nExecution Time: ${this.executionTimeMs.toFixed(1)}ms`);
+      this.resultsText.content = ansiToStyledText(
+        `Statement executed successfully.\nReturned 0 rows.\n\nExecution Time: ${this.executionTimeMs.toFixed(1)}ms`,
+      );
       this.container.requestRender();
       return;
     }
@@ -446,15 +456,15 @@ export class SqlSandboxTab {
 
     // Generate table lines
     const tableLines = formatTable(headers, this.queryResult, { maxRows: 100 });
-    
+
     const summaryHeader = `\x1b[1;32mQuery Succeeded!\x1b[0m Returned \x1b[1m${this.rowsReturned}\x1b[0m rows in \x1b[1m${this.executionTimeMs.toFixed(1)}ms\x1b[0m (showing max 100 rows)\n\n`;
 
     this.resultsText.content = ansiToStyledText(summaryHeader + tableLines.join('\n'));
-    
+
     // Reset scroll positions of result window so the user sees the top left corner of result matrix
     this.resultsScroll.scrollTop = 0;
     this.resultsScroll.scrollLeft = 0;
-    
+
     this.container.requestRender();
   }
 }

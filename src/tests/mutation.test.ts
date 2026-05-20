@@ -1,16 +1,16 @@
-import { expect, test, describe, beforeAll, afterAll } from 'bun:test';
-import { initDb, closeDb, query } from '../db.js';
+import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import { closeDb, initDb, query } from '../db.js';
 import { ansiToStyledText } from '../utils/formatters.js';
+import { styledPlainText } from './helpers/ansi.js';
 import {
-  loadRecentGames,
-  loadBoxScoreWithTeamDedup,
   loadBoxScoreWithoutTeamDedup,
+  loadBoxScoreWithTeamDedup,
   loadGameShots,
   loadGameShotsBrokenFilter,
   loadPlayerAwards,
   loadPlayerAwardsBrokenColumn,
+  loadRecentGames,
 } from './helpers/queries.js';
-import { styledPlainText } from './helpers/ansi.js';
 
 const LEBRON_PLAYER_ID = '2544';
 
@@ -38,7 +38,9 @@ describe('Mutation / break-it verification (Level 1)', () => {
       brokenError = e;
     }
     expect(brokenError).not.toBeNull();
-    expect(String(brokenError?.message ?? brokenError)).toMatch(/award_name|Binder|referenced column/i);
+    expect(String(brokenError?.message ?? brokenError)).toMatch(
+      /award_name|Binder|referenced column/i,
+    );
   });
 
   test('team_dedup box score is unique; undeduped join can duplicate player_id rows', async () => {

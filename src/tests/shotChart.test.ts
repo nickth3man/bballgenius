@@ -1,10 +1,10 @@
-import { expect, test, describe, beforeAll, afterAll } from 'bun:test';
-import { createTestRenderer } from '@opentui/core/testing';
+import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { TextRenderable } from '@opentui/core';
-import { initDb, closeDb } from '../db.js';
-import { drawHalfCourt, ansiToStyledText } from '../utils/formatters.js';
-import { loadRecentGames, loadGameShots } from './helpers/queries.js';
+import { createTestRenderer } from '@opentui/core/testing';
+import { closeDb, initDb } from '../db.js';
+import { ansiToStyledText, drawHalfCourt } from '../utils/formatters.js';
 import { assertNoAnsiLeaks, styledPlainText } from './helpers/ansi.js';
+import { loadGameShots, loadRecentGames } from './helpers/queries.js';
 
 type ShotRow = {
   player_id: string;
@@ -17,7 +17,7 @@ type ShotRow = {
 
 function buildShotChartContent(shots: ShotRow[]): string {
   const makes = shots.filter(
-    (s) => s.shot_result.toLowerCase().includes('made') || s.shot_result === '1'
+    (s) => s.shot_result.toLowerCase().includes('made') || s.shot_result === '1',
   ).length;
   const total = shots.length;
   const pct = total > 0 ? ((makes / total) * 100).toFixed(1) : '0.0';
@@ -36,7 +36,7 @@ describe('Shot chart OpenTUI rendering', () => {
     expect(games.length).toBeGreaterThan(0);
 
     for (const game of games) {
-      const candidateShots = await loadGameShots(String(game.game_id)) as ShotRow[];
+      const candidateShots = (await loadGameShots(String(game.game_id))) as ShotRow[];
       if (candidateShots.length > 0) {
         gameId = String(game.game_id);
         shots = candidateShots;
@@ -96,10 +96,10 @@ describe('Shot chart OpenTUI rendering', () => {
     assertNoAnsiLeaks(frame);
 
     const hasMade = shots.some(
-      (s) => s.shot_result.toLowerCase().includes('made') || s.shot_result === '1'
+      (s) => s.shot_result.toLowerCase().includes('made') || s.shot_result === '1',
     );
     const hasMissed = shots.some(
-      (s) => !s.shot_result.toLowerCase().includes('made') && s.shot_result !== '1'
+      (s) => !s.shot_result.toLowerCase().includes('made') && s.shot_result !== '1',
     );
 
     if (hasMade) {

@@ -1,14 +1,8 @@
 /**
  * BBallGenius Terminal Hub Formatting Utilities
  */
-import { StyledText, createTextAttributes, parseColor } from '@opentui/core';
-import {
-  isNoColor,
-  ansiGreen,
-  ansiRed,
-  ansiBrightGreen,
-  ansiBrightRed,
-} from './theme.js';
+import { createTextAttributes, parseColor, StyledText } from '@opentui/core';
+import { ansiBrightGreen, ansiBrightRed, ansiGreen, ansiRed, isNoColor } from './theme.js';
 
 export { isNoColor } from './theme.js';
 
@@ -30,7 +24,7 @@ export function formatTable(
     alignments?: ('left' | 'right')[];
     maxRows?: number;
     colKeys?: string[];
-  } = {}
+  } = {},
 ): string[] {
   if (!headers || headers.length === 0) return [];
 
@@ -71,14 +65,14 @@ export function formatTable(
 
   // Determine alignments (right-align numbers automatically if not specified)
   const alignments = headers.map((_, c) => {
-    if (options.alignments && options.alignments[c]) {
+    if (options.alignments?.[c]) {
       return options.alignments[c];
     }
     // Check if column values are mostly numeric
     let numericCount = 0;
     for (let r = 0; r < stringRows.length; r++) {
       const val = stringRows[r][c].trim();
-      if (val !== '' && !isNaN(Number(val))) {
+      if (val !== '' && !Number.isNaN(Number(val))) {
         numericCount++;
       }
     }
@@ -146,7 +140,7 @@ export function formatTable(
  */
 export function drawHalfCourt(
   shots: { x: number; y: number; shot_result: string; player_id?: any }[],
-  activePlayerId?: any
+  activePlayerId?: any,
 ): string[] {
   const rows = 18;
   const cols = 40;
@@ -226,7 +220,6 @@ export function drawHalfCourt(
       // Arc radius is 23.75 feet
       if (r >= 5 && Math.abs(dist - 23.75) < 0.95) {
         grid[r][c] = '·';
-        continue;
       }
     }
   }
@@ -279,44 +272,70 @@ export function drawHalfCourt(
 export function ansiToStyledText(text: string): StyledText {
   const chunks: any[] = [];
   const regex = /\x1b\[([0-9;]*)m/g;
-  
+
   let lastIndex = 0;
   let match;
-  
-  let currentFg: any = undefined;
-  let currentBg: any = undefined;
+
+  let currentFg: any;
+  let currentBg: any;
   let isBold = false;
   let isDim = false;
   let isItalic = false;
   let isUnderline = false;
 
   const colorMap: Record<string, string> = {
-    '30': 'black', '31': 'red', '32': 'green', '33': 'yellow',
-    '34': 'blue', '35': 'magenta', '36': 'cyan', '37': 'white',
-    '90': 'brightBlack', '91': 'brightRed', '92': 'brightGreen', '93': 'brightYellow',
-    '94': 'brightBlue', '95': 'brightMagenta', '96': 'brightCyan', '97': 'brightWhite',
-    '40': 'black', '41': 'red', '42': 'green', '43': 'yellow',
-    '44': 'blue', '45': 'magenta', '46': 'cyan', '47': 'white',
-    '100': 'brightBlack', '101': 'brightRed', '102': 'brightGreen', '103': 'brightYellow',
-    '104': 'brightBlue', '105': 'brightMagenta', '106': 'brightCyan', '107': 'brightWhite',
+    '30': 'black',
+    '31': 'red',
+    '32': 'green',
+    '33': 'yellow',
+    '34': 'blue',
+    '35': 'magenta',
+    '36': 'cyan',
+    '37': 'white',
+    '90': 'brightBlack',
+    '91': 'brightRed',
+    '92': 'brightGreen',
+    '93': 'brightYellow',
+    '94': 'brightBlue',
+    '95': 'brightMagenta',
+    '96': 'brightCyan',
+    '97': 'brightWhite',
+    '40': 'black',
+    '41': 'red',
+    '42': 'green',
+    '43': 'yellow',
+    '44': 'blue',
+    '45': 'magenta',
+    '46': 'cyan',
+    '47': 'white',
+    '100': 'brightBlack',
+    '101': 'brightRed',
+    '102': 'brightGreen',
+    '103': 'brightYellow',
+    '104': 'brightBlue',
+    '105': 'brightMagenta',
+    '106': 'brightCyan',
+    '107': 'brightWhite',
   };
 
   while ((match = regex.exec(text)) !== null) {
     const textPart = text.slice(lastIndex, match.index);
     if (textPart) {
-      chunks.push(createChunk(textPart, {
-        fg: currentFg,
-        bg: currentBg,
-        bold: isBold,
-        dim: isDim,
-        italic: isItalic,
-        underline: isUnderline,
-      }));
+      chunks.push(
+        createChunk(textPart, {
+          fg: currentFg,
+          bg: currentBg,
+          bold: isBold,
+          dim: isDim,
+          italic: isItalic,
+          underline: isUnderline,
+        }),
+      );
     }
-    
+
     const code = match[1];
     const params = code.split(';');
-    
+
     for (let i = 0; i < params.length; i++) {
       const p = params[i] || '0';
       if (p === '0') {
@@ -345,24 +364,24 @@ export function ansiToStyledText(text: string): StyledText {
         currentFg = undefined;
       } else if (p === '49') {
         currentBg = undefined;
-      } else if (p === '38' && params[i+1] === '2') {
-        const r = params[i+2] || '0';
-        const g = params[i+3] || '0';
-        const b = params[i+4] || '0';
+      } else if (p === '38' && params[i + 1] === '2') {
+        const r = params[i + 2] || '0';
+        const g = params[i + 3] || '0';
+        const b = params[i + 4] || '0';
         currentFg = `rgb(${r},${g},${b})`;
         i += 4;
-      } else if (p === '48' && params[i+1] === '2') {
-        const r = params[i+2] || '0';
-        const g = params[i+3] || '0';
-        const b = params[i+4] || '0';
+      } else if (p === '48' && params[i + 1] === '2') {
+        const r = params[i + 2] || '0';
+        const g = params[i + 3] || '0';
+        const b = params[i + 4] || '0';
         currentBg = `rgb(${r},${g},${b})`;
         i += 4;
-      } else if (p === '38' && params[i+1] === '5') {
-        const index = params[i+2] || '0';
+      } else if (p === '38' && params[i + 1] === '5') {
+        const index = params[i + 2] || '0';
         currentFg = `ansi256:${index}`;
         i += 2;
-      } else if (p === '48' && params[i+1] === '5') {
-        const index = params[i+2] || '0';
+      } else if (p === '48' && params[i + 1] === '5') {
+        const index = params[i + 2] || '0';
         currentBg = `ansi256:${index}`;
         i += 2;
       } else {
@@ -378,38 +397,43 @@ export function ansiToStyledText(text: string): StyledText {
         }
       }
     }
-    
+
     lastIndex = regex.lastIndex;
   }
-  
+
   const trailing = text.slice(lastIndex);
   if (trailing) {
-    chunks.push(createChunk(trailing, {
-      fg: currentFg,
-      bg: currentBg,
-      bold: isBold,
-      dim: isDim,
-      italic: isItalic,
-      underline: isUnderline,
-    }));
+    chunks.push(
+      createChunk(trailing, {
+        fg: currentFg,
+        bg: currentBg,
+        bold: isBold,
+        dim: isDim,
+        italic: isItalic,
+        underline: isUnderline,
+      }),
+    );
   }
-  
+
   return new StyledText(chunks);
 }
 
-function createChunk(text: string, style: {
-  fg?: string;
-  bg?: string;
-  bold?: boolean;
-  dim?: boolean;
-  italic?: boolean;
-  underline?: boolean;
-}) {
+function createChunk(
+  text: string,
+  style: {
+    fg?: string;
+    bg?: string;
+    bold?: boolean;
+    dim?: boolean;
+    italic?: boolean;
+    underline?: boolean;
+  },
+) {
   const chunk: any = {
     __isChunk: true as const,
     text,
   };
-  
+
   if (style.fg) {
     if (style.fg.startsWith('rgb(') || style.fg.startsWith('ansi256:')) {
       // rgb(R,G,B) parsed natively
@@ -419,7 +443,7 @@ function createChunk(text: string, style: {
       chunk.fg = parseColor(style.fg);
     }
   }
-  
+
   if (style.bg) {
     if (style.bg.startsWith('rgb(')) {
       chunk.bg = parseColor(style.bg);
@@ -427,11 +451,11 @@ function createChunk(text: string, style: {
       chunk.bg = parseColor(style.bg);
     }
   }
-  
+
   const attributes = createTextAttributes(style);
   if (attributes) {
     chunk.attributes = attributes;
   }
-  
+
   return chunk;
 }

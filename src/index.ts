@@ -1,6 +1,6 @@
 import { createCliRenderer } from '@opentui/core';
-import { initDb, closeDb } from './db.js';
 import { createAppShell } from './appShell.js';
+import { closeDb, initDb } from './db.js';
 
 async function main() {
   try {
@@ -23,7 +23,7 @@ async function main() {
   const shutdown = async () => {
     try {
       await closeDb();
-    } catch (e) {}
+    } catch (_e) {}
     renderer.destroy();
     process.exit(0);
   };

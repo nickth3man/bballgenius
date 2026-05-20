@@ -1,8 +1,14 @@
-import { BoxRenderable, TextRenderable, ScrollBoxRenderable, InputRenderable, KeyEvent } from '@opentui/core';
+import {
+  BoxRenderable,
+  InputRenderable,
+  type KeyEvent,
+  ScrollBoxRenderable,
+  TextRenderable,
+} from '@opentui/core';
 import { query } from '../db.js';
-import { formatTable, ansiToStyledText } from '../utils/formatters.js';
+import { loadCareerStats, loadPlayerAwards } from '../queries/timeMachine.js';
+import { ansiToStyledText, formatTable } from '../utils/formatters.js';
 import { Theme } from '../utils/theme.js';
-import { loadPlayerAwards, loadCareerStats } from '../queries/timeMachine.js';
 
 export class TimeMachineTab {
   readonly id = 'time-machine';
@@ -166,7 +172,7 @@ export class TimeMachineTab {
       if (defaultSearch.length > 0) {
         await this.loadPlayerDetails(defaultSearch[0]);
       }
-    } catch (e) {
+    } catch (_e) {
       // Quietly continue if default fail
     }
   }
@@ -296,13 +302,16 @@ export class TimeMachineTab {
     }
 
     try {
-      this.suggestions = await query(`
+      this.suggestions = await query(
+        `
         SELECT player_id, full_name, from_year, to_year, is_active
         FROM dim_player
         WHERE lower(full_name) LIKE lower($1)
         ORDER BY to_year DESC, full_name ASC
         LIMIT 8
-      `, [`%${q}%`]);
+      `,
+        [`%${q}%`],
+      );
 
       this.selectedSuggestIdx = 0;
       this.renderSuggestions();
@@ -331,7 +340,7 @@ export class TimeMachineTab {
       return `${prefix}${name} ${seasons} - ${status}`;
     });
 
-    this.suggestionsText.content = ansiToStyledText('\n' + lines.join('\n'));
+    this.suggestionsText.content = ansiToStyledText(`\n${lines.join('\n')}`);
     this.container.requestRender();
   }
 
@@ -347,7 +356,7 @@ export class TimeMachineTab {
       this.suggestions = [];
       this.suggestionsText.content = ansiToStyledText('\nSearch completed. Type to search again.');
       this.searchInput.blur();
-      
+
       // Shift focus to Stats panel for review
       this.focusIndex = 1;
       this.focus();
@@ -367,9 +376,12 @@ export class TimeMachineTab {
 
     try {
       // 1. Fetch detailed player metadata
-      const details = await query(`
+      const details = await query(
+        `
         SELECT * FROM dim_player WHERE player_id = $1 LIMIT 1
-      `, [player.player_id]);
+      `,
+        [player.player_id],
+      );
 
       const meta = details[0] || player;
 
@@ -384,7 +396,6 @@ export class TimeMachineTab {
 
       // Render Stats
       this.renderStats();
-
     } catch (e: any) {
       this.dossierText.content = ansiToStyledText(`Error loading details:\n${e.message}`);
       this.statsText.content = ansiToStyledText('');
@@ -400,14 +411,14 @@ export class TimeMachineTab {
     const inches = meta.height_inches % 12;
     const heightStr = meta.height_inches ? `${feet}'${inches}"` : 'Unknown';
     const weightStr = meta.body_weight_lbs ? `${meta.body_weight_lbs} lbs` : 'Unknown';
-    
+
     let draftStr = 'Undrafted';
     if (meta.draft_year) {
       draftStr = `${meta.draft_year} - Rd ${meta.draft_round}, Pick ${meta.draft_number}`;
     }
 
     let dossier = `\x1b[1;35m${meta.full_name}\x1b[0m\n`;
-    dossier += `═`.repeat(meta.full_name.length) + `\n`;
+    dossier += `${`═`.repeat(meta.full_name.length)}\n`;
     dossier += `• \x1b[1mCareer Span:\x1b[0m ${meta.from_year} - ${meta.to_year} (${meta.is_active ? '\x1b[32mActive\x1b[0m' : 'Retired'})\n`;
     dossier += `• \x1b[1mPhysicals:\x1b[0m   ${heightStr} | ${weightStr}\n`;
     dossier += `• \x1b[1mBirth Date:\x1b[0m  ${meta.birth_date || 'Unknown'}\n`;
@@ -436,14 +447,44 @@ export class TimeMachineTab {
       return;
     }
 
-    const headers = ['Season', 'Type', 'GP', 'GS', 'MIN', 'PTS', 'AST', 'REB', 'STL', 'BLK', 'TS%', 'PER', 'BPM', 'VORP'];
-    const keys = ['season_year', 'playoff_str', 'gp', 'gs', 'min', 'pts', 'ast', 'reb', 'stl', 'blk', 'ts_pct_str', 'per', 'bpm', 'vorp'];
+    const headers = [
+      'Season',
+      'Type',
+      'GP',
+      'GS',
+      'MIN',
+      'PTS',
+      'AST',
+      'REB',
+      'STL',
+      'BLK',
+      'TS%',
+      'PER',
+      'BPM',
+      'VORP',
+    ];
+    const keys = [
+      'season_year',
+      'playoff_str',
+      'gp',
+      'gs',
+      'min',
+      'pts',
+      'ast',
+      'reb',
+      'stl',
+      'blk',
+      'ts_pct_str',
+      'per',
+      'bpm',
+      'vorp',
+    ];
 
     const formattedRows = this.careerStats.map((stat) => {
       return {
         ...stat,
         playoff_str: stat.is_playoffs ? 'Playoffs' : 'Reg Season',
-        ts_pct_str: stat.ts_pct ? (stat.ts_pct * 100).toFixed(1) + '%' : '.000',
+        ts_pct_str: stat.ts_pct ? `${(stat.ts_pct * 100).toFixed(1)}%` : '.000',
         per: stat.per ? stat.per.toFixed(1) : '---',
         bpm: stat.bpm ? stat.bpm.toFixed(1) : '---',
         vorp: stat.vorp ? stat.vorp.toFixed(1) : '---',

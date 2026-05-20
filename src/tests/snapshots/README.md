@@ -1,23 +1,65 @@
 # Golden frame snapshots
 
-These text files store normalized `captureCharFrame()` output from OpenTUI test renders.
+These text files store normalized `captureCharFrame()` output from OpenTUI test renders. They guard against unintended UI regressions in layout, copy, and ANSI handling.
 
 ## Files
 
-- `game_center_init.txt` — Game Center tab after `createAppShell` + `initTabs()` at 80×24.
+| File | Captures |
+|------|----------|
+| `game_center_init.txt` | Game Center tab after `createAppShell()` + `initTabs()` at 80×24 |
+
+Test: `src/tests/golden_snapshot.test.ts`.
+
+## Database dependency
+
+Golden tests call `initDb()` and load real game list data. **CI and committed snapshots use the CI fixture**, not the full 1.5 GB database:
+
+```bash
+NBA_DUCKDB_PATH=data/fixtures/nba.ci.duckdb
+```
+
+If you regenerate against `data/nba.duckdb` locally, the snapshot will drift from what GitHub Actions expects. Always use the fixture unless you intentionally rebaseline everything (including rebuilding the fixture).
+
+See [`data/fixtures/README.md`](../../../data/fixtures/README.md).
 
 ## Updating snapshots
 
-When you intentionally change layout, colors, or copy and tests fail on snapshot diff:
+When you intentionally change layout, colors, or copy and `golden_snapshot.test.ts` fails:
 
 ```bash
-UPDATE_SNAPSHOTS=1 bun test src/tests/golden_snapshot.test.ts
+NBA_DUCKDB_PATH=data/fixtures/nba.ci.duckdb UPDATE_SNAPSHOTS=1 \
+  bun test src/tests/golden_snapshot.test.ts --concurrency=1
 ```
 
-Review the git diff on the `.txt` file before committing. Snapshots are normalized (trimmed trailing spaces, collapsed extra blank lines).
+`UPDATE_SNAPSHOTS=1` is blocked in CI by `scripts/ci-guards.sh`.
 
-## Running regression-focused tests
+**Before committing:**
+
+1. Review the full git diff on the `.txt` file (matchups, box score columns, footer text).
+2. Confirm you used the CI fixture path above.
+3. Run `bun run ci:integration` to ensure the new snapshot passes.
+
+## Normalization
+
+`normalizeFrameForSnapshot()` in `src/tests/helpers/ansi.ts`:
+
+- Normalizes line endings to `\n`
+- Trims trailing spaces per line
+- Collapses runs of 3+ blank lines to 2
+- Trims trailing newline at end of file
+
+Raw ANSI escape sequences should not appear in snapshots; production paths use `ansiToStyledText()` before render.
+
+## Related commands
 
 ```bash
+# Golden test only (read-only)
+NBA_DUCKDB_PATH=data/fixtures/nba.ci.duckdb \
+  bun test src/tests/golden_snapshot.test.ts --concurrency=1
+
+# Broader regression bundle (shell, mutation, visual, golden)
 bun run test:regression
+
+# Full PR-equivalent integration
+bun run ci:integration
 ```

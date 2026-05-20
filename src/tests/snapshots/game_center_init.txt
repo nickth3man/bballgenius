@@ -2,23 +2,23 @@
   [F1/1] Game Center    │   [F2/2] Career Time-Machine   │   [F3/3] SQL Sandbox
 ────────────────────────────────────────────────────────────────────────────────
 ┌─Games────────┐┌─Box Score──────────────────────────┐┌─Shot Chart─────────────┐
-│ ▶ [05-05] LA▀││▀───────────────────────────┬──────┬││All Players             │
-│   [05-05] CL │││ Player                    │ Team │││Shots: 77/93 (45.3% FG) │
-│   [05-04] PH ││├───────────────────────────┼──────┼││Zones: paint 90 | corner│
-│   [05-04] MI │││ ▶ All Players             │ ---  │││                        │
-│   [05-03] TO │││   LeBron James            │ LAL  │││─────────x──────────────│
-│   [05-03] OR │││   Rui Hachimura           │ LAL  ││││o│          │   oooox═ │
-│   [05-02] PH │││   Marcus Smart            │ LAL  ││││o│ o  xxo   │oxxxooox  │
-│   [05-01] LA │││   Deandre Ayton           │ LAL  ││││ │x     o   │xoxxxxx  x│
-│   [05-01] CL │││   Austin Reaves           │ LAL  ││││ │          │    ox    │
-│   [05-01] DE │││   Luke Kennard            │ LAL  ││││o│·       xo│   o oxx  │
-│   [04-30] BO │││   Jaxson Hayes            │ LAL  ││││xx··     x xxo    xx x │
-│   [04-30] DE │││   Jake LaRavia            │ LAL  ││││x ox·    x  └─────x─o─o│
-│   [04-30] NY │││   Jarred Vanderbilt       │ LAL  ││││   ox··            x   │
-│   [04-29] OR │││   Dalton Knecht           │ LAL  ││││     oxx··o            │
-│   [04-29] TO │││   Adou Thiero             │ LAL  ││││        o  o···   o   x│
-│   [04-29] HO │││   Maxi Kleber             │ LAL  ││││             x  x x xxx│
-│   [04-28] PO │││   Nick Smith Jr.          │ LAL  ││││                 x     │
-│   [04-28] PH │││   Bronny James            │ LAL  ││││                       │
+│ ▶ [05-05] CL█││┌─────────────────────┬──────┬─────█││All Players             │
+│   [05-05] LA▀│││ Player              │ Team │      ││Shots: 73/91 (44.5% FG) │
+│   [05-04] PH ││├─────────────────────┼──────┼───── ││Zones: paint 90 | corner│
+│   [05-04] MI │││ ▶ All Players       │ ---  │      ││                        │
+│   [05-03] OR │││   Donovan Mitchell  │ CLE  │      ││────────────────────────│
+│   [05-03] TO │││   James Harden      │ CLE  │      │││o│          │    oox══ │
+│   [05-02] PH │││   Max Strus         │ CLE  │      │││x│          │  ooxoox o│
+│   [05-01] CL │││   Evan Mobley       │ CLE  │ 34.7 │││x│          │ xxoooox  │
+│   [05-01] LA │││   Dennis Schroder   │ CLE  │      │││ │      o   x  oxxo  xo│
+│   [05-01] DE │││   Dean Wade         │ CLE  │ 27.7 │││ │·         │ o   x    │
+│   [04-30] NY │││   Thomas Bryant     │ CLE  │  9.7 │││o ··        │ o xx  oo │
+│   [04-30] DE │││   Keon Ellis        │ CLE  │ 10.9 │││  x ·      o└──x───────│
+│   [04-30] BO │││   Jarrett Allen     │ CLE  │ 18.3 │││   xx··         x      │
+│   [04-29] TO │││   Larry Nance Jr.   │ CLE  │      │││     ox ··             │
+│   [04-29] HO │││   Tyrese Proctor    │ CLE  │      │││        x ox···        │
+│   [04-29] OR │││   Craig Porter Jr.  │ CLE  │      │││        x       ox   x │
+│   [04-28] PO │││   Sam Merrill       │ CLE  │  6.6 │││                ox o   │
+│   [04-28] PH │││   Jaylon Tyson      │ CLE  │ 17.5 │││                       │
 └──────────────┘└────────────────────────────────────┘└────────────────────────┘
             Gamesl1Keys:]F1-3/1-3PTabeShift+Taba?e|sEsc↑quitve.game

@@ -18,7 +18,7 @@ export async function loadPlayerAwards(playerId: string): Promise<any[]> {
     ORDER BY season_year DESC, award ASC
     LIMIT 5
   `,
-    [playerId]
+    [playerId],
   );
 }
 
@@ -52,6 +52,6 @@ export async function loadCareerStats(playerId: string): Promise<any[]> {
     WHERE player_id = $1
     ORDER BY season_year DESC, is_playoffs DESC
   `,
-    [playerId]
+    [playerId],
   );
 }

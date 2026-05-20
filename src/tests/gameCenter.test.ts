@@ -1,12 +1,8 @@
-import { expect, test, describe, beforeAll, afterAll } from 'bun:test';
-import { initDb, closeDb, query } from '../db.js';
+import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import { closeDb, initDb, query } from '../db.js';
 import { GameCenterTab } from '../tabs/gameCenter.js';
-import {
-  loadBoxScoreWithTeamDedup,
-  loadGameShots,
-  loadRecentGames,
-} from './helpers/queries.js';
 import { assertNoAnsiLeaks } from './helpers/ansi.js';
+import { loadBoxScoreWithTeamDedup, loadGameShots, loadRecentGames } from './helpers/queries.js';
 
 type BoxScoreRow = { player_id: unknown };
 
@@ -22,14 +18,7 @@ const BOX_SCORE_COLUMNS = [
   'min',
 ] as const;
 
-const GAME_SHOT_COLUMNS = [
-  'player_id',
-  'team_id',
-  'action_type',
-  'shot_result',
-  'x',
-  'y',
-] as const;
+const GAME_SHOT_COLUMNS = ['player_id', 'team_id', 'action_type', 'shot_result', 'x', 'y'] as const;
 
 function countPlayerOccurrences(rows: BoxScoreRow[]): Map<string, number> {
   const counts = new Map<string, number>();
@@ -143,12 +132,14 @@ describe.serial('Game Center box score deduplication', () => {
 
   test('renderBoxScore shows plain message when boxScores is empty', () => {
     const boxScoreText = { content: '' as string };
-    const tab = Object.create(GameCenterTab.prototype) as GameCenterTab;
-    tab['boxScores'] = [];
-    tab['boxScoreText'] = boxScoreText;
-    tab['container'] = { requestRender: () => {} };
+    const tab = Object.create(GameCenterTab.prototype) as Record<string, unknown>;
+    Object.assign(tab, {
+      boxScores: [],
+      boxScoreText,
+      container: { requestRender: () => {} },
+    });
 
-    tab['renderBoxScore']();
+    (tab.renderBoxScore as () => void)();
 
     const plain = String(boxScoreText.content);
     expect(plain).toContain('No box score data');

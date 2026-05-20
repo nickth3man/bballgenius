@@ -1,7 +1,11 @@
-import { BoxRenderable, TextRenderable, ScrollBoxRenderable, KeyEvent } from '@opentui/core';
-import { formatTable, drawHalfCourt, ansiToStyledText } from '../utils/formatters.js';
+import { BoxRenderable, type KeyEvent, ScrollBoxRenderable, TextRenderable } from '@opentui/core';
+import {
+  loadBoxScoreWithTeamDedup,
+  loadGameShots,
+  loadRecentGames,
+} from '../queries/gameCenter.js';
+import { ansiToStyledText, drawHalfCourt, formatTable } from '../utils/formatters.js';
 import { Theme } from '../utils/theme.js';
-import { loadRecentGames, loadBoxScoreWithTeamDedup, loadGameShots } from '../queries/gameCenter.js';
 
 export class GameCenterTab {
   readonly id = 'game-center';
@@ -363,7 +367,16 @@ export class GameCenterTab {
 
     // Build the grid headers and rows
     const headers = ['Player', 'Team', 'MIN', 'PTS', 'AST', 'REB', 'STL', 'BLK'];
-    const keys = ['full_name', 'team_abbrev', 'min', 'points', 'assists', 'reb', 'steals', 'blocks'];
+    const keys = [
+      'full_name',
+      'team_abbrev',
+      'min',
+      'points',
+      'assists',
+      'reb',
+      'steals',
+      'blocks',
+    ];
 
     // Map rows and insert a selection indicator on player rows
     const mappedRows = this.boxScores.map((player, idx) => {
@@ -405,22 +418,25 @@ export class GameCenterTab {
     if (this.selectedPlayerIdx >= 0) {
       const selectedPlayer = this.boxScores[this.selectedPlayerIdx];
       if (selectedPlayer) {
-        filteredShots = this.shots.filter((s) => String(s.player_id) === String(selectedPlayer.player_id));
+        filteredShots = this.shots.filter(
+          (s) => String(s.player_id) === String(selectedPlayer.player_id),
+        );
         selectedPlayerName = selectedPlayer.full_name;
       }
     }
 
-    const makes = filteredShots.filter((s) => s.shot_result.toLowerCase().includes('made') || s.shot_result === '1').length;
+    const makes = filteredShots.filter(
+      (s) => s.shot_result.toLowerCase().includes('made') || s.shot_result === '1',
+    ).length;
     const total = filteredShots.length;
     const pct = total > 0 ? ((makes / total) * 100).toFixed(1) : '0.0';
 
     const courtLines = drawHalfCourt(
       filteredShots,
-      this.selectedPlayerIdx >= 0 ? this.boxScores[this.selectedPlayerIdx].player_id : undefined
+      this.selectedPlayerIdx >= 0 ? this.boxScores[this.selectedPlayerIdx].player_id : undefined,
     );
 
-    const zoneSummary =
-      total > 0 ? this.summarizeShotZones(filteredShots) : 'Zones: (no shots)';
+    const zoneSummary = total > 0 ? this.summarizeShotZones(filteredShots) : 'Zones: (no shots)';
 
     // Title / stats overlay
     const titleOverlay = `\x1b[1;33m${selectedPlayerName}\x1b[0m\nShots: \x1b[32m${makes}\x1b[0m/\x1b[31m${total - makes}\x1b[0m (${pct}% FG)\n${zoneSummary}`;

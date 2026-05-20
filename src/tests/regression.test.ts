@@ -1,14 +1,10 @@
-import { expect, test, describe, beforeAll, afterAll } from 'bun:test';
+import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { createTestRenderer } from '@opentui/core/testing';
-import { initDb, closeDb } from '../db.js';
+import { closeDb, initDb } from '../db.js';
 import { GameCenterTab } from '../tabs/gameCenter.js';
-import { drawHalfCourt, ansiToStyledText } from '../utils/formatters.js';
-import {
-  loadRecentGames,
-  loadBoxScoreWithTeamDedup,
-  loadPlayerAwards,
-} from './helpers/queries.js';
+import { ansiToStyledText, drawHalfCourt } from '../utils/formatters.js';
 import { assertNoAnsiLeaks, styledPlainText } from './helpers/ansi.js';
+import { loadBoxScoreWithTeamDedup, loadPlayerAwards, loadRecentGames } from './helpers/queries.js';
 
 const LEBRON_PLAYER_ID = '2544';
 
@@ -69,8 +65,7 @@ describe('Regression guards (Level 1–2 user outcomes)', () => {
     await virtualUI.renderOnce();
 
     const shotContent = gameCenter['shotChartText'].content;
-    const plain =
-      typeof shotContent === 'string' ? shotContent : styledPlainText(shotContent);
+    const plain = typeof shotContent === 'string' ? shotContent : styledPlainText(shotContent);
 
     assertNoAnsiLeaks(plain);
     expect(plain.length).toBeGreaterThan(10);

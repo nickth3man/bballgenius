@@ -1,14 +1,13 @@
-import { expect, test, describe, beforeAll, afterAll } from 'bun:test';
-import { KeyEvent } from '@opentui/core';
+import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import { BoxRenderable, KeyEvent, TextRenderable } from '@opentui/core';
 import { createTestRenderer, KeyCodes } from '@opentui/core/testing';
-import { BoxRenderable, TextRenderable, InputRenderable, ScrollBoxRenderable } from '@opentui/core';
-import { initDb, closeDb } from '../db.js';
-import { Theme } from '../utils/theme.js';
-import { createAppShell, makeTestKeyEvent, type AppShell } from '../appShell.js';
+import { type AppShell, createAppShell, makeTestKeyEvent } from '../appShell.js';
+import { closeDb, initDb } from '../db.js';
 import { GameCenterTab } from '../tabs/gameCenter.js';
-import { TimeMachineTab } from '../tabs/timeMachine.js';
 import { SqlSandboxTab } from '../tabs/sqlSandbox.js';
+import { TimeMachineTab } from '../tabs/timeMachine.js';
 import { ansiToStyledText } from '../utils/formatters.js';
+import { Theme } from '../utils/theme.js';
 
 function makeKeyEvent(name: string, modifiers?: { shift?: boolean }): KeyEvent {
   return new KeyEvent({
@@ -26,14 +25,20 @@ function makeKeyEvent(name: string, modifiers?: { shift?: boolean }): KeyEvent {
 }
 
 function readHelpVisible(shell: AppShell): boolean | undefined {
-  const extended = shell as AppShell & { helpVisible?: boolean; helpOverlay?: { visible?: boolean } };
+  const extended = shell as AppShell & {
+    helpVisible?: boolean;
+    helpOverlay?: { visible?: boolean };
+  };
   if (typeof extended.helpVisible === 'boolean') {
     return extended.helpVisible;
   }
   if (extended.helpOverlay && typeof extended.helpOverlay.visible === 'boolean') {
     return extended.helpOverlay.visible;
   }
-  for (const child of shell.workspaceBox.children ?? []) {
+  const workspaceChildren = (
+    shell.workspaceBox as { children?: { id?: string; visible?: boolean }[] }
+  ).children;
+  for (const child of workspaceChildren ?? []) {
     if ((child as { id?: string }).id === 'help-overlay') {
       return (child as { visible: boolean }).visible;
     }
@@ -95,11 +100,7 @@ describe('TUI Hub Shell & Navigation Integration Tests', () => {
     rootBox.add(workspaceBox);
 
     // 3. Mount tabs
-    tabs = [
-      new GameCenterTab(renderer),
-      new TimeMachineTab(renderer),
-      new SqlSandboxTab(renderer),
-    ];
+    tabs = [new GameCenterTab(renderer), new TimeMachineTab(renderer), new SqlSandboxTab(renderer)];
 
     tabs.forEach((tab) => {
       workspaceBox.add(tab.container);
@@ -111,7 +112,7 @@ describe('TUI Hub Shell & Navigation Integration Tests', () => {
       tabs.forEach((tab, idx) => {
         tab.container.visible = idx === activeTabIdx;
       });
-      
+
       const tabHeaders = tabs.map((tab, idx) => {
         const shortcut = `[F${idx + 1}]`;
         const isSelected = idx === activeTabIdx;
@@ -142,7 +143,7 @@ describe('TUI Hub Shell & Navigation Integration Tests', () => {
     expect(tabs[0].container.visible).toBe(false);
     expect(tabs[1].container.visible).toBe(true);
     expect(tabs[2].container.visible).toBe(false);
-    
+
     // Check search input grabbed focus
     expect(tabs[1].isInputFocused()).toBe(true);
 

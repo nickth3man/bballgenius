@@ -1,10 +1,10 @@
-import { expect, test, describe, beforeAll, afterAll } from 'bun:test';
+import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { KeyEvent } from '@opentui/core';
 import { createTestRenderer, KeyCodes } from '@opentui/core/testing';
-import { initDb, closeDb } from '../db.js';
-import { createAppShell, makeTestKeyEvent, type AppShell } from '../appShell.js';
-import { TimeMachineTab } from '../tabs/timeMachine.js';
-import { SqlSandboxTab } from '../tabs/sqlSandbox.js';
+import { type AppShell, createAppShell, makeTestKeyEvent } from '../appShell.js';
+import { closeDb, initDb } from '../db.js';
+import type { SqlSandboxTab } from '../tabs/sqlSandbox.js';
+import type { TimeMachineTab } from '../tabs/timeMachine.js';
 import { pressEscapeAndFlush } from './helpers/keyInput.js';
 
 function makeKeyEvent(name: string, modifiers?: { shift?: boolean }): KeyEvent {
@@ -24,14 +24,20 @@ function makeKeyEvent(name: string, modifiers?: { shift?: boolean }): KeyEvent {
 
 /** Reads help overlay visibility from the workspace help-overlay renderable. */
 function readHelpVisible(shell: AppShell): boolean | undefined {
-  const extended = shell as AppShell & { helpVisible?: boolean; helpOverlay?: { visible?: boolean } };
+  const extended = shell as AppShell & {
+    helpVisible?: boolean;
+    helpOverlay?: { visible?: boolean };
+  };
   if (typeof extended.helpVisible === 'boolean') {
     return extended.helpVisible;
   }
   if (extended.helpOverlay && typeof extended.helpOverlay.visible === 'boolean') {
     return extended.helpOverlay.visible;
   }
-  for (const child of shell.workspaceBox.children ?? []) {
+  const workspaceChildren = (
+    shell.workspaceBox as { children?: { id?: string; visible?: boolean }[] }
+  ).children;
+  for (const child of workspaceChildren ?? []) {
     if ((child as { id?: string }).id === 'help-overlay') {
       return (child as { visible: boolean }).visible;
     }

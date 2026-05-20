@@ -14,7 +14,7 @@ export function styledPlainText(styled: StyledText): string {
 }
 
 export function assertNoAnsiLeaks(text: string) {
-  expect(text).not.toMatch(RAW_ESCAPE);         // full \x1b[ sequence
+  expect(text).not.toMatch(RAW_ESCAPE); // full \x1b[ sequence
   expect(text).not.toMatch(LEAKED_SGR_FRAGMENT); // partial leak (ESC byte stripped, bracket remained)
 }
 

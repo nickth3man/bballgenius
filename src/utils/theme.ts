@@ -5,16 +5,16 @@
 
 export const Theme = {
   // Brand colors (Hex values)
-  primary: '#7aa2f7',       // Accent Blue
-  secondary: '#bb9af7',     // Accent Purple/Magenta
-  accent: '#2ac3de',        // Cyan
-  success: '#9ece6a',       // Green
-  error: '#f7768e',         // Red
-  warning: '#e0af68',       // Yellow/Orange
-  foreground: '#a9b1d6',    // Soft white/gray
-  background: '#1a1b26',    // Dark Blue/Gray background
+  primary: '#7aa2f7', // Accent Blue
+  secondary: '#bb9af7', // Accent Purple/Magenta
+  accent: '#2ac3de', // Cyan
+  success: '#9ece6a', // Green
+  error: '#f7768e', // Red
+  warning: '#e0af68', // Yellow/Orange
+  foreground: '#a9b1d6', // Soft white/gray
+  background: '#1a1b26', // Dark Blue/Gray background
   borderFocused: '#bb9af7', // Highlight border on focus
-  borderNormal: '#383e5a',  // Subtle border normally
+  borderNormal: '#383e5a', // Subtle border normally
 
   // Layout and components
   borderStyle: 'single' as const,

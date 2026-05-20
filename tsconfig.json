@@ -7,8 +7,8 @@
     "strict": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "rootDir": "./src"
+    "rootDir": "./src",
+    "types": ["bun"]
   },
-  "include": ["src/**/*"],
-  "exclude": ["src/tests/**"]
+  "include": ["src/**/*"]
 }

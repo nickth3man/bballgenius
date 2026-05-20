@@ -1,0 +1,142 @@
+# AGENTS.md
+
+## Project Overview
+BBallGenius is a terminal-based NBA analytics hub built with **Bun**, **OpenTUI**, and **DuckDB**. It consolidates game-by-game directories, box scores, play-by-play shot charts, and an ad-hoc SQL console into a single consolidated, keyboard-driven terminal application. It connects to a local DuckDB instance (`nba.duckdb`) and features a comprehensive virtual-rendering test suite.
+
+## Repository Structure
+- **.github/workflows/** - GitHub Actions CI configuration (`ci.yml`).
+- **data/** - Root folder for datasets.
+  - **fixtures/** - Holds the minimal committed `nba.ci.duckdb` (~2.8 MB) used in CI.
+- **scripts/** - Automation and CI guard scripts (`ci-guards.sh`, `build-ci-fixture.ts`).
+- **src/** - Application source code.
+  - **queries/** - Production SQL query definitions.
+  - **tabs/** - View controllers for each TUI tab (`GameCenterTab`, `TimeMachineTab`, `SqlSandboxTab`).
+  - **tests/** - Full Bun-native test suite including visual snapshots, mocks, and regression suites.
+  - **utils/** - Styling themes, keyboard bindings, and table/chart formatters.
+
+## Tech Stack
+- **Language:** TypeScript 5.x / 6.x (executed natively with Bun runtime)
+- **Framework:** OpenTUI (Terminal UI framework with React-like layout box structure)
+- **Database:** DuckDB (In-process analytical database accessed via `@duckdb/node-api`)
+- **Linting & Formatting:** Biome (configured via `biome.json`)
+- **Key Libraries:** `@opentui/core` (UI renderables), `@duckdb/node-api` / `@duckdb/node-bindings` (database bindings)
+
+## Build & Development Commands
+
+### File-Scoped Commands (Preferred for Fast Feedback)
+```bash
+# Type check a single file
+bunx tsc --noEmit src/db.ts
+
+# Lint or format a single file
+bunx biome check --write src/db.ts
+
+# Run a single test file
+bun test src/tests/formatters.test.ts
+```
+
+### Project-Wide Commands (Use Sparingly)
+```bash
+# Install dependencies
+bun install --frozen-lockfile
+
+# Local mirror of complete CI (guards, lint, typecheck, unit, integration, audit)
+bun run ci
+
+# Run unit tests only (no database required)
+bun run test:unit
+
+# Run full integration tests on the committed CI fixture database
+bun run ci:integration
+
+# Rebuild CI DuckDB fixture from full local DB
+bun run fixture:build
+```
+
+## Code Style & Conventions
+
+### Formatting
+- **Indentation:** 2 spaces (configured in `biome.json:14-15`)
+- **Formatter:** Biome, single-quote strings, semicolons enabled (`biome.json:37-41`)
+- **Line Length:** 100 characters max (`biome.json:16`)
+
+### Naming Conventions
+- **Variables & Functions:** `camelCase` (e.g., `selectedGameIdx` in `src/tabs/gameCenter.ts:30`, `resolveDbPath()` in `src/db.ts:11`)
+- **Types & Classes:** `PascalCase` (e.g., `GameCenterTab` in `src/tabs/gameCenter.ts:10`)
+- **Constants:** `SCREAMING_SNAKE_CASE` or `PascalCase` theme wrapper (e.g., `DEFAULT_DB_PATH` in `src/db.ts:4`, `Theme` in `src/utils/theme.ts:6`)
+- **Database Tables & Columns:** `snake_case` (e.g., `dim_game`, `season_year`, `player_id` queried in `src/queries/gameCenter.ts:18-21`)
+
+### Import Organization
+- **Local Imports:** MUST use relative pathing with the `.js` extension, despite coding in TypeScript (e.g. `import { closeDb, initDb } from './db.js'` in `src/index.ts:3`).
+- **Grouping:** Group Node.js built-ins first (using `node:` prefix), followed by third-party imports, followed by relative local imports.
+
+## Architecture Notes
+
+### High-Level Overview
+```text
++-------------------+      +-------------------+      +-------------------+
+|   src/index.ts    | ---> | src/appShell.ts   | ---> |    src/tabs/*     |
+|   (TUI Entrypoint) |      | (Key Router, Tabs)|      |  (Views & State)  |
++-------------------+      +-------------------+      +-------------------+
+         |                           |                          |
+         v                           v                          v
++-------------------+      +-------------------+      +-------------------+
+|    src/db.ts      |      |  src/queries/*    | <--- |  src/utils/*      |
+|  (DuckDB Access)  | <--- | (Production SQL)  |      | (Formatters, Theme)|
++-------------------+      +-------------------+      +-------------------+
+         |                           |
+         +------------+--------------+
+                      v
+          [data/nba.duckdb (1.5GB)]
+          [data/fixtures/nba.ci.duckdb (3MB)]
+```
+
+### Key Components
+- **TUI Entry Point:** `src/index.ts:5` boots the DB connection, configures `CliRenderer` at 30 FPS, and constructs the main `AppShell`.
+- **Global Key Router:** `src/appShell.ts:340-410` binds `on('keypress')`, controls the tab headers, routes key shortcuts, and shows the global `?` help modal.
+- **SQL Queries:** Separated entirely from rendering logic in `src/queries/` (e.g., `src/queries/gameCenter.ts` and `src/queries/timeMachine.ts`) ensuring clean separation of concerns and database-free unit test options.
+- **TUI Tabs:** Components under `src/tabs/` manage private panel states, scroll views, and focus indices (cycled with `Tab` and `Shift+Tab`).
+
+### Coupling & Dependencies
+- `src/db.ts` acts as the single database connection manager; modifying its connection state or `resolveDbPath` affects all views.
+- Production modules in `src/tabs/` are coupled to `src/queries/` for fetching structured data; tests import queries from `src/tests/helpers/queries.ts` to guarantee type alignment.
+
+## Dos and Don'ts
+
+### Do
+- Always use `resolveDbPath()` to safely fallback to the committed CI fixture during automated actions (`src/db.ts:11-22`).
+- Always pass `--concurrency=1` to any `bun test` runner to prevent race conditions on DuckDB connections or console snapshots (`package.json:10`).
+- Convert text containing ANSI style codes to `StyledText` using `ansiToStyledText` before writing to `TextRenderable` objects (`src/tabs/gameCenter.ts:350`).
+
+### Don't
+- **Never** stage or commit the 1.5 GB `data/nba.duckdb` file (gitignored).
+- **Never** allow `.only(` or `.skip(` in test commits (blocked in CI by `scripts/ci-guards.sh:9`).
+- **Never** permit raw ANSI sequence leaking or raw escape patterns to bleed into snapshot assertions (`src/tests/helpers/ansi.ts:15-18`).
+
+## Testing Strategy
+
+- **Unit Tests:** Formatter logic and ANSI-to-StyledText parsers are entirely database-free (`src/tests/formatters.test.ts`).
+- **Integration Tests:** Execute virtual keyboard keystrokes, panel focus cycling, and input blurs using an OpenTUI `createTestRenderer` mock (`src/tests/tui_integration.test.ts`).
+- **Regression / Snapshot Tests:** Compares real render buffers with a deterministic, normalized golden visual snapshot (`src/tests/golden_snapshot.test.ts`).
+- **Database Path in CI:** Set `NBA_DUCKDB_PATH=data/fixtures/nba.ci.duckdb` to run the complete 80-test integration suite quickly inside GitHub Actions.
+
+## Security & Compliance
+- **Secrets:** No API keys or external secrets are required; all database work is performed in-process via local DuckDB SQLite-style file connections.
+- **License:** No license file specified. The repository is source-available; do not distribute without permission.
+
+## Agent Guardrails
+
+### Allowed Without Asking
+- Reading any codebase file, searching with `Grep`, or finding files via `Glob`.
+- Running file-scoped lint checks, syntax formatting, or TypeScript compilation.
+- Running unit/integration tests with `concurrency=1`.
+
+### Ask Before Doing
+- Deleting files or folders.
+- Installing or upgrading npm/bun dependencies in `package.json`.
+- Modifying GitHub workflow files (`.github/workflows/ci.yml`).
+- Staging and pushing commits to the remote origin.
+
+## Unknowns & TODOs
+- [ ] **nbadb Pipeline:** Gaining access to the source code for building `data/nba.duckdb` is currently out of scope (built externally).
+- [ ] **License Definition:** The repository requires a LICENSE file to explicitly state open-source vs private source-available terms.

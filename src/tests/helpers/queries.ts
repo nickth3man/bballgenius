@@ -5,14 +5,14 @@ import { query } from '../../db.js';
 // Tests import these directly; if the production SQL changes, tests follow.
 // ---------------------------------------------------------------------------
 export {
-  loadRecentGames,
   loadBoxScoreWithTeamDedup,
   loadGameShots,
+  loadRecentGames,
 } from '../../queries/gameCenter.js';
 
 export {
-  loadPlayerAwards,
   loadCareerStats,
+  loadPlayerAwards,
 } from '../../queries/timeMachine.js';
 
 // ---------------------------------------------------------------------------
@@ -40,7 +40,7 @@ export async function loadBoxScoreWithoutTeamDedup(gameId: string) {
     WHERE b.game_id = $1
     ORDER BY b.team_id, b.points DESC
   `,
-    [gameId]
+    [gameId],
   );
 }
 
@@ -55,7 +55,7 @@ export async function loadGameShotsBrokenFilter(gameId: string) {
       -- intentionally omits: AND is_field_goal = true
     ORDER BY period, action_number
     `,
-    [gameId]
+    [gameId],
   );
 }
 
@@ -70,6 +70,6 @@ export async function loadPlayerAwardsBrokenColumn(playerId: string) {
     ORDER BY season_year DESC, award_name ASC
     LIMIT 5
   `,
-    [playerId]
+    [playerId],
   );
 }

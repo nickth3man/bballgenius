@@ -1,5 +1,11 @@
-import { expect, test, describe, beforeEach, afterEach } from 'bun:test';
-import { formatTable, drawHalfCourt, ansiToStyledText, stripAnsi, isNoColor } from '../utils/formatters.js';
+import { afterEach, beforeEach, describe, expect, test } from 'bun:test';
+import {
+  ansiToStyledText,
+  drawHalfCourt,
+  formatTable,
+  isNoColor,
+  stripAnsi,
+} from '../utils/formatters.js';
 
 describe('Table Formatter (formatTable)', () => {
   test('should format an array of objects into an aligned ASCII grid with headers', () => {
@@ -8,9 +14,9 @@ describe('Table Formatter (formatTable)', () => {
       { Player: 'LeBron James', Team: 'LAL', PTS: 27 },
       { Player: 'Stephen Curry', Team: 'GSW', PTS: 31 },
     ];
-    
+
     const lines = formatTable(headers, rows);
-    
+
     // Check that we got top, header, divider, data, bottom borders (total of 6 lines)
     expect(lines.length).toBe(6);
     expect(lines[0]).toContain('┌');
@@ -28,7 +34,7 @@ describe('Table Formatter (formatTable)', () => {
       { Player: 'LeBron James', PTS: '27' },
       { Player: 'Stephen Curry', PTS: '31' },
     ];
-    
+
     const lines = formatTable(headers, rows);
     // PTS column should be right-padded/aligned
     expect(lines[3]).toContain(' 27 │');
@@ -36,11 +42,9 @@ describe('Table Formatter (formatTable)', () => {
   });
 
   test('should map object rows via colKeys when keys differ from headers', () => {
-    const lines = formatTable(
-      ['Name', 'Pts'],
-      [{ player: 'LeBron', points: 30 }],
-      { colKeys: ['player', 'points'] }
-    );
+    const lines = formatTable(['Name', 'Pts'], [{ player: 'LeBron', points: 30 }], {
+      colKeys: ['player', 'points'],
+    });
     const body = lines.join('\n');
     expect(body).toContain('LeBron');
     expect(body).toContain('30');
@@ -49,7 +53,9 @@ describe('Table Formatter (formatTable)', () => {
   test('should respect maxRows and only render the first N data rows', () => {
     const rows = Array.from({ length: 5 }, (_, i) => ({ Name: `P${i}`, Pts: String(i) }));
     const lines = formatTable(['Name', 'Pts'], rows, { maxRows: 2 });
-    const dataLines = lines.filter((l) => l.startsWith('│') && !l.includes('Name') && !l.includes('Pts'));
+    const dataLines = lines.filter(
+      (l) => l.startsWith('│') && !l.includes('Name') && !l.includes('Pts'),
+    );
     expect(dataLines.length).toBe(2);
     expect(lines.join('\n')).toContain('P0');
     expect(lines.join('\n')).toContain('P1');
@@ -63,7 +69,7 @@ describe('Table Formatter (formatTable)', () => {
         { Label: 'A', Num: '9' },
         { Label: 'B', Num: '100' },
       ],
-      { alignments: ['left', 'right'], colKeys: ['Label', 'Num'] }
+      { alignments: ['left', 'right'], colKeys: ['Label', 'Num'] },
     );
     // Right-aligned "9" in a width-3 column appears as "  9" before the cell border
     expect(lines[3]).toMatch(/│\s+9\s+│/);
@@ -71,10 +77,13 @@ describe('Table Formatter (formatTable)', () => {
   });
 
   test('should accept array-of-arrays rows', () => {
-    const lines = formatTable(['Name', 'Pts'], [
-      ['Alice', '10'],
-      ['Bob', '20'],
-    ]);
+    const lines = formatTable(
+      ['Name', 'Pts'],
+      [
+        ['Alice', '10'],
+        ['Bob', '20'],
+      ],
+    );
     const body = lines.join('\n');
     expect(body).toContain('Alice');
     expect(body).toContain('Bob');
@@ -107,7 +116,7 @@ describe('Shot Court Plotter (drawHalfCourt)', () => {
     const lines = drawHalfCourt([]);
     expect(lines.length).toBe(18); // 18 rows
     expect(lines[0].length).toBe(40); // 40 columns
-    
+
     // Check baseline is drawn with standard horizontal single-lines
     expect(lines[0]).toContain('──');
     // Check sidelines are vertical lines
@@ -120,9 +129,9 @@ describe('Shot Court Plotter (drawHalfCourt)', () => {
       { x: 10, y: 50, shot_result: 'made', player_id: '1' },
       { x: 20, y: 30, shot_result: 'missed', player_id: '1' },
     ];
-    
+
     const lines = drawHalfCourt(shots);
-    
+
     // Convert all lines to a single string to search for plotted shots with ANSI colors
     const courtText = lines.join('\n');
     expect(courtText).toContain('\x1b[32mo\x1b[0m'); // Made shot color
@@ -131,11 +140,11 @@ describe('Shot Court Plotter (drawHalfCourt)', () => {
 
   test('should gracefully handle extreme edge-case and out-of-bounds coordinates (Poka-Yoke)', () => {
     const edgeShots = [
-      { x: -5, y: 50, shot_result: 'made', player_id: '1' },   // Negative X
-      { x: 105, y: 50, shot_result: 'made', player_id: '1' },  // Exceeds 100 X
-      { x: 20, y: -10, shot_result: 'made', player_id: '1' },  // Negative Y
-      { x: 20, y: 110, shot_result: 'made', player_id: '1' },  // Exceeds 100 Y
-      { x: 0, y: 0, shot_result: 'made', player_id: '1' },     // Exact bottom-left corner
+      { x: -5, y: 50, shot_result: 'made', player_id: '1' }, // Negative X
+      { x: 105, y: 50, shot_result: 'made', player_id: '1' }, // Exceeds 100 X
+      { x: 20, y: -10, shot_result: 'made', player_id: '1' }, // Negative Y
+      { x: 20, y: 110, shot_result: 'made', player_id: '1' }, // Exceeds 100 Y
+      { x: 0, y: 0, shot_result: 'made', player_id: '1' }, // Exact bottom-left corner
       { x: 100, y: 100, shot_result: 'made', player_id: '1' }, // Exact top-right corner
     ];
 
@@ -151,12 +160,10 @@ describe('Shot Court Plotter (drawHalfCourt)', () => {
     // A shot at (x=0, y=50) should map exactly to the rim/center region
     // y=50 maps to center column (index 19 or 20)
     // x=0 maps to baseline row (index 0)
-    const shots = [
-      { x: 0, y: 50, shot_result: 'made', player_id: '1' },
-    ];
+    const shots = [{ x: 0, y: 50, shot_result: 'made', player_id: '1' }];
 
     const lines = drawHalfCourt(shots);
-    
+
     // Check that our made shot symbol 'o' with ANSI green code is rendered in row 0
     expect(lines[0]).toContain('\x1b[32mo\x1b[0m');
   });
@@ -226,7 +233,7 @@ describe('ANSI to StyledText Parser (ansiToStyledText)', () => {
   test('should parse standard colors (31m/32m) into correct foreground chunks', () => {
     const text = 'Normal \x1b[32mGreen\x1b[0m Normal';
     const styled = ansiToStyledText(text);
-    
+
     expect(styled.chunks.length).toBe(3);
     expect(styled.chunks[0].text).toBe('Normal ');
     expect(styled.chunks[1].text).toBe('Green');
@@ -237,7 +244,7 @@ describe('ANSI to StyledText Parser (ansiToStyledText)', () => {
   test('should parse bold and dim style flags correctly', () => {
     const text = '\x1b[1mBoldText\x1b[0m';
     const styled = ansiToStyledText(text);
-    
+
     expect(styled.chunks.length).toBe(1);
     expect(styled.chunks[0].text).toBe('BoldText');
     expect(styled.chunks[0].attributes).toBeDefined();
@@ -247,7 +254,7 @@ describe('ANSI to StyledText Parser (ansiToStyledText)', () => {
   test('should parse composite multi-style codes (e.g. bold white on magenta)', () => {
     const text = '\x1b[1;37;45mHighlight\x1b[0m';
     const styled = ansiToStyledText(text);
-    
+
     expect(styled.chunks.length).toBe(1);
     expect(styled.chunks[0].text).toBe('Highlight');
     expect(styled.chunks[0].fg).toBeDefined();
