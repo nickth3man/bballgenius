@@ -145,7 +145,7 @@ jobs:
       - name: Run full test suite against CI fixture
         env:
           NBA_DUCKDB_PATH: data/fixtures/nba.ci.duckdb
-        run: bun test src/tests --concurrency=1
+        run: bun test src/hub/tests --concurrency=1
 
   audit:
     name: Dependency audit
@@ -217,4 +217,4 @@ jobs:
           fi
 
       - name: Run full test suite
-        run: bun test src/tests --concurrency=1
+        run: bun test src/hub/tests --concurrency=1

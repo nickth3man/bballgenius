@@ -1,0 +1,32 @@
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                     [F1/1] Game Center   │    [F2/2] Career Time-Machine    │   [F3/3] SQL Sandbox
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌─Team Comparison (Press C to switch to Player Mode)─┐┌─Career Statistics──────────────────────────────────────────────┐
+│                                                    ││============================================================   █│
+│[1;33mTeam A (e.g. Bulls 1996):[                  ││              HISTORICAL TEAM COMPARISON                       █│
+│LAL 2025                                            ││============================================================   █│
+│                                                    ││Metric            │ LAL 2025 (Lakers)           │ PHI 2025 (76e │
+│[1;35mTeam B (e.g. Warriors 2017):[               ││──────────────────┼─────────────────────────────┼────────────── │
+│PHI 2025                                            ││Games Played      │ 4                           │ 5             │
+│                                                    ││Points / Game     │ 94.3                        │ 104.4         │
+│Instructions:                                       ││Assists / Game    │ 21.8                        │ 22.2          │
+│Type Team name/abbreviation with a 4-digit year.    ││Rebounds / Game   │ 43.3                        │ 39.4          │
+│Press [Enter] to fetch stats. Use [Tab] to move, [C]││Steals / Game     │ 5.8                         │ 4.8           │
+│ to toggle.                                         ││Blocks / Game     │ 6.3                         │ 3.6           │
+│                                                    ││                                                                │
+│Sub-pages (Press keys anywhere to load):            ││============================================================    │
+│ [R] Reset · [I] Teams · [F] Team A Page            ││              ROSTER SIDE-BY-SIDE (PPG / APG / RPG)             │
+│ [G] Team B Page · [L] Leaders · [E] Leagues        ││============================================================    │
+│ [T] Contracts · [U] Season · [S] ATL 2000          ││LAL 2025 Roster               │ PHI 2025 Roster                 │
+│ [Y] Playoffs · [W] Awards · [A] CHI Adv Log        ││──────────────────────────────┼───────────────────────────────  │
+│ [V] Boxscore · [X] Shot Chart · [Z] Play-by-Play   ││LeBron James (22.5/7.5)       │ Joel Embiid (25.2/5.8)          │
+│                                                    ││Rui Hachimura (16.0/1.3)      │ Tyrese Maxey (24.0/5.0)         │
+│                                                    ││Deandre Ayton (13.5/0.8)      │ Paul George (17.0/3.0)          │
+│                                                    ││Austin Reaves (11.3/3.5)      │ VJ Edgecombe (13.0/2.6)         │
+│                                                    ││Marcus Smart (9.8/3.8)        │ Quentin Grimes (8.0/3.2)        │
+│                                                    ││Jake LaRavia (4.5/0.3)        │ Kelly Oubre Jr. (7.6/1.2)       │
+│                                                    ││Luke Kennard (4.5/2.0)        │ Justin Edwards (2.0/0.4)        │
+│                                                    ││Jarred Vanderbilt (3.0/0.0)   │ Andre Drummond (1.8/0.4)        │
+│                                                    ││Jaxson Hayes (2.5/0.8)        │ Dominick Barlow (1.8/0.0)       │
+└────────────────────────────────────────────────────┘└────────────────────────────────────────────────────────────────┘
+    Search · loaded: LeBron JamesB·atypKeys:cF1-3/1-3sTabcShift+Tabc?n|aEscequitlectG·)Tab→dossier · C→Team Compare

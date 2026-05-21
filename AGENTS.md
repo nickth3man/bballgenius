@@ -1,186 +1,299 @@
 # AGENTS.md
 
 ## Project Overview
-BBallGenius is a terminal-based NBA analytics hub built with **Bun**, **OpenTUI**, and **DuckDB**. It consolidates game-by-game directories, box scores, play-by-play shot charts, and an ad-hoc SQL console into a single consolidated, keyboard-driven terminal application. It connects to a local DuckDB instance (`nba.duckdb`) and features a comprehensive virtual-rendering test suite.
+
+BBallGenius is a **Bun monorepo** under `src/` with two packages:
+
+| Package | Path | Status | Purpose |
+|---------|------|--------|---------|
+| **hub** | `src/hub/` | Production | Terminal NBA analytics hub (OpenTUI + DuckDB): game directory, box scores, shot charts, Time Machine, SQL sandbox |
+| **chatbot** | `src/chatbot/` | Placeholder | Future conversational interface; entry stub only |
+
+The hub consolidates game-by-game directories, box scores, play-by-play shot charts, and an ad-hoc SQL console into a single keyboard-driven TUI. It connects to a local DuckDB file (`data/nba.duckdb`) and has a comprehensive virtual-rendering test suite under `src/hub/tests/`.
+
+**Entry points:** `bun start` / `bun run hub:start` → hub TUI; `bun run chatbot:start` → chatbot stub.
 
 ## Repository Structure
-- **.github/workflows/** - GitHub Actions CI configuration (`ci.yml`).
-- **data/** - Root folder for datasets.
-  - **fixtures/** - Holds the minimal committed `nba.ci.duckdb` (~2.8 MB) used in CI.
-- **scripts/** - Automation and CI guard scripts (`ci-guards.sh`, `build-ci-fixture.ts`).
-- **src/** - Application source code.
-  - **queries/** - Production SQL query definitions.
-  - **tabs/** - View controllers for each TUI tab (`GameCenterTab`, `TimeMachineTab`, `SqlSandboxTab`).
-  - **tests/** - Full Bun-native test suite including visual snapshots, mocks, and regression suites.
-  - **utils/** - Styling themes, keyboard bindings, and table/chart formatters.
+
+```text
+bballgenius/
+├── .github/workflows/     # CI (ci.yml)
+├── data/
+│   ├── fixtures/          # Committed nba.ci.duckdb (~2.8 MB) for CI
+│   └── nba.duckdb         # Local full DB (gitignored, ~1.5 GB)
+├── scripts/               # CI guards, fixture build, BBR crawl, agent-smoke
+├── .firecrawl/            # BBR markdown cache (gitignored map artifacts)
+├── bbr-screenshots/       # BBR PNG + JSON mirrors (gitignored)
+└── src/
+    ├── hub/               # Terminal hub (all production app code)
+    │   ├── index.ts       # TUI bootstrap
+    │   ├── core/          # appShell, db, dbHonors, errors, types
+    │   ├── shared/utils/  # formatters, theme, keyboardHelp, keyboard-map.json
+    │   ├── tabs/          # registry + gameCenter/, timeMachine/, sqlSandbox/
+    │   └── tests/         # Bun tests + snapshots/
+    └── chatbot/
+        └── index.ts       # Placeholder CLI entry
+```
+
+- **`.github/workflows/`** — GitHub Actions CI (`ci.yml`).
+- **`scripts/`** — Automation (`ci-guards.sh`, `build-ci-fixture.ts`, BBR map/crawl, `agent-smoke.sh`).
+- **`src/hub/core/`** — App shell, DuckDB access, shared types (`appShell.ts`, `db.ts`, `dbHonors.ts`, `errors.ts`, `types.ts`).
+- **`src/hub/shared/utils/`** — Cross-tab formatters, theme, keyboard help (`formatters.ts`, `theme.ts`, `keyboardHelp.ts`, `keyboard-map.json`).
+- **`src/hub/tabs/`** — Tab registry plus per-tab folders (`gameCenter/`, `timeMachine/`, `sqlSandbox/`).
+- **`src/hub/tests/`** — Full Bun-native test suite (visual snapshots, mocks, regression).
+
+### Package boundaries
+
+- **Hub** and **chatbot** are siblings under `src/`. Do not import one from the other until an explicit shared package exists (e.g. `src/shared/`).
+- **Hub tabs** must not import sibling tabs — only `src/hub/core/*`, `src/hub/shared/*`, and their own `src/hub/tabs/<tabId>/` folder (enforced by `scripts/ci-guards.sh`).
+- **Repo-root assets** (`.firecrawl/`, `bbr-screenshots/`, `data/`) are resolved from hub code via relative paths up to the repository root (e.g. `src/hub/tabs/timeMachine/utils/bbr/bbrMirroredStore.ts`).
 
 ## Tech Stack
-- **Language:** TypeScript 5.x / 6.x (executed natively with Bun runtime)
-- **Framework:** OpenTUI (Terminal UI framework with React-like layout box structure)
-- **Database:** DuckDB (In-process analytical database accessed via `@duckdb/node-api`)
-- **Linting & Formatting:** Biome (configured via `biome.json`)
-- **Key Libraries:** `@opentui/core` (UI renderables), `@duckdb/node-api` / `@duckdb/node-bindings` (database bindings)
+
+- **Language:** TypeScript 5.x / 6.x (Bun runtime)
+- **Hub UI:** OpenTUI (`@opentui/core`)
+- **Database:** DuckDB (`@duckdb/node-api`, `@duckdb/node-bindings`)
+- **Lint / format:** Biome (`biome.json`)
+- **Typecheck:** `tsc --noEmit -p tsconfig.json` (`rootDir`: `./src`, includes `src/**/*`)
 
 ## Build & Development Commands
 
-### File-Scoped Commands (Preferred for Fast Feedback)
+### Hub & chatbot entrypoints
+
 ```bash
-# Type check a single file
-bunx tsc --noEmit src/db.ts
+bun start              # alias: bun run hub:start → src/hub/index.ts
+bun run hub:start      # Terminal analytics TUI
+bun run chatbot:start  # Chatbot stub (not implemented)
+```
+
+### File-Scoped Commands (Preferred for Fast Feedback)
+
+```bash
+# Type check a single hub file
+bunx tsc --noEmit src/hub/core/db.ts
 
 # Lint or format a single file
-bunx biome check --write src/db.ts
+bunx biome check --write src/hub/core/db.ts
 
-# Run a single test file
-bun test src/tests/formatters.test.ts
+# Run a single hub test file
+bun test src/hub/tests/formatters.test.ts --concurrency=1
 ```
 
 ### Project-Wide Commands (Use Sparingly)
+
 ```bash
-# Install dependencies
 bun install --frozen-lockfile
-
-# Local mirror of complete CI (guards, lint, typecheck, unit, integration, audit)
-bun run ci
-
-# Run unit tests only (no database required)
-bun run test:unit
-
-# Run full integration tests on the committed CI fixture database
-bun run ci:integration
-
-# Rebuild CI DuckDB fixture from full local DB
-bun run fixture:build
+bun run ci                    # guards, lint, format:check, typecheck, unit, integration, audit
+bun run test:unit             # hub formatters only (no DB)
+bun run ci:integration        # full hub suite on CI fixture
+bun run fixture:build         # rebuild data/fixtures/nba.ci.duckdb from local DB
+bun run keyboard-map:sync     # src/hub/shared/utils/keyboard-map.json from keyboardHelp.ts
 ```
+
+### BBR screenshot crawl (Firecrawl)
+
+Mirrors [Basketball-Reference](https://www.basketball-reference.com) into repo-root `bbr-screenshots/` (PNG + JSON) and `.firecrawl/` (markdown). Used by hub Time Machine BBR views (`src/hub/tabs/timeMachine/utils/bbr/`). Requires `FIRECRAWL_API_KEY` and the [Firecrawl CLI](https://firecrawl.dev).
+
+**Per-directory quota:** each mirrored folder gets up to **2 PNG** and **2 JSON** files (full scrape payload: `markdown`, `links`, `metadata`, `screenshot` URL).
+
+**Map/crawl scope (default):** `players`, `teams`, `leagues` (seasons), `leaders`, `awards`, and player **gamelog** discovery only — no site-wide map passes or other BBR sections.
+
+**Throughput (Firecrawl 2 concurrent jobs):** `BBR_MAP_PARALLEL=2`, `BBR_MAP_DELAY_SEC=0` (defaults). Crawl: `BBR_CRAWL_CONCURRENCY=2`, `BBR_SCRAPE_TIMEOUT_MS=120000`. Do not run map + crawl together — they share the same API quota.
+
+**Always run map before crawl** (map is rebuilt from scratch every time; legacy `bbr-map*.txt` files are not merged in):
+
+```bash
+bun run bbr:map      # multi-pass firecrawl map → .firecrawl/bbr-map-full.txt + bbr-depth-index.json
+bun run bbr:crawl    # wipes bbr-screenshots/*, then node scripts/takeBbrScreenshots.cjs
+bun run bbr:verify   # map + per-directory 2 PNG / 2 JSON checks
+bun run bbr:verify:map
+bun run bbr:status   # heartbeat + progress JSON (no full log tailing)
+bun run bbr:watch    # refresh status every 3s
+bun run bbr:map:cancel
+bun run bbr:observe  # kaizen: 5× cancel → 15s map probe → snapshot (scripts/bbrMapObserveCycle.sh)
+```
+
+- Map observability: `.firecrawl/bbr-map-progress.json`, `.firecrawl/bbr-map-heartbeat.txt`, `.firecrawl/bbr-map-observe-cycles.jsonl`.
+- `bbr:crawl` calls `scripts/bbrPreflightCrawl.sh` (wipe + map freshness check).
+- Optional: `BBR_CRAWL_BUDGET=500` to cap scrape count; `BBR_USE_LEGACY_SEEDS=1` to add old scattered seeds (default off).
+- Map scratchpad: `.firecrawl/scratchpad/map-*` (gitignored). Discovered URLs during crawl append to `.firecrawl/bbr-map-discovered.txt` for the next `bbr:map` run.
+- **`src/hub/tests/bbrIntegration.test.ts`** expects optional local `.firecrawl/*.md` fixtures; failures there are OK in CI without a full crawl mirror.
 
 ## CI/CD Infrastructure & API
 
 ### Overview
-To allow robust full-suite integration tests in resource-constrained or headless CI environments without downloading a 1.5 GB database, BBallGenius employs a **CI DuckDB Fixture** strategy coupled with unified static checks and peer dependency overrides.
+
+To run integration tests in CI without the 1.5 GB database, BBallGenius uses a **CI DuckDB fixture** plus static guards and peer dependency overrides.
 
 Key terms:
-- **CI Fixture:** A pruned, committed ~2.8 MB DuckDB database (`data/fixtures/nba.ci.duckdb`) containing all core table schemas and a representative slice of historical and deduplication edge-case statistics.
-- **Flat Peer Overrides:** Configuration rules forcing third-party dependencies (like `bun-ffi-structs`) to defer peer compilation directly to the project's root TypeScript 6.0.3 version.
-- **Pre-commit Guards:** Shell validations preventing focused tests (`.only`/`.skip`), golden snapshot modifications, and any Biome warnings from entering CI (`scripts/ci-guards.sh`).
-- **Lint policy:** `noExplicitAny` and `noImplicitAnyLet` are **errors** in `biome.json`; CI requires **zero warnings** from `biome lint` (guards enforce this even if a rule is later downgraded to `warn`).
+
+- **CI Fixture:** Pruned committed DB (`data/fixtures/nba.ci.duckdb`, ~2.8 MB) with representative games, players (LeBron, Bob Cousy), shots, awards.
+- **Flat Peer Overrides:** Third-party peers (e.g. `bun-ffi-structs`) compile against root TypeScript 6.0.3.
+- **Pre-commit Guards:** `scripts/ci-guards.sh` — no `.only`/`.skip` in `src/hub/tests/`, no sibling tab imports in `src/hub/tabs/`, no `UPDATE_SNAPSHOTS` in Actions, zero Biome warnings.
+- **Lint policy:** `noExplicitAny` and `noImplicitAnyLet` are **errors**; CI requires **zero warnings** from `biome lint`.
 
 ### API Reference
-#### `resolveDbPath(): string` (defined in `src/db.ts:11-22`)
-Dynamically determines the path to the DuckDB connection file based on environmental contexts.
+
+#### `resolveDbPath(): string` (defined in `src/hub/core/db.ts`)
+
+Dynamically determines the DuckDB file path.
 
 - **Parameters:** None.
 - **Returns:** `string` (resolved database path).
 - **Behavior:**
-  1. If `process.env.NBA_DUCKDB_PATH` is specified, it returns that path (highest priority override).
-  2. If running under `CI=true` or `GITHUB_ACTIONS=true` and `data/fixtures/nba.ci.duckdb` exists, it falls back to the committed CI fixture database.
-  3. Defaults to the local development database path (`data/nba.duckdb`).
+  1. `process.env.NBA_DUCKDB_PATH` if set (highest priority).
+  2. If `CI=true` or `GITHUB_ACTIONS=true` and `data/fixtures/nba.ci.duckdb` exists → CI fixture.
+  3. Else `data/nba.duckdb`.
 
 ```ts
-import { resolveDbPath } from './db.js';
+import { resolveDbPath } from './core/db.js'; // from within src/hub/
 
-const activePath = resolveDbPath(); // e.g., 'data/fixtures/nba.ci.duckdb'
+const activePath = resolveDbPath(); // e.g. 'data/fixtures/nba.ci.duckdb'
 ```
 
 ### Automation & Script Details
-- **`scripts/build-ci-fixture.ts`** (`bun run fixture:build`): Connects to the local full `data/nba.duckdb` and extracts a subset of games, players (LeBron, Bob Cousy), shot coordinates, and awards. Executes `CHECKPOINT` to eliminate extraneous WAL files.
-- **`scripts/ci-guards.sh`** (run in CI and `bun run ci`): Scans `src/tests/` using ripgrep (`rg`) to reject `.only(` or `.skip(` patterns, ensures `UPDATE_SNAPSHOTS` is not enabled in Actions, and fails if `biome lint` reports any warnings.
-- **`format:check`** (`bun run format:check`): Applies Biome format/write fixes then fails if `git diff` is non-empty (committed sources must already be formatted).
-- **`audit`** (`bun run audit`): Fails on **moderate** (and above) dependency advisories via `bun audit --audit-level=moderate`.
-- **`scripts/apply-branch-protection.sh`**: Helper script to programmatically enforce the aggregate `"CI"` check on the `main` branch via GitHub Branch Protection API.
-- **Common Pitfalls:**
-  - *Mismatching snapshots:* Regenerating snapshots with `UPDATE_SNAPSHOTS=1` against local full `nba.duckdb` instead of the CI fixture. Always set `NBA_DUCKDB_PATH=data/fixtures/nba.ci.duckdb` before updating.
-  - *Extraneous WAL files:* Quitting the database without closing connectionsSync, causing a `nba.ci.duckdb.wal` to be committed. Always cleanly disconnect connections.
+
+- **`scripts/build-ci-fixture.ts`** (`bun run fixture:build`): Subset from local `data/nba.duckdb`; `CHECKPOINT` to avoid WAL commits.
+- **`scripts/ci-guards.sh`**: Hub test focus guards, sibling-tab import ban, Biome zero-warning policy.
+- **`scripts/sync-keyboard-map.ts`**: Writes `src/hub/shared/utils/keyboard-map.json`.
+- **`scripts/capture-spans-dump.ts`**: Span dump for hub shell debugging (imports `src/hub/core/*`).
+- **`scripts/agent-smoke.sh`**: Fast hub loop (formatters + TUI integration + golden) on CI fixture.
+- **`format:check`**: Biome write on `src/` + `scripts/`, then `git diff --exit-code`.
+- **`audit`**: Fails on moderate+ advisories.
+- **Common pitfalls:**
+  - *Snapshots:* Regenerate with `NBA_DUCKDB_PATH=data/fixtures/nba.ci.duckdb`, not the full local DB.
+  - *WAL files:* Close DuckDB cleanly before committing `nba.ci.duckdb`.
 
 ## Code Style & Conventions
 
 ### Formatting
-- **Indentation:** 2 spaces (configured in `biome.json:14-15`)
-- **Formatter:** Biome, single-quote strings, semicolons enabled (`biome.json:37-41`)
-- **Line Length:** 100 characters max (`biome.json:16`)
+
+- **Indentation:** 2 spaces (`biome.json`)
+- **Formatter:** Biome, single quotes, semicolons
+- **Line length:** 100 characters
 
 ### Naming Conventions
-- **Variables & Functions:** `camelCase` (e.g., `selectedGameIdx` in `src/tabs/gameCenter.ts:30`, `resolveDbPath()` in `src/db.ts:11`)
-- **Types & Classes:** `PascalCase` (e.g., `GameCenterTab` in `src/tabs/gameCenter.ts:10`)
-- **Constants:** `SCREAMING_SNAKE_CASE` or `PascalCase` theme wrapper (e.g., `DEFAULT_DB_PATH` in `src/db.ts:4`, `Theme` in `src/utils/theme.ts:6`)
-- **Database Tables & Columns:** `snake_case` (e.g., `dim_game`, `season_year`, `player_id` queried in `src/queries/gameCenter.ts:18-21`)
+
+- **Variables & functions:** `camelCase` (e.g. `selectedGameIdx` in `src/hub/tabs/gameCenter/tab.ts`)
+- **Types & classes:** `PascalCase` (e.g. `GameCenterTab`)
+- **Constants:** `SCREAMING_SNAKE_CASE` or theme `PascalCase` (e.g. `DEFAULT_DB_PATH`, `Theme`)
+- **DB tables/columns:** `snake_case` (e.g. `dim_game`, `player_id`)
 
 ### Import Organization
-- **Local Imports:** MUST use relative pathing with the `.js` extension, despite coding in TypeScript (e.g. `import { closeDb, initDb } from './db.js'` in `src/index.ts:3`).
-- **Grouping:** Group Node.js built-ins first (using `node:` prefix), followed by third-party imports, followed by relative local imports.
+
+- **Local imports:** Relative paths with `.js` extension in TypeScript (e.g. `import { initDb } from './core/db.js'` in `src/hub/index.ts`).
+- **Order:** Node built-ins (`node:`) → third-party → relative local.
+- **Scope:** Hub code stays under `src/hub/`; chatbot under `src/chatbot/` until shared modules are introduced.
 
 ## Architecture Notes
 
-### High-Level Overview
+### High-Level Overview (hub)
+
 ```text
-+-------------------+      +-------------------+      +-------------------+
-|   src/index.ts    | ---> | src/appShell.ts   | ---> |    src/tabs/*     |
-|   (TUI Entrypoint) |      | (Key Router, Tabs)|      |  (Views & State)  |
-+-------------------+      +-------------------+      +-------------------+
-         |                           |                          |
-         v                           v                          v
-+-------------------+      +-------------------+      +-------------------+
-|    src/db.ts      |      |  src/queries/*    | <--- |  src/utils/*      |
-|  (DuckDB Access)  | <--- | (Production SQL)  |      | (Formatters, Theme)|
-+-------------------+      +-------------------+      +-------------------+
-         |                           |
-         +------------+--------------+
-                      v
-          [data/nba.duckdb (1.5GB)]
-          [data/fixtures/nba.ci.duckdb (3MB)]
++----------------------+     +------------------------+     +------------------------+
+|   src/hub/index.ts   | --> | src/hub/core/appShell  | --> | src/hub/tabs/registry  |
+|   (TUI entrypoint)   |     | (keys, tabs, help)     |     | + per-tab folders      |
++----------------------+     +------------------------+     +------------------------+
+          |                            |                              |
+          v                            v                              v
++----------------------+     +------------------------+     +------------------------+
+|  src/hub/core/db.ts  |     | tabs/*/queries.ts      |     | src/hub/shared/utils   |
+|  (DuckDB)            | <---| (production SQL)       |     | (formatters, theme)    |
++----------------------+     +------------------------+     +------------------------+
+          |
+          v
+   data/nba.duckdb  |  data/fixtures/nba.ci.duckdb
 ```
 
-### Key Components
-- **TUI Entry Point:** `src/index.ts:5` boots the DB connection, configures `CliRenderer` at 30 FPS, and constructs the main `AppShell`.
-- **Global Key Router:** `src/appShell.ts:340-410` binds `on('keypress')`, controls the tab headers, routes key shortcuts, and shows the global `?` help modal.
-- **SQL Queries:** Separated entirely from rendering logic in `src/queries/` (e.g., `src/queries/gameCenter.ts` and `src/queries/timeMachine.ts`) ensuring clean separation of concerns and database-free unit test options.
-- **TUI Tabs:** Components under `src/tabs/` manage private panel states, scroll views, and focus indices (cycled with `Tab` and `Shift+Tab`).
+```text
+src/chatbot/index.ts  →  (future: LLM / API layer, may share hub db helpers later)
+```
+
+### Key Components (hub)
+
+- **TUI entry:** `src/hub/index.ts` — `initDb()`, `CliRenderer` @ 30 FPS, `createAppShell()`.
+- **Tab registry:** `src/hub/tabs/registry.ts` — `TAB_REGISTRY`; F-keys/digits routed dynamically.
+- **Key router:** `src/hub/core/appShell.ts` — `keypress`, tab headers, `?` help overlay.
+- **SQL:** `src/hub/tabs/<tabId>/queries.ts` per tab.
+- **Tabs:** `src/hub/tabs/<tabId>/` — `tab.ts`, optional `queries.ts`, `index.ts` export; focus via `Tab` / `Shift+Tab`.
 
 ### Coupling & Dependencies
-- `src/db.ts` acts as the single database connection manager; modifying its connection state or `resolveDbPath` affects all views.
-- Production modules in `src/tabs/` are coupled to `src/queries/` for fetching structured data; tests import queries from `src/tests/helpers/queries.ts` to guarantee type alignment.
+
+- `src/hub/core/db.ts` — single DuckDB connection for all hub views.
+- Tabs: `src/hub/core/*`, `src/hub/shared/*`, own tab folder only — **never sibling tabs**.
+- Tests: `getTab(shell, 'game-center')` via `src/hub/tests/helpers/tabs.ts` (stable ids, not numeric tab index).
+- Chatbot: isolated; no hub imports until designed otherwise.
+
+### Adding a New Hub Tab
+
+1. Create `src/hub/tabs/<tabId>/` (`tab.ts`, `queries.ts` if needed, `index.ts`).
+2. Register in `TAB_REGISTRY` (`src/hub/tabs/registry.ts`).
+3. Add shortcuts to `KEYBOARD_MAP.tabs` in `src/hub/shared/utils/keyboardHelp.ts`; run `bun run keyboard-map:sync`.
+4. Tests with `getTab(shell, '<tab-id>')` — no F-key changes in `appShell.ts`.
+
+### Adding Chatbot Features
+
+1. Implement under `src/chatbot/` (new modules as needed).
+2. Prefer importing shared logic from a future `src/shared/` or extracted hub modules only after an explicit refactor — avoid tight coupling to TUI tab classes.
+3. Add `chatbot:*` scripts to `package.json` when subcommands grow beyond `chatbot:start`.
 
 ## Dos and Don'ts
 
 ### Do
-- Always use `resolveDbPath()` to safely fallback to the committed CI fixture during automated actions (`src/db.ts:11-22`).
-- Always pass `--concurrency=1` to any `bun test` runner to prevent race conditions on DuckDB connections or console snapshots (`package.json:10`).
-- Convert text containing ANSI style codes to `StyledText` using `ansiToStyledText` before writing to `TextRenderable` objects (`src/tabs/gameCenter.ts:350`).
+
+- Use `resolveDbPath()` in hub code for CI-safe DB paths (`src/hub/core/db.ts`).
+- Pass `--concurrency=1` to `bun test` (DuckDB + snapshot stability).
+- Convert ANSI text with `ansiToStyledText` before `TextRenderable` writes (`src/hub/tabs/gameCenter/tab.ts`).
+- Put new terminal features in `src/hub/`; new conversational features in `src/chatbot/`.
+- Follow `.agent/subtask-template.md` when writing subtask delegation prompts (position-sensitive critical rules, ≤4 nesting levels, 30-50% token reduction, @references for single-source rules).
 
 ### Don't
-- **Never** stage or commit the 1.5 GB `data/nba.duckdb` file (gitignored).
-- **Never** allow `.only(` or `.skip(` in test commits (blocked in CI by `scripts/ci-guards.sh`).
-- **Never** commit `any` types or untyped `let` bindings (`noExplicitAny` / `noImplicitAnyLet` are Biome errors).
-- **Never** merge with Biome warnings or unformatted `src/` / `scripts/` (blocked by guards + `format:check`).
-- **Never** permit raw ANSI sequence leaking or raw escape patterns to bleed into snapshot assertions (`src/tests/helpers/ansi.ts:15-18`).
+
+- Commit `data/nba.duckdb` (~1.5 GB).
+- Use `.only(` / `.skip(` in `src/hub/tests/` (CI blocked).
+- Commit `any` or untyped `let` (Biome errors).
+- Merge with Biome warnings or unformatted `src/` / `scripts/`.
+- Leak raw ANSI into snapshot assertions (`src/hub/tests/helpers/ansi.ts`).
+- Commit `bbr-screenshots/` or generated `.firecrawl/bbr-map-full.txt`.
+- Import `src/hub/tabs/*` from `src/chatbot/` (or vice versa) without a deliberate shared layer.
 
 ## Testing Strategy
 
-- **Unit Tests:** Formatter logic and ANSI-to-StyledText parsers are entirely database-free (`src/tests/formatters.test.ts`).
-- **Integration Tests:** Execute virtual keyboard keystrokes, panel focus cycling, and input blurs using an OpenTUI `createTestRenderer` mock (`src/tests/tui_integration.test.ts`).
-- **Structured span tests:** `captureSpans()` assertions in `src/tests/spans_frame.test.ts` (focus/tab bar colors without parsing ANSI).
-- **Regression / Snapshot Tests:** Compares real render buffers with a deterministic, normalized golden visual snapshot (`src/tests/golden_snapshot.test.ts`; snapshots under `src/tests/snapshots/`).
-- **Agent smoke (fast loop):** `NBA_DUCKDB_PATH=data/fixtures/nba.ci.duckdb bash scripts/agent-smoke.sh` runs formatters + TUI integration + golden tests (~30s).
-- **Keyboard map for agents:** `src/utils/keyboard-map.json` (source: `KEYBOARD_MAP` in `src/utils/keyboardHelp.ts`). Optional PTY exploration: `docs/agent-tui.md`.
-- **Spans JSON dump:** `bun run scripts/capture-spans-dump.ts [tabIndex]` with the CI fixture path set.
-- **Database Path in CI:** Set `NBA_DUCKDB_PATH=data/fixtures/nba.ci.duckdb` to run the complete integration suite quickly inside GitHub Actions.
+| Layer | Location | Notes |
+|-------|----------|-------|
+| Unit | `src/hub/tests/formatters.test.ts` | No database |
+| Integration | `src/hub/tests/tui_integration.test.ts` | OpenTUI `createTestRenderer` |
+| Spans | `src/hub/tests/spans_frame.test.ts` | Structured focus/tab colors |
+| Golden | `src/hub/tests/golden_snapshot.test.ts` | `src/hub/tests/snapshots/` |
+| BBR parser | `src/hub/tests/bbrIntegration.test.ts` | Optional `.firecrawl/` fixtures locally |
+
+- **Full hub suite:** `bun test src/hub/tests --concurrency=1` or `bun run ci:integration` with `NBA_DUCKDB_PATH=data/fixtures/nba.ci.duckdb`.
+- **Agent smoke:** `NBA_DUCKDB_PATH=data/fixtures/nba.ci.duckdb bash scripts/agent-smoke.sh` (~30s).
+- **Keyboard map:** `src/hub/shared/utils/keyboard-map.json` ← `keyboardHelp.ts`; see `docs/agent-tui.md`.
+- **Spans dump:** `bun run scripts/capture-spans-dump.ts [tabIndex]` with CI fixture path set.
+- **Honors overlay:** `NBA_HONORS_DUCKDB_PATH` for `v_player_honors_full` while game data stays on `NBA_DUCKDB_PATH`.
 
 ## Security & Compliance
-- **Secrets:** No API keys or external secrets are required; all database work is performed in-process via local DuckDB SQLite-style file connections.
-- **License:** No license file specified. The repository is source-available; do not distribute without permission.
+
+- **Secrets:** Hub/chatbot DB work is local DuckDB; BBR crawl needs `FIRECRAWL_API_KEY` only for map/crawl scripts.
+- **License:** No LICENSE file; source-available — do not redistribute without permission.
 
 ## Agent Guardrails
 
 ### Allowed Without Asking
-- Reading any codebase file, searching with `Grep`, or finding files via `Glob`.
-- Running file-scoped lint checks, syntax formatting, or TypeScript compilation.
-- Running unit/integration tests with `concurrency=1`.
+
+- Read/search any file; file-scoped lint, format, `tsc`.
+- Run hub tests with `concurrency=1`.
 
 ### Ask Before Doing
-- Deleting files or folders.
-- Installing or upgrading npm/bun dependencies in `package.json`.
-- Modifying GitHub workflow files (`.github/workflows/ci.yml`).
-- Staging and pushing commits to the remote origin.
+
+- Delete files or folders.
+- Change `package.json` dependencies.
+- Edit `.github/workflows/ci.yml`.
+- Git commit or push.
 
 ## Unknowns & TODOs
-- [ ] **nbadb Pipeline:** Gaining access to the source code for building `data/nba.duckdb` is currently out of scope (built externally).
-- [ ] **License Definition:** The repository requires a LICENSE file to explicitly state open-source vs private source-available terms.
+
+- [ ] **Chatbot:** Implement `src/chatbot/` beyond placeholder; decide shared DB/API layer with hub.
+- [ ] **nbadb pipeline:** Building `data/nba.duckdb` is out of repo scope.
+- [ ] **License:** Add LICENSE (open-source vs source-available).

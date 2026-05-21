@@ -30,7 +30,7 @@ agent-tui key --session <id> c
 
 ## Keyboard reference
 
-Machine-readable shortcuts live in [`src/utils/keyboard-map.json`](../src/utils/keyboard-map.json). The in-app `?` help overlay is built from the same data in [`src/utils/keyboardHelp.ts`](../src/utils/keyboardHelp.ts).
+Machine-readable shortcuts live in [`src/hub/shared/utils/keyboard-map.json`](../src/hub/shared/utils/keyboard-map.json), generated from [`KEYBOARD_MAP`](../src/hub/shared/utils/keyboardHelp.ts). Edit `keyboardHelp.ts`, then run `bun run keyboard-map:sync`. The in-app `?` help overlay uses the same `KEYBOARD_MAP` data.
 
 ## When to use what
 

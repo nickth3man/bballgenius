@@ -7,9 +7,9 @@ cd "$root"
 
 fail=0
 
-if rg -n '\.(only|skip)\(' src/tests --glob '*.ts' >/dev/null 2>&1; then
-  echo "::error::Focused or skipped tests (.only / .skip) are not allowed under src/tests"
-  rg -n '\.(only|skip)\(' src/tests --glob '*.ts' || true
+if rg -n '\.(only|skip)\(' src/hub/tests --glob '*.ts' >/dev/null 2>&1; then
+  echo "::error::Focused or skipped tests (.only / .skip) are not allowed under src/hub/tests"
+  rg -n '\.(only|skip)\(' src/hub/tests --glob '*.ts' || true
   fail=1
 fi
 
@@ -26,6 +26,12 @@ if printf '%s\n' "$lint_out" | rg -q 'Found [1-9][0-9]* warning'; then
   fail=1
 fi
 if [ "${lint_ec:-0}" -ne 0 ]; then
+  fail=1
+fi
+
+if rg -n "from '\\.\\./(gameCenter|timeMachine|sqlSandbox)" src/hub/tabs/ --glob '*.ts' >/dev/null 2>&1; then
+  echo "::error::Tabs must not import sibling tab modules directly (use core/ or shared/ instead)"
+  rg -n "from '\\.\\./(gameCenter|timeMachine|sqlSandbox)" src/hub/tabs/ --glob '*.ts' || true
   fail=1
 fi
 

@@ -14,7 +14,7 @@ BBallGenius consolidates three workflows into one keyboard-driven TUI:
 | **Career Time-Machine** | `F2` / `2` | Player search, dossier, season-by-season stats |
 | **SQL Sandbox** | `F3` / `3` | Schema browser and DuckDB query editor |
 
-The app shell (`src/appShell.ts`) owns global key routing, tab visibility, a dynamic status footer, and a `?` help overlay. Each tab implements the `AppShellTab` contract: focus cycling, optional backward focus (`Shift+Tab`), and contextual status lines for the footer.
+The app shell (`src/hub/core/appShell.ts`) owns global key routing, tab visibility, a dynamic status footer, and a `?` help overlay. Each tab implements the `AppShellTab` contract: focus cycling, optional backward focus (`Shift+Tab`), and contextual status lines for the footer.
 
 ### Why it exists
 
@@ -26,7 +26,7 @@ The app shell (`src/appShell.ts`) owns global key routing, tab visibility, a dyn
 
 - **team_dedup** — SQL CTE that picks the latest franchise name per `team_id` (e.g. Minneapolis → LA Lakers) so box scores do not duplicate players.
 - **StyledText** — OpenTUI structured text produced by `ansiToStyledText()` so escape codes do not break layout or leak into `plainText`.
-- **Mutation helpers** — Intentionally broken queries in `src/tests/helpers/queries.ts` prove tests catch SQL regressions.
+- **Mutation helpers** — Intentionally broken queries in `src/hub/tests/helpers/queries.ts` prove tests catch SQL regressions.
 - **CI fixture** — Committed `data/fixtures/nba.ci.duckdb` (~3 MB) subset used for PR integration tests; see [`data/fixtures/README.md`](data/fixtures/README.md).
 
 ## Requirements
@@ -58,7 +58,7 @@ bun run ci:integration   # uses committed data/fixtures/nba.ci.duckdb
 
 ## Database setup
 
-Connection path is resolved in `src/db.ts` via `resolveDbPath()`:
+Connection path is resolved in `src/hub/core/db.ts` via `resolveDbPath()`:
 
 | Priority | Path | When |
 |----------|------|------|
@@ -82,6 +82,18 @@ Typical sources:
 
 If the file is missing, the process exits at startup with a clear DuckDB connection error.
 
+### Optional honors database (basketball-data)
+
+Accolades in some `nba.duckdb` builds are incomplete or duplicated. You can point at a separate DuckDB file that exposes `v_player_honors_full` (e.g. from [basketball-data](https://github.com/nickth3man/basketball-data)) while keeping the main app on your usual database:
+
+```bash
+export NBA_DUCKDB_PATH="C:/Users/nicolas/Documents/GitHub/bballgenius/data/nba.duckdb"
+export NBA_HONORS_DUCKDB_PATH="C:/Users/nicolas/Documents/GitHub/basketball-data/duckdb/nba.duckdb"
+bun run --cwd="C:/Users/nicolas/Documents/GitHub/bballgenius" start
+```
+
+Time Machine loads **winner** honors only (`is_winner = true`), which yields the correct four LeBron MVP seasons from that source.
+
 ## Keyboard shortcuts
 
 Global shortcuts (also shown in the footer and `?` overlay):
@@ -101,7 +113,7 @@ Global shortcuts (also shown in the footer and `?` overlay):
 
 **SQL Sandbox:** `Ctrl+R` or `Ctrl+E` run query. `↑`/`↓` in schema browser; `Enter` expands tables / inserts column names.
 
-Source of truth for help text: `src/utils/keyboardHelp.ts`.
+Source of truth for help text: `src/hub/shared/utils/keyboardHelp.ts`.
 
 ## Development
 
@@ -131,7 +143,7 @@ scripts/
 | Command | Description |
 |---------|-------------|
 | `bun start` | Run the TUI |
-| `bun test src/tests --concurrency=1` | Full suite (requires `data/nba.duckdb` or set `NBA_DUCKDB_PATH`) |
+| `bun test src/hub/tests --concurrency=1` | Full suite (requires `data/nba.duckdb` or set `NBA_DUCKDB_PATH`) |
 | `bun run test:unit` | DB-free formatter/parser tests |
 | `bun run test:regression` | Shell, mutation, visual, golden snapshots |
 | `bun run typecheck` | Typecheck entire codebase (`tsconfig.json`) |
@@ -151,10 +163,10 @@ Golden frames must be regenerated against the **same database** CI uses:
 
 ```bash
 NBA_DUCKDB_PATH=data/fixtures/nba.ci.duckdb UPDATE_SNAPSHOTS=1 \
-  bun test src/tests/golden_snapshot.test.ts --concurrency=1
+  bun test src/hub/tests/golden_snapshot.test.ts --concurrency=1
 ```
 
-See [`src/tests/snapshots/README.md`](src/tests/snapshots/README.md).
+See [`src/hub/tests/snapshots/README.md`](src/hub/tests/snapshots/README.md).
 
 ## Testing
 
@@ -163,7 +175,7 @@ See [`src/tests/snapshots/README.md`](src/tests/snapshots/README.md).
 | Tier | Command | Database |
 |------|---------|----------|
 | **Unit** | `bun run test:unit` | None |
-| **Integration** | `bun run ci:integration` or `bun test src/tests --concurrency=1` | CI fixture or full `nba.duckdb` |
+| **Integration** | `bun run ci:integration` or `bun test src/hub/tests --concurrency=1` | CI fixture or full `nba.duckdb` |
 | **Regression** | `bun run test:regression` | Same as integration |
 
 The full suite is **80 tests** across 11 files when run with the CI fixture.
@@ -178,7 +190,7 @@ bun run test:unit
 bun run ci:integration
 
 # Full local database
-bun test src/tests --concurrency=1
+bun test src/hub/tests --concurrency=1
 ```
 
 ### CI
@@ -241,13 +253,13 @@ flowchart TB
 
 **Design decisions**
 
-- **Production SQL lives in `src/queries/`** — Tests import the same functions via `src/tests/helpers/queries.ts` so SQL changes cannot drift from tests.
+- **Production SQL lives in `src/hub/tabs/*/queries.ts`** — Each tab colocates its SQL with its view controller.
 - **ANSI at the boundary** — Tabs build strings with ANSI for emphasis; `ansiToStyledText()` converts before assigning to `TextRenderable` to keep layout and tests stable.
 - **Focus model** — Panel borders use OpenTUI `focusable` + `focusedBorderColor`; lists use `▶` and arrow keys instead of mouse.
 
 ## API reference (core modules)
 
-### `resolveDbPath()` / `initDb()` / `query(sql, params?)` — `src/db.ts`
+### `resolveDbPath()` / `initDb()` / `query(sql, params?)` — `src/hub/core/db.ts`
 
 Resolves the DuckDB file path, opens a cached connection, and returns row objects (JSON-safe types).
 
@@ -292,7 +304,7 @@ export async function initDb(): Promise<any>
 ```ts
 export async function query(sql: string, params?: any[]): Promise<any[]>
 ```
-- **Error Handling:** Throws a binder or parsing error if SQL syntax is invalid or references non-existent columns (tested heavily by mutation guards in `src/tests/mutation.test.ts`).
+- **Error Handling:** Throws a binder or parsing error if SQL syntax is invalid or references non-existent columns (tested heavily by mutation guards in `src/hub/tests/mutation.test.ts`).
 
 ---
 
@@ -313,7 +325,7 @@ export async function query(sql: string, params?: any[]): Promise<any[]>
 #### 3. `scripts/apply-branch-protection.sh`
 - **What it does:** Invokes the GitHub Repository branch-protection REST endpoint to enforce the aggregate `"CI"` check on `main`. Requires authenticated `gh` admin permissions.
 
-### `createAppShell(renderer)` — `src/appShell.ts`
+### `createAppShell(renderer)` — `src/hub/core/appShell.ts`
 
 Builds the hub UI and returns navigation helpers.
 
@@ -332,7 +344,7 @@ shell.toggleHelp();
 | `toggleHelp()` | Show/hide shortcut overlay |
 | `routeKeyPress(event)` | Exposed for tests |
 
-### `formatTable` / `drawHalfCourt` / `ansiToStyledText` — `src/utils/formatters.ts`
+### `formatTable` / `drawHalfCourt` / `ansiToStyledText` — `src/hub/shared/utils/formatters.ts`
 
 Terminal table layout, half-court shot plot, and ANSI → `StyledText` parsing. Respects `NO_COLOR` for `drawHalfCourt` when `process.env.NO_COLOR` is set.
 
