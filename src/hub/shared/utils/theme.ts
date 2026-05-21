@@ -17,8 +17,9 @@ export const Theme = {
   borderNormal: '#383e5a', // Subtle border normally
 
   // Layout and components
-  borderStyle: 'single' as const,
+  borderStyle: 'rounded' as const,
   titleAlignment: 'left' as const,
+  gap: 1 as const,
 };
 
 /** True when `NO_COLOR` is set to any non-empty value (https://no-color.org/). */

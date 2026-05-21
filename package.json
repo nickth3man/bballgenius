@@ -16,8 +16,9 @@
     "test:unit": "bun test src/hub/tests/formatters.test.ts --concurrency=1",
     "test:regression": "bun test src/hub/tests/regression.test.ts src/hub/tests/mutation.test.ts src/hub/tests/visual_frame.test.ts src/hub/tests/app_shell.test.ts src/hub/tests/golden_snapshot.test.ts --concurrency=1",
     "typecheck": "tsc --noEmit -p tsconfig.json",
+    "typecheck:chatbot": "tsc --noEmit -p tsconfig.chatbot.json",
     "audit": "bun audit --audit-level=moderate",
-    "lint": "biome ci src scripts",
+    "lint": "biome ci src scripts --error-on-warnings",
     "lint:fix": "biome check --write src scripts",
     "format:check": "biome check --write src scripts && git diff --exit-code -- src scripts",
     "keyboard-map:sync": "bun run scripts/sync-keyboard-map.ts",
@@ -36,7 +37,8 @@
     "bbr:watch": "node scripts/bbrObservability.cjs watch",
     "bbr:map:cancel": "node scripts/bbrObservability.cjs map-cancel",
     "bbr:observe": "bash scripts/bbrMapObserveCycle.sh",
-    "bbr:scrape-depth-samples": "node scripts/scrapeDepthSamples.cjs"
+    "bbr:scrape-depth-samples": "node scripts/scrapeDepthSamples.cjs",
+    "prepare": "lefthook install"
   },
   "dependencies": {
     "@duckdb/node-api": "^1.5.2-r.2",
@@ -54,6 +56,7 @@
     "@biomejs/biome": "^2.4.15",
     "@types/bun": "^1.3.14",
     "@types/node": "^25.9.1",
+    "lefthook": "^2.1.8",
     "typescript": "^6.0.3"
   },
   "overrides": {

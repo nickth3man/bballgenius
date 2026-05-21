@@ -1,4 +1,12 @@
-import { BoxRenderable, type CliRenderer, KeyEvent, TextRenderable } from '@opentui/core';
+import {
+  BoxRenderable,
+  type CliRenderer,
+  KeyEvent,
+  type TabSelectOption,
+  TabSelectRenderable,
+  TabSelectRenderableEvents,
+  TextRenderable,
+} from '@opentui/core';
 import { ansiToStyledText } from '../shared/utils/formatters.js';
 import { buildHelpLines } from '../shared/utils/keyboardHelp.js';
 import { Theme } from '../shared/utils/theme.js';
@@ -20,7 +28,7 @@ export interface AppShell {
 
   workspaceBox: BoxRenderable;
 
-  tabBarText: TextRenderable;
+  tabSelect: TabSelectRenderable;
 
   footerLeftText: TextRenderable;
 
@@ -32,7 +40,7 @@ export interface AppShell {
 
   switchTab: (tabIdx: number) => void;
 
-  updateTabBarHeader: () => void;
+  syncTabSelectOptions: () => void;
 
   attachKeyHandlers: (handlers?: AppShellHandlers) => void;
 
@@ -76,29 +84,36 @@ export function createAppShell(renderer: CliRenderer): AppShell {
 
   const headerBox = new BoxRenderable(renderer, {
     id: 'header-box',
-
     width: '100%',
-
-    height: 3,
-
-    border: ['top', 'bottom'],
-
+    height: 4,
+    border: ['bottom'],
     borderColor: Theme.borderNormal,
-
     backgroundColor: '#16161e',
-
     justifyContent: 'center',
-
     alignItems: 'center',
   });
 
-  const tabBarText = new TextRenderable(renderer, {
-    id: 'tab-bar-text',
-
-    content: '',
+  const tabSelect = new TabSelectRenderable(renderer, {
+    id: 'tab-select',
+    width: '100%',
+    height: 4,
+    options: [],
+    tabWidth: 26,
+    selectedBackgroundColor: '#bd93f9',
+    selectedTextColor: '#ffffff',
+    textColor: '#888888',
+    backgroundColor: '#16161e',
+    showUnderline: false,
+    showDescription: false,
   });
 
-  headerBox.add(tabBarText);
+  tabSelect.on(TabSelectRenderableEvents.SELECTION_CHANGED, (index: number) => {
+    if (index === activeTabIdx) return;
+    switchTab(index);
+    refreshFooterStatus();
+  });
+
+  headerBox.add(tabSelect);
 
   rootBox.add(headerBox);
 
@@ -254,21 +269,17 @@ export function createAppShell(renderer: CliRenderer): AppShell {
     renderer.requestRender();
   };
 
-  const updateTabBarHeader = () => {
-    const tabHeaders = tabs.map((tab, idx) => {
+  const syncTabSelectOptions = () => {
+    const options: TabSelectOption[] = tabs.map((tab, idx) => {
       const shortcutIndex = TAB_REGISTRY[idx]?.shortcutIndex ?? idx + 1;
-      const shortcut = `[F${shortcutIndex}/${shortcutIndex}]`;
-
-      const isSelected = idx === activeTabIdx;
-
-      if (isSelected) {
-        return ` \x1b[1;37;45m ${shortcut} ${tab.name} \x1b[0m `;
-      }
-
-      return ` \x1b[90m${shortcut} ${tab.name}\x1b[0m `;
+      return {
+        name: tab.name,
+        description: `F${shortcutIndex} / ${shortcutIndex}`,
+        value: idx,
+      };
     });
-
-    tabBarText.content = ansiToStyledText(tabHeaders.join('  \x1b[38;2;56;62;90m│\x1b[0m  '));
+    tabSelect.setOptions(options);
+    tabSelect.setSelectedIndex(activeTabIdx);
   };
 
   const switchTab = (tabIdx: number) => {
@@ -282,7 +293,7 @@ export function createAppShell(renderer: CliRenderer): AppShell {
       tab.container.visible = !helpVisible && idx === activeTabIdx;
     });
 
-    updateTabBarHeader();
+    syncTabSelectOptions();
 
     refreshFooterStatus();
 
@@ -292,6 +303,7 @@ export function createAppShell(renderer: CliRenderer): AppShell {
   };
 
   const initTabs = async () => {
+    syncTabSelectOptions();
     await Promise.all(tabs.map((t) => t.init()));
 
     switchTab(activeTabIdx);
@@ -332,7 +344,7 @@ export function createAppShell(renderer: CliRenderer): AppShell {
 
     workspaceBox,
 
-    tabBarText,
+    tabSelect,
 
     footerLeftText,
 
@@ -346,7 +358,7 @@ export function createAppShell(renderer: CliRenderer): AppShell {
 
     switchTab,
 
-    updateTabBarHeader,
+    syncTabSelectOptions,
 
     attachKeyHandlers,
 

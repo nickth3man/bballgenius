@@ -47,4 +47,30 @@ describe('buildSystemPrompt', () => {
     expect(prompt).not.toContain('dim_game (games)');
     expect(prompt).not.toContain('fact_box_score');
   });
+
+  test('describes explicit chain stages for prompt-chain tool use', async () => {
+    mock.module('../db.js', () => ({
+      getTableRefs: async () => [
+        { schema: 'main', name: 'fact_game', type: 'BASE TABLE', qualifiedName: 'fact_game' },
+      ],
+      getColumns: async () => [
+        { name: 'game_id', type: 'VARCHAR' },
+        { name: 'season_type', type: 'VARCHAR' },
+      ],
+    }));
+
+    const { buildSystemPrompt } = await import('../systemPrompt.js');
+    const prompt = await buildSystemPrompt();
+
+    expect(prompt).toContain('Chain stages');
+    expect(prompt).toContain('Stage 1');
+    expect(prompt).toContain('Stage 2');
+    expect(prompt).toContain('Stage 3');
+    expect(prompt).toContain('Stage 4');
+    expect(prompt).toContain('Stage 5');
+    expect(prompt).toContain('check_nba_sql BEFORE query_nba_db');
+    expect(prompt).toContain('list_nba_tables');
+    expect(prompt).toContain('get_schema_info');
+    expect(prompt).toContain('query_nba_db');
+  });
 });

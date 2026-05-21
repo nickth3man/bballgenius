@@ -2,364 +2,241 @@
 
 [![CI](https://github.com/nickth3man/bballgenius/actions/workflows/ci.yml/badge.svg)](https://github.com/nickth3man/bballgenius/actions/workflows/ci.yml)
 
-A terminal NBA analytics hub built with **[Bun](https://bun.sh)**, **[OpenTUI](https://github.com/anomalyco/opentui)**, and **[DuckDB](https://duckdb.org)**. Browse recent games and box scores, explore player careers, and run ad‑hoc SQL against a local `nba.duckdb` dataset (~1.5 GB).
+BBallGenius is a Bun monorepo for terminal-first NBA analysis. It contains two production packages:
 
-## Overview
+| Package | Path | Purpose |
+|---------|------|---------|
+| Hub | `src/hub/` | Keyboard-driven OpenTUI NBA analytics hub with Game Center, Career Time-Machine, and SQL Sandbox |
+| Chatbot | `src/chatbot/` | LangGraph-powered conversational NBA agent with DuckDB tools, OpenRouter models, streaming output, and SQL correction |
 
-BBallGenius consolidates three workflows into one keyboard-driven TUI:
-
-| Tab | Shortcut | Purpose |
-|-----|----------|---------|
-| **Game Center** | `F1` / `1` | Recent games, deduplicated box scores, shot charts |
-| **Career Time-Machine** | `F2` / `2` | Player search, dossier, season-by-season stats |
-| **SQL Sandbox** | `F3` / `3` | Schema browser and DuckDB query editor |
-
-The app shell (`src/hub/core/appShell.ts`) owns global key routing, tab visibility, a dynamic status footer, and a `?` help overlay. Each tab implements the `AppShellTab` contract: focus cycling, optional backward focus (`Shift+Tab`), and contextual status lines for the footer.
-
-### Why it exists
-
-- **Single local database** — One DuckDB file powers every tab; no separate services.
-- **Terminal-first** — Fast keyboard navigation for analysts who live in the shell.
-- **Testable UI** — OpenTUI virtual renderer tests cover routing, ANSI safety, SQL shapes, and golden frames without a real terminal.
-
-### Key terms
-
-- **team_dedup** — SQL CTE that picks the latest franchise name per `team_id` (e.g. Minneapolis → LA Lakers) so box scores do not duplicate players.
-- **StyledText** — OpenTUI structured text produced by `ansiToStyledText()` so escape codes do not break layout or leak into `plainText`.
-- **Mutation helpers** — Intentionally broken queries in `src/hub/tests/helpers/queries.ts` prove tests catch SQL regressions.
-- **CI fixture** — Committed `data/fixtures/nba.ci.duckdb` (~3 MB) subset used for PR integration tests; see [`data/fixtures/README.md`](data/fixtures/README.md).
+Both packages query local DuckDB data and share only `src/shared/dbPath.ts` for database path resolution.
 
 ## Requirements
 
-- [Bun](https://bun.sh) **1.3.6+** (see `packageManager` in `package.json`)
-- A terminal that supports ANSI colors (Windows Terminal, iTerm2, etc.)
-- **`data/nba.duckdb`** — not included in git (~1.5 GB); see [Database setup](#database-setup)
+- Bun `1.3.6+` (see `packageManager` in `package.json`)
+- A terminal with ANSI color support
+- `data/nba.duckdb` for full local data (~1.5 GB, gitignored)
+- `OPENROUTER_API_KEY` only for chatbot live model calls and smoke tests
 
-Optional: set `NO_COLOR=1` for monochrome shot symbols (`o` / `x` / `[o]` / `[x]`) in the half-court plotter.
+The committed CI fixture `data/fixtures/nba.ci.duckdb` is used for automated tests and local fixture-based runs.
 
-## Quick start
+## Quick Start
 
 ```bash
 git clone https://github.com/nickth3man/bballgenius.git
 cd bballgenius
 bun install
 
-# Place your DuckDB file at data/nba.duckdb (see below)
+# Run the terminal analytics hub
 bun start
+
+# Run the conversational NBA chatbot
+OPENROUTER_API_KEY=... bun run chatbot:start
 ```
 
-On first launch the app connects to `data/nba.duckdb`, renders the hub, and loads Game Center. Press `?` anytime for the full shortcut list.
+By default, both apps look for `data/nba.duckdb`. Set `NBA_DUCKDB_PATH` to override the database path.
 
-To run the full test suite locally without the large database:
+## Applications
+
+### Hub
 
 ```bash
-bun run ci:integration   # uses committed data/fixtures/nba.ci.duckdb
+bun start
+# or
+bun run hub:start
 ```
 
-## Database setup
+Hub tabs:
 
-Connection path is resolved in `src/hub/core/db.ts` via `resolveDbPath()`:
+| Tab | Shortcut | Purpose |
+|-----|----------|---------|
+| Game Center | `F1` / `1` | Recent games, box scores, player shot charts |
+| Career Time-Machine | `F2` / `2` | Player/team search, BBR mirror views, dossiers, honors |
+| SQL Sandbox | `F3` / `3` | Schema browser and ad-hoc DuckDB query editor |
+
+Global hub shortcuts: `Tab` / `Shift+Tab` cycle focus, `?` opens help, `Esc` blurs/closes/quits, `Ctrl+C` quits.
+
+### Chatbot
+
+```bash
+OPENROUTER_API_KEY=... bun run chatbot:start
+```
+
+The chatbot is an OpenTUI chat interface backed by a LangGraph ReAct graph:
+
+```text
+START -> llm -> tools? -> sql_critic -> llm -> END
+```
+
+It exposes two tools to the model:
+
+| Tool | Purpose |
+|------|---------|
+| `query_nba_db` | Execute read-only DuckDB SQL with schema pre-validation |
+| `get_schema_info` | Discover tables and columns before writing SQL |
+
+Chatbot keys: `Enter` sends, `Tab` / `Shift+Tab` cycles input and scroll focus, `@` / `Ctrl+P` opens model selector, `Esc` quits.
+
+See `src/chatbot/README.md` for chatbot-specific architecture, testing, and observability details.
+
+## Database Setup
+
+Database paths are resolved by `src/shared/dbPath.ts`:
 
 | Priority | Path | When |
 |----------|------|------|
-| 1 | `process.env.NBA_DUCKDB_PATH` | Explicit override (tests, local scripts) |
+| 1 | `process.env['NBA_DUCKDB_PATH']` | Explicit override |
 | 2 | `data/fixtures/nba.ci.duckdb` | `CI=true` or `GITHUB_ACTIONS=true` and fixture exists |
-| 3 | `data/nba.duckdb` | Default for local development and `bun start` |
+| 3 | `data/nba.duckdb` | Default local database |
 
-```ts
-import { initDb, resolveDbPath } from './db.js';
-
-await initDb(); // opens resolveDbPath()
-```
-
-1. Create the directory: `mkdir -p data`
-2. Copy or build `nba.duckdb` into `data/nba.duckdb`
-
-Typical sources:
-
-- Build from the [nbadb](https://github.com/nickth3man/nbadb) pipeline (same schema family as this project).
-- Export from an existing DuckDB or Kaggle NBA dataset compatible with tables such as `dim_player`, `dim_game`, `fact_player_game_boxscore`, and `fact_pbp_events`.
-
-If the file is missing, the process exits at startup with a clear DuckDB connection error.
-
-### Optional honors database (basketball-data)
-
-Accolades in some `nba.duckdb` builds are incomplete or duplicated. You can point at a separate DuckDB file that exposes `v_player_honors_full` (e.g. from [basketball-data](https://github.com/nickth3man/basketball-data)) while keeping the main app on your usual database:
+Create the data directory and place the full database locally:
 
 ```bash
-export NBA_DUCKDB_PATH="C:/Users/nicolas/Documents/GitHub/bballgenius/data/nba.duckdb"
-export NBA_HONORS_DUCKDB_PATH="C:/Users/nicolas/Documents/GitHub/basketball-data/duckdb/nba.duckdb"
-bun run --cwd="C:/Users/nicolas/Documents/GitHub/bballgenius" start
+mkdir -p data
+# copy/build nba.duckdb into data/nba.duckdb
 ```
 
-Time Machine loads **winner** honors only (`is_winner = true`), which yields the correct four LeBron MVP seasons from that source.
+Typical source: build from the [`nickth3man/nbadb`](https://github.com/nickth3man/nbadb) pipeline or another compatible DuckDB dataset with tables such as `dim_player`, `dim_game`, `fact_player_game_boxscore`, and `fact_pbp_events`.
 
-## Keyboard shortcuts
+### Optional Honors Database
 
-Global shortcuts (also shown in the footer and `?` overlay):
+Some local `nba.duckdb` builds have incomplete accolades. Point `NBA_HONORS_DUCKDB_PATH` at a separate DuckDB that exposes `v_player_honors_full`:
 
-| Key | Action |
-|-----|--------|
-| `F1`–`F3` or `1`–`3` | Switch tabs |
-| `Tab` | Cycle panel focus (skipped while typing in search/SQL) |
-| `Shift+Tab` | Cycle focus backward |
-| `?` | Toggle help overlay |
-| `Esc` | Blur input, close help, or quit |
-| `Ctrl+C` | Quit |
-
-**Game Center:** `↑`/`↓` move selection in the focused panel (games or box score). Shot chart follows the selected player.
-
-**Time-Machine:** Type to search (2+ characters). `↑`/`↓` suggestions, `Enter` to load. `Tab` inserts a tab in the search field when the search box is focused.
-
-**SQL Sandbox:** `Ctrl+R` or `Ctrl+E` run query. `↑`/`↓` in schema browser; `Enter` expands tables / inserts column names.
-
-Source of truth for help text: `src/hub/shared/utils/keyboardHelp.ts`.
-
-## Development
-
-### Project layout
-
-```
-src/
-  index.ts              # Entry: DB init, OpenTUI renderer, app shell
-  appShell.ts           # Tabs, key router, footer, help overlay
-  db.ts                 # DuckDB path resolution, connection, query helpers
-  queries/              # Production SQL (game center, time machine)
-  tabs/                 # GameCenterTab, TimeMachineTab, SqlSandboxTab
-  utils/                # formatters, theme, keyboardHelp
-  tests/                # Bun test suite (unit + integration)
-data/
-  nba.duckdb            # Full database (gitignored, local only)
-  fixtures/
-    nba.ci.duckdb       # CI subset (committed, ~3 MB)
-scripts/
-  build-ci-fixture.ts   # Build nba.ci.duckdb from full database
-  ci-guards.sh          # Block .only/.skip and UPDATE_SNAPSHOTS in CI
-  apply-branch-protection.sh
+```bash
+export NBA_DUCKDB_PATH="data/nba.duckdb"
+export NBA_HONORS_DUCKDB_PATH="../basketball-data/duckdb/nba.duckdb"
+bun start
 ```
 
-### Scripts
+## Project Layout
+
+```text
+.
+├── .github/workflows/ci.yml
+├── data/
+│   ├── fixtures/nba.ci.duckdb
+│   └── nba.duckdb                # local only, gitignored
+├── scripts/
+├── src/
+│   ├── shared/dbPath.ts
+│   ├── hub/
+│   │   ├── core/
+│   │   ├── shared/utils/
+│   │   ├── tabs/
+│   │   └── tests/
+│   └── chatbot/
+│       ├── agent/
+│       ├── features/
+│       ├── utils/
+│       ├── eval/
+│       └── __tests__/
+├── biome.json
+├── tsconfig.json
+├── tsconfig.chatbot.json
+└── lefthook.yml
+```
+
+## Scripts
 
 | Command | Description |
 |---------|-------------|
-| `bun start` | Run the TUI |
-| `bun test src/hub/tests --concurrency=1` | Full suite (requires `data/nba.duckdb` or set `NBA_DUCKDB_PATH`) |
-| `bun run test:unit` | DB-free formatter/parser tests |
-| `bun run test:regression` | Shell, mutation, visual, golden snapshots |
-| `bun run typecheck` | Typecheck entire codebase (`tsconfig.json`) |
-| `bun run lint` | Biome lint (`biome ci`) |
-| `bun run lint:fix` | Biome check with auto-fix |
-| `bun run fixture:build` | Rebuild `data/fixtures/nba.ci.duckdb` from full local DB |
-| `bun run ci:integration` | Full test suite against CI fixture |
-| `bun run ci` | Local mirror of PR CI (guards, lint, typecheck, unit, integration, audit) |
+| `bun start` / `bun run hub:start` | Run the analytics hub |
+| `bun run chatbot:start` | Run the chatbot TUI |
+| `bun run test:unit` | Hub formatter tests, no DB |
+| `bun run test:regression` | Hub regression bundle |
+| `bun run test:chatbot` | Chatbot test suite with `--concurrency=1` |
+| `bun run typecheck` | Full repo TypeScript check |
+| `bun run typecheck:chatbot` | Strict chatbot/shared TypeScript check |
+| `bun run lint` | Biome CI with `--error-on-warnings` |
+| `bun run lint:fix` | Biome check/write on `src` and `scripts` |
+| `bun run ci:integration` | Hub integration suite on CI fixture |
+| `bun run chatbot:smoke` | Fact-checked live chatbot smoke test |
+| `bun run chatbot:smoke:100` | Full 100-query live smoke suite |
+| `bun run fixture:build` | Rebuild the CI DuckDB fixture from full local DB |
+| `bun run ci` | Local PR-style CI bundle |
 
-Always pass `--concurrency=1` for the full suite so DuckDB and OpenTUI tests do not race.
+Always use `--concurrency=1` for DuckDB/OpenTUI test suites.
 
-Both application and test code are fully checked with `bun run typecheck` under a unified `tsconfig.json`.
+## Linting, Formatting, and Type Safety
 
-### Updating golden snapshots
-
-Golden frames must be regenerated against the **same database** CI uses:
-
-```bash
-NBA_DUCKDB_PATH=data/fixtures/nba.ci.duckdb UPDATE_SNAPSHOTS=1 \
-  bun test src/hub/tests/golden_snapshot.test.ts --concurrency=1
-```
-
-See [`src/hub/tests/snapshots/README.md`](src/hub/tests/snapshots/README.md).
+- Biome formats with 2 spaces, single quotes, semicolons, and line width 100.
+- Biome `organizeImports` is enabled.
+- CI and `bun run lint` use `--error-on-warnings`.
+- Strict lint rules enforce unused imports/variables, `import type` / `export type`, `const` preference, template consistency, enum initializers, no explicit `any`, no untyped `let`, and `===` over `==`.
+- Lefthook runs `bunx biome check --write` on staged TypeScript/JSON files before commits.
+- `tsconfig.chatbot.json` adds stricter chatbot checks including `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `noPropertyAccessFromIndexSignature`, `noImplicitReturns`, `noImplicitOverride`, `noFallthroughCasesInSwitch`, unused checks, and `verbatimModuleSyntax`.
 
 ## Testing
 
-### Tiers
+| Layer | Command |
+|-------|---------|
+| Hub unit | `bun run test:unit` |
+| Hub integration/regression | `NBA_DUCKDB_PATH=data/fixtures/nba.ci.duckdb bun run ci:integration` |
+| Chatbot tests | `bun run test:chatbot` |
+| Full repo typecheck | `bun run typecheck` |
+| Strict chatbot typecheck | `bun run typecheck:chatbot` |
+| Lint | `bun run lint` |
+| Audit | `bun run audit` |
 
-| Tier | Command | Database |
-|------|---------|----------|
-| **Unit** | `bun run test:unit` | None |
-| **Integration** | `bun run ci:integration` or `bun test src/hub/tests --concurrency=1` | CI fixture or full `nba.duckdb` |
-| **Regression** | `bun run test:regression` | Same as integration |
+Chatbot tests cover graph behavior, SQL safety, SQL extraction, result formatting, system prompt building, ANSI conversion, retry/error classification, and streaming events.
 
-The full suite is **80 tests** across 11 files when run with the CI fixture.
+## CI
 
-### Running locally
+GitHub Actions workflow: `.github/workflows/ci.yml`.
+
+Jobs:
+
+| Job | Purpose |
+|-----|---------|
+| guards | Block `.only` / `.skip`, snapshot updates in CI, sibling tab imports, Biome warnings |
+| lint | Biome strict lint |
+| format | Biome format check |
+| typecheck | Full repo TypeScript check |
+| unit | Hub DB-free unit tests |
+| regression | Hub regression suite on CI fixture |
+| integration | Hub full test suite on CI fixture |
+| chatbot | Strict chatbot typecheck + chatbot tests on CI fixture |
+| audit | Moderate+ dependency audit |
+| CI | Aggregate required status |
+| integration-full | Manual full-database workflow |
+
+Run the closest local equivalent before pushing:
 
 ```bash
-# No database
+bun run lint
+bun run typecheck
+bun run typecheck:chatbot
 bun run test:unit
-
-# CI fixture (~80 tests, no 1.5 GB download)
+bun run test:chatbot
 bun run ci:integration
-
-# Full local database
-bun test src/hub/tests --concurrency=1
+bun run audit
 ```
 
-### CI
+## BBR Mirror
 
-GitHub Actions workflow: [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
-
-Based on the official [Bun + GitHub Actions guide](https://bun.sh/docs/guides/runtime/cicd) (`oven-sh/setup-bun@v2`, `bun-version-file`).
-
-| Job | When | What |
-|-----|------|------|
-| **guards** | Every push / PR | Reject `.only` / `.skip` in tests; block `UPDATE_SNAPSHOTS=1` |
-| **lint** | Every push / PR | `bun run lint` (Biome) |
-| **typecheck** | Every push / PR | `bun run typecheck` (unified tsconfig) |
-| **unit** | Every push / PR | `bun run test:unit` |
-| **integration** | Every push / PR | Full suite against `data/fixtures/nba.ci.duckdb` |
-| **audit** | Every push / PR | `bun audit` |
-| **CI** (aggregate) | Every push / PR | All of the above must pass — **required on `main`** |
-| **integration-full** | Manual `workflow_dispatch` | Full suite against `data/nba.duckdb` (~1.5 GB) |
-
-Run the same checks locally before pushing:
+Basketball-Reference mirroring uses Firecrawl and writes gitignored assets under `.firecrawl/` and `bbr-screenshots/`.
 
 ```bash
-bun run ci
+bun run bbr:map
+bun run bbr:crawl
+bun run bbr:verify
 ```
 
-**Branch protection:** `main` requires the **CI** status check. Re-apply with:
+Run `bbr:map` before `bbr:crawl`. Do not run map and crawl simultaneously because they share API quota.
 
-```bash
-bash scripts/apply-branch-protection.sh
-```
+## Common Pitfalls
 
-**CI fixture:** [`data/fixtures/README.md`](data/fixtures/README.md) — rebuild with `bun run fixture:build` after changing fixture scope.
+- Do not commit `data/nba.duckdb`, `bbr-screenshots/`, `.firecrawl/bbr-map-full.txt`, or DuckDB WAL files.
+- Do not commit `.only(` or `.skip(` in tests; CI blocks them.
+- Regenerate golden snapshots only against `data/fixtures/nba.ci.duckdb`.
+- Do not import hub tab modules from chatbot or chatbot modules from hub. Use `src/shared/` only for deliberate shared modules.
+- Do not weaken strict chatbot type checks to get around `noUncheckedIndexedAccess`; add guards/defaults instead.
 
-**Full-database CI:** Actions → CI → Run workflow → enable **Run tests against full data/nba.duckdb**.
+## Related Projects
 
-## Architecture
-
-```mermaid
-flowchart TB
-  subgraph entry [Entry]
-    index[index.ts]
-    db[db.ts resolveDbPath]
-  end
-  subgraph shell [App shell]
-    router[createAppShellKeyRouter]
-    tabs[GameCenter / TimeMachine / SqlSandbox]
-  end
-  subgraph data [Data]
-    full[(data/nba.duckdb)]
-    fixture[(data/fixtures/nba.ci.duckdb)]
-    queries[queries/*.ts]
-  end
-  index --> db
-  index --> shell
-  tabs --> queries
-  queries --> full
-  queries --> fixture
-  router --> tabs
-```
-
-**Design decisions**
-
-- **Production SQL lives in `src/hub/tabs/*/queries.ts`** — Each tab colocates its SQL with its view controller.
-- **ANSI at the boundary** — Tabs build strings with ANSI for emphasis; `ansiToStyledText()` converts before assigning to `TextRenderable` to keep layout and tests stable.
-- **Focus model** — Panel borders use OpenTUI `focusable` + `focusedBorderColor`; lists use `▶` and arrow keys instead of mouse.
-
-## API reference (core modules)
-
-### `resolveDbPath()` / `initDb()` / `query(sql, params?)` — `src/hub/core/db.ts`
-
-Resolves the DuckDB file path, opens a cached connection, and returns row objects (JSON-safe types).
-
-#### `resolveDbPath(): string`
-**Purpose:** Resolves the correct file path to the DuckDB connection file depending on the running environment. It enables seamless integration testing in headless CI runners by automatically falling back to a committed minimal fixture database instead of requiring the full 1.5 GB dataset.
-
-**Signature & Types:**
-```ts
-export function resolveDbPath(): string
-```
-- **Parameters:** None.
-- **Returns:** `string` (The absolute or relative file path to the target DuckDB database).
-
-**Error Handling & Edge Cases:**
-- Returns the path string even if the file itself does not yet exist.
-- Downstream initialization (`initDb()`) will throw a critical file-access/missing-database exception if the resolved path points to a missing file at application startup.
-
-**Example Usage:**
-```ts
-import { resolveDbPath, initDb } from './db.js';
-
-// Resolve path based on environments
-const dbPath = resolveDbPath();
-console.log(`Target database path: ${dbPath}`);
-
-// Connection setup
-await initDb();
-```
-
-#### `initDb(): Promise<any>`
-**Purpose:** Opens and caches a connection to the resolved database file path.
-
-**Signature:**
-```ts
-export async function initDb(): Promise<any>
-```
-
-#### `query(sql, params?): Promise<any[]>`
-**Purpose:** Executes an arbitrary SQL string against the connected DuckDB instance.
-
-**Signature:**
-```ts
-export async function query(sql: string, params?: any[]): Promise<any[]>
-```
-- **Error Handling:** Throws a binder or parsing error if SQL syntax is invalid or references non-existent columns (tested heavily by mutation guards in `src/hub/tests/mutation.test.ts`).
-
----
-
-### CI/CD Automation Scripts (`scripts/`)
-
-#### 1. `scripts/build-ci-fixture.ts`
-- **What it does:** Extracts a highly targeted slice of statistical records from the full 1.5 GB database to build the lightweight ~2.8 MB committed `data/fixtures/nba.ci.duckdb`.
-- **Design Decisions:** Focuses on preserving key games, deduplication edge-cases (Minneapolis vs LA Lakers), and exact player data used across visual render snapshots and SQL parsing tests. Runs `CHECKPOINT` to prevent `.wal` side-car commits.
-- **Usage:**
-  ```bash
-  bun run fixture:build
-  ```
-
-#### 2. `scripts/ci-guards.sh`
-- **What it does:** Rejects commits that contain focused (`.only`) or skipped (`.skip`) test instructions, preventing disabled test suites from bypassing CI history. It also blocks snapshot updates (`UPDATE_SNAPSHOTS=1`) in non-interactive CI environments.
-- **Pitfalls to Avoid:** Committing test suites containing `.only` or `.skip` which block full pipeline validation. Run `bun run ci` locally before staging to run the guards.
-
-#### 3. `scripts/apply-branch-protection.sh`
-- **What it does:** Invokes the GitHub Repository branch-protection REST endpoint to enforce the aggregate `"CI"` check on `main`. Requires authenticated `gh` admin permissions.
-
-### `createAppShell(renderer)` — `src/hub/core/appShell.ts`
-
-Builds the hub UI and returns navigation helpers.
-
-```ts
-const shell = createAppShell(renderer);
-shell.attachKeyHandlers({ onShutdown: async () => { /* cleanup */ } });
-await shell.initTabs();
-shell.setStatusLine('Ready');
-shell.toggleHelp();
-```
-
-| Method | Description |
-|--------|-------------|
-| `switchTab(index)` | Show tab 0–2 and refresh focus |
-| `setStatusLine(text)` | Footer center status (also reads `tab.getStatusLine()`) |
-| `toggleHelp()` | Show/hide shortcut overlay |
-| `routeKeyPress(event)` | Exposed for tests |
-
-### `formatTable` / `drawHalfCourt` / `ansiToStyledText` — `src/hub/shared/utils/formatters.ts`
-
-Terminal table layout, half-court shot plot, and ANSI → `StyledText` parsing. Respects `NO_COLOR` for `drawHalfCourt` when `process.env.NO_COLOR` is set.
-
-## Common pitfalls
-
-- **Running tests without `--concurrency=1`** — Can cause flaky DuckDB or OpenTUI failures.
-- **Committing `data/nba.duckdb`** — Gitignored on purpose; never add the 1.5 GB file. The CI fixture (`data/fixtures/nba.ci.duckdb`) is committed instead.
-- **Expecting Tab to type in SQL/search** — Global Tab cycles panels only when the input is not focused; use Tab inside the field while typing.
-- **Golden snapshot drift** — Regenerate with `NBA_DUCKDB_PATH=data/fixtures/nba.ci.duckdb` so snapshots match CI; review the diff before committing.
-- **Fixture out of date** — After changing queries or test data needs, run `bun run fixture:build` and `bun run ci`.
-
-## Related projects
-
-- [nickth3man/nbadb](https://github.com/nickth3man/nbadb) — NBA data extraction and DuckDB build pipeline
-- [anomalyco/opentui](https://github.com/anomalyco/opentui) — Terminal UI framework
+- [`nickth3man/nbadb`](https://github.com/nickth3man/nbadb) — NBA data extraction and DuckDB build pipeline
+- [`anomalyco/opentui`](https://github.com/anomalyco/opentui) — Terminal UI framework
+- [`langchain-ai/langgraph`](https://github.com/langchain-ai/langgraph) — Agent graph runtime
 
 ## License
 

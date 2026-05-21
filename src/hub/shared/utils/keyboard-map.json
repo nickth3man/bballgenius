@@ -13,6 +13,10 @@
       "action": "SQL Sandbox"
     },
     {
+      "keys": "Left/Right",
+      "action": "Navigate tabs (when tab bar focused)"
+    },
+    {
       "keys": "Tab",
       "action": "Cycle focus (when not typing)"
     },

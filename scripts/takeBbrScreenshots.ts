@@ -110,7 +110,7 @@ async function run() {
     console.log(`\n[DEBUG] [Queue Size: ${urlQueue.length}] Next candidate: ${url}`);
 
     if (visitedUrls.has(url)) {
-      console.log(`[DEBUG] URL already visited. Skipping.`);
+      console.log('[DEBUG] URL already visited. Skipping.');
       continue;
     }
     visitedUrls.add(url);

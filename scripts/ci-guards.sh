@@ -13,6 +13,12 @@ if rg -n '\.(only|skip)\(' src/hub/tests --glob '*.ts' >/dev/null 2>&1; then
   fail=1
 fi
 
+if rg -n '\.(only|skip)\(' src/chatbot/__tests__ --glob '*.ts' >/dev/null 2>&1; then
+  echo "::error::Focused or skipped tests (.only / .skip) are not allowed under src/chatbot/__tests__"
+  rg -n '\.(only|skip)\(' src/chatbot/__tests__ --glob '*.ts' || true
+  fail=1
+fi
+
 if [ "${UPDATE_SNAPSHOTS:-}" = "1" ]; then
   echo "::error::UPDATE_SNAPSHOTS must not be set in CI (golden snapshots would be rewritten)"
   fail=1

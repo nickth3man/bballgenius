@@ -86,6 +86,7 @@ export class TimeMachineTab implements TimeMachineHost {
       width: '100%',
       height: '100%',
       flexDirection: 'row',
+      gap: Theme.gap,
       backgroundColor: Theme.background,
     });
 
@@ -139,6 +140,7 @@ export class TimeMachineTab implements TimeMachineHost {
       id: 'tm-dossier-scroll',
       width: '100%',
       height: '100%',
+      viewportCulling: true,
     });
 
     this.dossierText = new TextRenderable(renderer, {
@@ -222,6 +224,7 @@ export class TimeMachineTab implements TimeMachineHost {
       id: 'tm-stats-scroll',
       width: '100%',
       height: '100%',
+      viewportCulling: true,
     });
 
     this.statsText = new TextRenderable(renderer, {

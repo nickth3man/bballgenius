@@ -14,10 +14,10 @@ export function ansiToStyledText(text: string): StyledText {
   while ((match = ANSI_PATTERN.exec(text)) !== null) {
     const textPart = text.slice(lastIndex, match.index);
     if (textPart) {
-      chunks.push(createChunk(textPart, { fg: currentFg, bold: isBold, dim: isDim }));
+      chunks.push(createChunk(textPart, getStyle(currentFg, isBold, isDim)));
     }
 
-    const params = match[1].split(';');
+    const params = (match[1] ?? '').split(';');
     for (const p of params) {
       if (p === '0') {
         currentFg = undefined;
@@ -44,7 +44,7 @@ export function ansiToStyledText(text: string): StyledText {
 
   const trailing = text.slice(lastIndex);
   if (trailing) {
-    chunks.push(createChunk(trailing, { fg: currentFg, bold: isBold, dim: isDim }));
+    chunks.push(createChunk(trailing, getStyle(currentFg, isBold, isDim)));
   }
 
   return new StyledText(chunks);
@@ -66,4 +66,16 @@ function createChunk(
     chunk.attributes = attributes;
   }
   return chunk;
+}
+
+function getStyle(
+  fg: string | undefined,
+  bold: boolean,
+  dim: boolean,
+): {
+  fg?: string;
+  bold: boolean;
+  dim: boolean;
+} {
+  return fg ? { fg, bold, dim } : { bold, dim };
 }

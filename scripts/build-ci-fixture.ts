@@ -66,7 +66,7 @@ async function main() {
 
   const recentGames = await query(
     conn,
-    `SELECT game_id FROM src.dim_game ORDER BY game_date DESC LIMIT 25`,
+    'SELECT game_id FROM src.dim_game ORDER BY game_date DESC LIMIT 25',
   );
   const gameIds = new Set<string>([
     DEDUP_GAME_ID,

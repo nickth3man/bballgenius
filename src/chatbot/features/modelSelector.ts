@@ -2,9 +2,14 @@ import type { CliRenderer, KeyEvent } from '@opentui/core';
 import { BoxRenderable, InputRenderable, ScrollBoxRenderable, TextRenderable } from '@opentui/core';
 import { fetchModels, getModel, type ModelInfo, setModel } from '../openrouter.js';
 import { ansiToStyledText } from '../utils/ansi.js';
-import { Theme } from '../utils/theme.js';
+import { isNoColor, Theme } from '../utils/theme.js';
 
 const PAGE_SIZE = 25;
+
+function dimOrPlain(text: string): string {
+  if (isNoColor()) return text;
+  return `\x1b[2m${text}\x1b[0m`;
+}
 
 export class ModelSelector {
   readonly overlay: BoxRenderable;
@@ -38,7 +43,7 @@ export class ModelSelector {
       alignItems: 'center',
       backgroundColor: '#16161e',
       border: ['bottom'],
-      borderColor: Theme.borderNormal,
+      borderColor: Theme.borderFocused,
     });
 
     const titleText = new TextRenderable(renderer, {
@@ -59,7 +64,7 @@ export class ModelSelector {
     });
 
     this.listText = new TextRenderable(renderer, {
-      content: ansiToStyledText('\x1b[2mLoading models...\x1b[0m'),
+      content: ansiToStyledText(dimOrPlain('Loading models...')),
       wrapMode: 'none',
     });
     this.listScroll.add(this.listText);
@@ -71,7 +76,7 @@ export class ModelSelector {
     });
 
     this.footerText = new TextRenderable(renderer, {
-      content: '\u2191\u2195 navigate  \u23ce select  Esc cancel',
+      content: '\u2191\u2193/j/k navigate  \u23ce select  Esc cancel',
     });
     footerBox.add(this.footerText);
 
@@ -119,7 +124,7 @@ export class ModelSelector {
       return true;
     }
 
-    if (event.name === 'up') {
+    if (event.name === 'up' || event.name === 'k') {
       if (this.selectedIdx > 0) {
         this.selectedIdx--;
         this.renderList();
@@ -128,7 +133,7 @@ export class ModelSelector {
       return true;
     }
 
-    if (event.name === 'down') {
+    if (event.name === 'down' || event.name === 'j') {
       if (this.selectedIdx < this.filtered.length - 1) {
         this.selectedIdx++;
         this.renderList();
@@ -137,28 +142,28 @@ export class ModelSelector {
       return true;
     }
 
-    if (event.name === 'page_up') {
+    if (event.name === 'page_up' || (event.ctrl && event.name === 'u')) {
       this.selectedIdx = Math.max(0, this.selectedIdx - PAGE_SIZE);
       this.renderList();
       this.scrollIntoView();
       return true;
     }
 
-    if (event.name === 'page_down') {
+    if (event.name === 'page_down' || (event.ctrl && event.name === 'd')) {
       this.selectedIdx = Math.min(this.filtered.length - 1, this.selectedIdx + PAGE_SIZE);
       this.renderList();
       this.scrollIntoView();
       return true;
     }
 
-    if (event.name === 'home') {
+    if (event.name === 'home' || (event.ctrl && event.name === 'g')) {
       this.selectedIdx = 0;
       this.renderList();
       this.scrollIntoView();
       return true;
     }
 
-    if (event.name === 'end') {
+    if (event.name === 'end' || (event.ctrl && event.name === 'e')) {
       this.selectedIdx = this.filtered.length - 1;
       this.renderList();
       this.scrollIntoView();
@@ -191,15 +196,19 @@ export class ModelSelector {
 
   private renderList(): void {
     if (this.filtered.length === 0) {
-      this.listText.content = ansiToStyledText('\x1b[2mNo models match your filter.\x1b[0m');
+      this.listText.content = ansiToStyledText(dimOrPlain('No models match your filter.'));
       this.renderer.requestRender();
       return;
     }
 
     const lines = this.filtered.map((m, i) => {
-      const prefix = i === this.selectedIdx ? '\x1b[1;37m\u25b6\x1b[0m ' : '  ';
+      const selected = i === this.selectedIdx;
+      const prefix = selected ? '\x1b[1;37m\u25b6\x1b[0m ' : '  ';
       const isActive = m.id === getModel();
-      return `${prefix}${isActive ? '\x1b[1;32m' : ''}${m.id}\x1b[0m  \x1b[90m\u2014 ${m.name}\x1b[0m`;
+      const activeMarker = isActive ? ' \u2713' : '';
+      const idPart = isActive ? `\x1b[1;32m${m.id}\x1b[0m` : m.id;
+      const sep = isNoColor() ? ' -- ' : '  \x1b[90m\u2014\x1b[0m ';
+      return `${prefix}${idPart}${activeMarker}${sep}${dimOrPlain(m.name)}`;
     });
     this.listText.content = ansiToStyledText(lines.join('\n'));
     this.renderer.requestRender();
@@ -208,6 +217,7 @@ export class ModelSelector {
   private selectCurrent(): void {
     if (this.filtered.length === 0 || this.selectedIdx < 0) return;
     const model = this.filtered[this.selectedIdx];
+    if (!model) return;
     setModel(model.id);
     this.hide();
     this.onModelChanged?.();

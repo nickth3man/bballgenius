@@ -23,14 +23,31 @@
         "noForEach": "off",
         "useLiteralKeys": "off"
       },
+      "correctness": {
+        "noUnusedImports": "error",
+        "noUnusedVariables": "error"
+      },
+      "performance": {
+        "noBarrelFile": "off"
+      },
       "style": {
-        "noNonNullAssertion": "off"
+        "noNonNullAssertion": "off",
+        "noUnusedTemplateLiteral": "error",
+        "useAsConstAssertion": "error",
+        "useConst": "error",
+        "useEnumInitializers": "error",
+        "useExportType": "error",
+        "useImportType": "error",
+        "useLiteralEnumMembers": "error",
+        "useTemplate": "error"
       },
       "suspicious": {
-        "noExplicitAny": "error",
+        "noAssignInExpressions": "off",
         "noControlCharactersInRegex": "off",
+        "noDoubleEquals": "error",
+        "noExplicitAny": "error",
         "noImplicitAnyLet": "error",
-        "noAssignInExpressions": "off"
+        "noMisleadingCharacterClass": "off"
       }
     }
   },
@@ -38,6 +55,14 @@
     "formatter": {
       "quoteStyle": "single",
       "semicolons": "always"
+    }
+  },
+  "assist": {
+    "enabled": true,
+    "actions": {
+      "source": {
+        "organizeImports": "on"
+      }
     }
   }
 }

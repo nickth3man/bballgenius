@@ -21,6 +21,11 @@ async function main() {
 
   const shell = createAppShell(renderer);
 
+  renderer.on('resize', () => {
+    shell.syncTabSelectOptions();
+    renderer.requestRender();
+  });
+
   const shutdown = async () => {
     try {
       await closeDb();

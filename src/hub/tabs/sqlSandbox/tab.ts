@@ -99,6 +99,7 @@ export class SqlSandboxTab {
       width: '100%',
       height: '100%',
       flexDirection: 'row',
+      gap: Theme.gap,
       backgroundColor: Theme.background,
     });
 
@@ -128,6 +129,7 @@ export class SqlSandboxTab {
       id: 'sandbox-schema-scroll',
       width: '100%',
       height: '100%',
+      viewportCulling: true,
     });
 
     this.schemaText = new TextRenderable(renderer, {
@@ -204,6 +206,7 @@ export class SqlSandboxTab {
       id: 'sandbox-results-scroll',
       width: '100%',
       height: '100%',
+      viewportCulling: true,
     });
 
     this.resultsText = new TextRenderable(renderer, {

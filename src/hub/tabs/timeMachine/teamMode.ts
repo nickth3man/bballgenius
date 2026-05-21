@@ -195,7 +195,7 @@ export class TeamModeController {
     let content =
       '\n\x1b[90mInstructions:\x1b[0m\nType Team name/abbreviation with a 4-digit year. Press [Enter] to fetch stats. Use [Tab] to move, [C] to toggle.\n';
 
-    content += `\n\x1b[1;33mSub-pages (Press keys anywhere to load):\x1b[0m\n`;
+    content += '\n\x1b[1;33mSub-pages (Press keys anywhere to load):\x1b[0m\n';
     const subpageIndicator = (sub: string, key: string, label: string) => {
       return this.host.activeTeamSubpage === sub
         ? `\x1b[1;36m[${key}] ${label}\x1b[0m`

@@ -136,7 +136,7 @@ export class PlayerModeController {
     }
 
     let dossier = `\x1b[1;35m${fullName}\x1b[0m\n`;
-    dossier += `${`═`.repeat(fullName.length)}\n`;
+    dossier += `${'═'.repeat(fullName.length)}\n`;
     const statusLabel = formatPlayerStatusLabel(meta);
     const statusAnsi = statusLabel === 'Active' ? '\x1b[32mActive\x1b[0m' : 'Retired';
     dossier += `• \x1b[1mCareer Span:\x1b[0m ${meta.from_year} - ${formatCareerEndYear(meta)} (${statusAnsi})\n`;
@@ -146,7 +146,7 @@ export class PlayerModeController {
     dossier += `• \x1b[1mDraft Card:\x1b[0m  ${draftStr}\n`;
 
     if (awards.length > 0) {
-      dossier += `\n\x1b[1;33mKey Career Accolades:\x1b[0m\n`;
+      dossier += '\n\x1b[1;33mKey Career Accolades:\x1b[0m\n';
       const grouped = groupPlayerAwards(awards);
       for (const entry of grouped) {
         const n = entry.seasons.length;
@@ -329,7 +329,7 @@ export class PlayerModeController {
       const pAvgBlk = pTotalGp > 0 && pHasBlk ? (pTotalBlk / pTotalGp).toFixed(1) : '---';
       const pAvgTs = pTsCount > 0 ? `${((pTsSum / pTsCount) * 100).toFixed(1)}%` : '---';
 
-      summary += `\n\x1b[1;35mPlayoffs Career Totals & Averages:\x1b[0m\n`;
+      summary += '\n\x1b[1;35mPlayoffs Career Totals & Averages:\x1b[0m\n';
       summary += `• \x1b[1mTotals:\x1b[0m   GP: ${pTotalGp} | GS: ${pHasGs ? pTotalGs : '---'} | MIN: ${pTotalMin} | PTS: ${pTotalPts} | AST: ${pTotalAst} | REB: ${pTotalReb} | STL: ${pHasStl ? pTotalStl : '---'} | BLK: ${pHasBlk ? pTotalBlk : '---'}\n`;
       summary += `• \x1b[1mAverages:\x1b[0m MPG: ${pAvgMin} | PPG: ${pAvgPts} | APG: ${pAvgAst} | RPG: ${pAvgReb} | SPG: ${pAvgStl} | BPG: ${pAvgBlk} | TS%: ${pAvgTs}\n`;
     }

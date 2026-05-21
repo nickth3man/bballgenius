@@ -22,7 +22,7 @@ NBA_DUCKDB_PATH=data/fixtures/nba.ci.duckdb
 
 If you regenerate against `data/nba.duckdb` locally, the snapshot will drift from what GitHub Actions expects. Always use the fixture unless you intentionally rebaseline everything (including rebuilding the fixture).
 
-See [`data/fixtures/README.md`](../../../data/fixtures/README.md).
+See the root README testing and database sections for fixture usage.
 
 ## Updating snapshots
 

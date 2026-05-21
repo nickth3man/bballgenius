@@ -60,8 +60,8 @@ describe.serial('Visual frame tests (Level 3 captureCharFrame)', () => {
 
   test('tab bar ansiToStyledText path matches production header styling', async () => {
     const tabHeaders = [
-      ` \x1b[1;37;45m [F1] Game Center \x1b[0m `,
-      ` \x1b[90m[F2] Career Time-Machine\x1b[0m `,
+      ' \x1b[1;37;45m [F1] Game Center \x1b[0m ',
+      ' \x1b[90m[F2] Career Time-Machine\x1b[0m ',
     ];
     const styled = ansiToStyledText(tabHeaders.join('  \x1b[38;2;56;62;90m│\x1b[0m  '));
 

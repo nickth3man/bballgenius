@@ -11,3 +11,4 @@ data/**/*.wal
 # BBR Firecrawl artifacts (local crawl output)
 bbr-screenshots/
 .firecrawl/
+.archive/

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { extractSql, extractSqlFromMarkdown } from '../features/nlToSql.js';
+import { extractSql, extractSqlFromMarkdown } from '../utils/sql.js';
 
 describe('extractSql', () => {
   test('extracts SQL from a markdown code block', () => {

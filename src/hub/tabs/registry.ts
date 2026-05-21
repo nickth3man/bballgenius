@@ -72,6 +72,7 @@ export function buildGlobalKeyboardShortcuts(registry: TabDefinition[]): Keyboar
 
   return [
     ...tabShortcuts,
+    { keys: 'Left/Right', action: 'Navigate tabs (when tab bar focused)' },
     { keys: 'Tab', action: 'Cycle focus (when not typing)' },
     { keys: 'Shift+Tab', action: 'Cycle focus backward' },
     { keys: 'Esc', action: 'Blur input, or quit' },
@@ -87,7 +88,7 @@ export function buildFooterShortcutsHint(registry: TabDefinition[]): string {
 
   const first = registry[0].shortcutIndex;
   const last = registry[registry.length - 1].shortcutIndex;
-  return `Keys: F${first}-${last}/${first}-${last} Tab Shift+Tab ? | Esc quit`;
+  return `Keys: F${first}-${last}/${first}-${last} ← → Tab Shift+Tab ? | Esc quit`;
 }
 
 export function getTabById(tabs: AppShellTab[], id: string): AppShellTab | undefined {

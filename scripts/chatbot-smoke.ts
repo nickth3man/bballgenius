@@ -23,9 +23,9 @@
 
 import { existsSync, readFileSync } from 'node:fs';
 import { HumanMessage, SystemMessage } from '@langchain/core/messages';
+import { getChatbotGraph } from '../src/chatbot/agent/graph.js';
 import { closeDb, initDb } from '../src/chatbot/db.js';
 import { NBA_100_QUERIES } from '../src/chatbot/eval/nba-100-queries.js';
-import { chatbotGraph } from '../src/chatbot/graph/graph.js';
 import { setModel } from '../src/chatbot/openrouter.js';
 import { buildSystemPrompt } from '../src/chatbot/systemPrompt.js';
 
@@ -46,6 +46,8 @@ interface TestCase {
   expectedKeywords: string[];
   expectedAbsent: string[];
   category: string;
+  expectedTools?: string[];
+  expectNoSqlError?: boolean;
 }
 
 interface TestResult {
@@ -172,6 +174,8 @@ function load100QuerySuite(): TestCase[] {
     expectedKeywords: [],
     expectedAbsent: [],
     category: query.category,
+    expectedTools: query.expectedTools,
+    expectNoSqlError: query.expectNoSqlError ?? false,
   }));
 }
 
@@ -323,7 +327,7 @@ async function main(): Promise<void> {
 
     try {
       const graphResult = await withTimeout(
-        chatbotGraph.invoke(
+        getChatbotGraph().invoke(
           {
             messages: [new SystemMessage(systemPrompt), new HumanMessage(tc.question)],
           },
@@ -339,7 +343,47 @@ async function main(): Promise<void> {
         typeof lastMsg.content === 'string' ? lastMsg.content : String(lastMsg.content);
       const trimmed = answer.trim();
       const { passed, reasons } = checkAnswer(trimmed, tc);
-      result = { testCase: tc, answer: trimmed, passed, reasons };
+
+      if (tc.expectedTools && tc.expectedTools.length > 0) {
+        const toolNames = messages
+          .filter((m) => {
+            const rec = m as unknown as Record<string, unknown>;
+            return 'tool_calls' in m && Array.isArray(rec['tool_calls']);
+          })
+          .flatMap((m) => {
+            const rec = m as unknown as Record<string, unknown>;
+            const calls = rec['tool_calls'] as Array<{ name?: string }> | undefined;
+            return calls?.map((c) => c.name) ?? [];
+          });
+        for (const expectedTool of tc.expectedTools) {
+          if (!toolNames.includes(expectedTool)) {
+            reasons.push(`expected tool "${expectedTool}" not found in chain`);
+          }
+        }
+      }
+
+      if (tc.expectNoSqlError) {
+        const sqlErrorMessages = messages.filter((m) => {
+          const rec = m as unknown as Record<string, unknown>;
+          return (
+            'content' in m &&
+            typeof rec['content'] === 'string' &&
+            (rec['content'] as string).includes('SQL validation failed')
+          );
+        });
+        if (sqlErrorMessages.length > 0) {
+          reasons.push('unexpected SQL error in chain');
+        }
+      }
+
+      const finalPassed =
+        passed && reasons.every((reason) => !/expected tool|unexpected SQL error/i.test(reason));
+      result = {
+        testCase: tc,
+        answer: trimmed,
+        passed: finalPassed,
+        reasons,
+      };
 
       const excerpt = trimmed.length > 120 ? `${trimmed.slice(0, 117)}...` : trimmed;
       console.log(`  Answer: ${excerpt}`);

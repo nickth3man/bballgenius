@@ -1,28 +1,15 @@
-import { existsSync } from 'node:fs';
 import type { DuckDBConnection, DuckDBValue } from '@duckdb/node-api';
 import { DuckDBInstance } from '@duckdb/node-api';
+
+import { resolveDbPath } from '../shared/dbPath.js';
+
+export { resolveDbPath };
 
 export type DbRow = Record<string, unknown>;
 export type SqlParam = DuckDBValue;
 
-const DEFAULT_DB_PATH = 'data/nba.duckdb';
-const CI_FIXTURE_PATH = 'data/fixtures/nba.ci.duckdb';
-
 let instance: DuckDBInstance | null = null;
 let connection: DuckDBConnection | null = null;
-
-export function resolveDbPath(): string {
-  if (process.env.NBA_DUCKDB_PATH) {
-    return process.env.NBA_DUCKDB_PATH;
-  }
-  if (
-    (process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true') &&
-    existsSync(CI_FIXTURE_PATH)
-  ) {
-    return CI_FIXTURE_PATH;
-  }
-  return DEFAULT_DB_PATH;
-}
 
 export async function initDb(): Promise<DuckDBConnection> {
   if (!connection) {
@@ -90,7 +77,9 @@ export async function getTableRefs(): Promise<TableRef[]> {
 }
 
 export async function getColumns(table: string): Promise<{ name: string; type: string }[]> {
-  const [schemaName, tableName] = table.includes('.') ? table.split('.', 2) : ['main', table];
+  const parts = table.includes('.') ? table.split('.', 2) : ['main', table];
+  const schemaName = parts[0] ?? 'main';
+  const tableName = parts[1] ?? table;
   const rows = await query<ColumnMetaRow>(
     'SELECT column_name, data_type FROM information_schema.columns WHERE table_schema = $1 AND table_name = $2 ORDER BY ordinal_position',
     [schemaName, tableName],

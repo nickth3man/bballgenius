@@ -205,7 +205,7 @@ export class BbrViewController {
       return dossier;
     }
 
-    dossier += `\n\x1b[1;33mPlayer sub-pages (press key anywhere):\x1b[0m\n`;
+    dossier += '\n\x1b[1;33mPlayer sub-pages (press key anywhere):\x1b[0m\n';
     const subpageIndicator = (sub: string, subKey: string, label: string) => {
       return this.host.activeSubpage === sub
         ? `\x1b[1;36m[${subKey}] ${label}\x1b[0m`
@@ -227,7 +227,7 @@ export class BbrViewController {
     }
 
     if (this.host.activeSubpage === 'site') {
-      dossier += `\n\x1b[1;33mSite sections (↑↓) · pages (←→ · Enter):\x1b[0m\n`;
+      dossier += '\n\x1b[1;33mSite sections (↑↓) · pages (←→ · Enter):\x1b[0m\n';
       for (let idx = 0; idx < this.host.siteCatalog.length; idx++) {
         const section = this.host.siteCatalog[idx];
         const prefix = idx === this.host.selectedSiteSectionIdx ? '\x1b[1;36m▶\x1b[0m' : ' ';
@@ -235,7 +235,7 @@ export class BbrViewController {
       }
       const sectionPages = this.getActiveSiteSectionPages();
       if (sectionPages.length > 0) {
-        dossier += `\n\x1b[90mDepth chain:\x1b[0m\n`;
+        dossier += '\n\x1b[90mDepth chain:\x1b[0m\n';
         for (const pick of getDepthChain(this.getActiveSiteSection()?.id ?? '')) {
           dossier += ` · ${depthStepLabel(pick)}\n`;
         }
@@ -409,7 +409,7 @@ export class BbrViewController {
 
     parsed.tables.forEach((table, tableIdx) => {
       output += `\n\x1b[1;33mTable [${tableIdx + 1}]: ${table.title}\x1b[0m\n`;
-      output += `${`─`.repeat(table.title.length + 12)}\n`;
+      output += `${'─'.repeat(table.title.length + 12)}\n`;
 
       const colKeys = table.headers;
       const lines = formatTable(table.headers, table.rows, { colKeys });

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { formatResultsPretty } from '../features/nlToSql.js';
+import { formatResultsPretty } from '../utils/sql.js';
 
 describe('formatResultsPretty', () => {
   test('formats normal results with headers and values', () => {

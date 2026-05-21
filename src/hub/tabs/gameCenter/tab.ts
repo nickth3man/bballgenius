@@ -55,6 +55,7 @@ export class GameCenterTab {
       width: '100%',
       height: '100%',
       flexDirection: 'row',
+      gap: Theme.gap,
       backgroundColor: Theme.background,
     });
 
@@ -76,6 +77,7 @@ export class GameCenterTab {
       id: 'game-list-scroll',
       width: '100%',
       height: '100%',
+      viewportCulling: true,
     });
 
     this.gameListText = new TextRenderable(renderer, {
@@ -105,6 +107,7 @@ export class GameCenterTab {
       id: 'box-score-scroll',
       width: '100%',
       height: '100%',
+      viewportCulling: true,
     });
 
     this.boxScoreText = new TextRenderable(renderer, {

@@ -7,11 +7,13 @@ BBallGenius is a **Bun monorepo** under `src/` with two packages:
 | Package | Path | Status | Purpose |
 |---------|------|--------|---------|
 | **hub** | `src/hub/` | Production | Terminal NBA analytics hub (OpenTUI + DuckDB): game directory, box scores, shot charts, Time Machine, SQL sandbox |
-| **chatbot** | `src/chatbot/` | Placeholder | Future conversational interface; entry stub only |
+| **chatbot** | `src/chatbot/` | Production | LangGraph-powered conversational NBA agent (OpenTUI chat + DuckDB + OpenRouter) |
 
 The hub consolidates game-by-game directories, box scores, play-by-play shot charts, and an ad-hoc SQL console into a single keyboard-driven TUI. It connects to a local DuckDB file (`data/nba.duckdb`) and has a comprehensive virtual-rendering test suite under `src/hub/tests/`.
 
-**Entry points:** `bun start` / `bun run hub:start` → hub TUI; `bun run chatbot:start` → chatbot stub.
+The chatbot provides a TUI chat interface powered by a LangGraph ReAct agent with SQL critic node (error-correction loop), multi-tool support (schema discovery + query execution), streaming token output, checkpointing for multi-turn conversation, and an eval suite with 100 categorized NBA test queries.
+
+**Entry points:** `bun start` / `bun run hub:start` → hub TUI; `bun run chatbot:start` → chatbot TUI.
 
 ## Repository Structure
 
@@ -21,40 +23,63 @@ bballgenius/
 ├── data/
 │   ├── fixtures/          # Committed nba.ci.duckdb (~2.8 MB) for CI
 │   └── nba.duckdb         # Local full DB (gitignored, ~1.5 GB)
-├── scripts/               # CI guards, fixture build, BBR crawl, agent-smoke
+├── scripts/               # CI guards, fixture build, BBR crawl, chatbot-smoke
 ├── .firecrawl/            # BBR markdown cache (gitignored map artifacts)
 ├── bbr-screenshots/       # BBR PNG + JSON mirrors (gitignored)
 └── src/
+    ├── shared/            # Shared DB path resolver (dbPath.ts)
     ├── hub/               # Terminal hub (all production app code)
     │   ├── index.ts       # TUI bootstrap
     │   ├── core/          # appShell, db, dbHonors, errors, types
     │   ├── shared/utils/  # formatters, theme, keyboardHelp, keyboard-map.json
     │   ├── tabs/          # registry + gameCenter/, timeMachine/, sqlSandbox/
     │   └── tests/         # Bun tests + snapshots/
-    └── chatbot/
-        └── index.ts       # Placeholder CLI entry
+    └── chatbot/           # Conversational AI agent
+        ├── index.ts       # Chat TUI bootstrap
+        ├── chatApp.ts     # Chat UI controller (OpenTUI, streaming, metrics)
+        ├── db.ts          # DuckDB access + schema introspection
+        ├── openrouter.ts  # OpenRouter API client
+        ├── systemPrompt.ts # Dynamic schema-aware system prompt builder
+        ├── agent/         # LangGraph agent
+        │   ├── graph.ts   # StateGraph: llm → tools → sql_critic → llm
+        │   ├── state.ts   # ChatbotState (messages, sqlRetryCount)
+        │   ├── tools.ts   # query_nba_db + get_schema_info tools
+        │   ├── model.ts   # ChatOpenAI via OpenRouter
+        │   └── streaming.ts # AsyncGenerator for streaming events
+        ├── utils/         # sql.ts, retry.ts, metrics.ts, ansi.ts, theme.ts
+        ├── features/      # modelSelector.ts (interactive model picker)
+        ├── eval/          # nba-100-queries.ts (100 categorized NBA questions)
+        └── __tests__/     # Bun tests with LangChain mocking
 ```
 
-- **`.github/workflows/`** — GitHub Actions CI (`ci.yml`).
-- **`scripts/`** — Automation (`ci-guards.sh`, `build-ci-fixture.ts`, BBR map/crawl, `agent-smoke.sh`).
-- **`src/hub/core/`** — App shell, DuckDB access, shared types (`appShell.ts`, `db.ts`, `dbHonors.ts`, `errors.ts`, `types.ts`).
-- **`src/hub/shared/utils/`** — Cross-tab formatters, theme, keyboard help (`formatters.ts`, `theme.ts`, `keyboardHelp.ts`, `keyboard-map.json`).
-- **`src/hub/tabs/`** — Tab registry plus per-tab folders (`gameCenter/`, `timeMachine/`, `sqlSandbox/`).
-- **`src/hub/tests/`** — Full Bun-native test suite (visual snapshots, mocks, regression).
+- **`src/shared/dbPath.ts`** — Single shared DB path resolver used by both hub and chatbot.
+- **`src/chatbot/agent/`** — LangGraph agent: graph definition, state schema, tools, model binding, streaming.
+- **`src/chatbot/utils/`** — SQL validation/extraction/execution, retry with backoff, metrics logger, ANSI parser, theme.
+- **`src/chatbot/eval/`** — 100 categorized NBA test questions across 17 categories.
+- **`scripts/`** — Automation (`ci-guards.sh`, `build-ci-fixture.ts`, `chatbot-smoke.ts`, BBR map/crawl).
 
 ### Package boundaries
 
-- **Hub** and **chatbot** are siblings under `src/`. Do not import one from the other until an explicit shared package exists (e.g. `src/shared/`).
+- **Hub** and **chatbot** are siblings under `src/`. They share `src/shared/dbPath.ts`. Do not import one from the other beyond this explicit shared module.
+- **Chatbot modules** import from `src/chatbot/agent/*`, `src/chatbot/utils/*`, `src/chatbot/features/*`, and `src/shared/*`.
 - **Hub tabs** must not import sibling tabs — only `src/hub/core/*`, `src/hub/shared/*`, and their own `src/hub/tabs/<tabId>/` folder (enforced by `scripts/ci-guards.sh`).
-- **Repo-root assets** (`.firecrawl/`, `bbr-screenshots/`, `data/`) are resolved from hub code via relative paths up to the repository root (e.g. `src/hub/tabs/timeMachine/utils/bbr/bbrMirroredStore.ts`).
+- **Repo-root assets** (`.firecrawl/`, `bbr-screenshots/`, `data/`) are resolved from hub code via relative paths up to the repository root.
+
+### Subagent delegation
+
+- **Always read `.agent/subtask-template.md` immediately before creating any subagent/task prompt.** Apply its critical rules to the delegated prompt: critical instructions in the first 15%, max nesting depth 4, 40-50% instruction ratio, single-source rule references, and token-efficient wording without losing precision.
+- Use the template for every `task` tool call, including scout/research agents, code review agents, and implementation subagents. Do not rely on memory of the template; reread the file each time delegation is needed.
 
 ## Tech Stack
 
 - **Language:** TypeScript 5.x / 6.x (Bun runtime)
 - **Hub UI:** OpenTUI (`@opentui/core`)
+- **Chatbot UI:** OpenTUI (`@opentui/core`)
+- **Agent framework:** LangGraph (`@langchain/langgraph` v1.3+), LangChain (`@langchain/core`, `@langchain/openai`)
 - **Database:** DuckDB (`@duckdb/node-api`, `@duckdb/node-bindings`)
+- **Model provider:** OpenRouter API (multi-model, configurable via `MODEL` env var)
 - **Lint / format:** Biome (`biome.json`)
-- **Typecheck:** `tsc --noEmit -p tsconfig.json` (`rootDir`: `./src`, includes `src/**/*`)
+- **Typecheck:** `tsc --noEmit -p tsconfig.json` for the full repo; `tsc --noEmit -p tsconfig.chatbot.json` for stricter chatbot-only checks.
 
 ## Build & Development Commands
 
@@ -63,20 +88,29 @@ bballgenius/
 ```bash
 bun start              # alias: bun run hub:start → src/hub/index.ts
 bun run hub:start      # Terminal analytics TUI
-bun run chatbot:start  # Chatbot stub (not implemented)
+bun run chatbot:start  # Terminal chat TUI (LangGraph agent)
+```
+
+### Chatbot-specific commands
+
+```bash
+bun test src/chatbot/__tests__ --concurrency=1   # Run chatbot tests (DB + mocked LLM)
+bun run typecheck:chatbot                         # Strict chatbot typecheck (includes noUncheckedIndexedAccess)
+bun run chatbot:smoke                              # Smoke test with fact-checked NBA questions
+bun run chatbot:smoke:100                          # Full 100-query smoke suite
 ```
 
 ### File-Scoped Commands (Preferred for Fast Feedback)
 
 ```bash
-# Type check a single hub file
-bunx tsc --noEmit src/hub/core/db.ts
+# Type check a single file
+bunx tsc --noEmit src/chatbot/agent/graph.ts
 
 # Lint or format a single file
-bunx biome check --write src/hub/core/db.ts
+bunx biome check --write src/chatbot/agent/graph.ts
 
-# Run a single hub test file
-bun test src/hub/tests/formatters.test.ts --concurrency=1
+# Run a single test file
+bun test src/chatbot/__tests__/processQuestion.test.ts --concurrency=1
 ```
 
 ### Project-Wide Commands (Use Sparingly)
@@ -129,14 +163,16 @@ Key terms:
 
 - **CI Fixture:** Pruned committed DB (`data/fixtures/nba.ci.duckdb`, ~2.8 MB) with representative games, players (LeBron, Bob Cousy), shots, awards.
 - **Flat Peer Overrides:** Third-party peers (e.g. `bun-ffi-structs`) compile against root TypeScript 6.0.3.
-- **Pre-commit Guards:** `scripts/ci-guards.sh` — no `.only`/`.skip` in `src/hub/tests/`, no sibling tab imports in `src/hub/tabs/`, no `UPDATE_SNAPSHOTS` in Actions, zero Biome warnings.
-- **Lint policy:** `noExplicitAny` and `noImplicitAnyLet` are **errors**; CI requires **zero warnings** from `biome lint`.
+- **Pre-commit Guards:** `scripts/ci-guards.sh` — no `.only`/`.skip` in `src/hub/tests/` or `src/chatbot/__tests__/`, no sibling tab imports in `src/hub/tabs/`, no `UPDATE_SNAPSHOTS` in Actions, zero Biome warnings.
+- **Lint policy:** Biome runs with `--error-on-warnings`. Unused variables/imports, explicit `any`, untyped `let`, type-only imports/exports, `const` preference, enum initializers, template consistency, and double-equals are enforced.
+- **Pre-commit hooks:** Lefthook runs `bunx biome check --write` on staged TypeScript/JSON files.
+- **Strict chatbot typecheck:** CI runs `bun run typecheck:chatbot` using `tsconfig.chatbot.json` with `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `noPropertyAccessFromIndexSignature`, `noImplicitReturns`, `noImplicitOverride`, `noFallthroughCasesInSwitch`, unused checks, and `verbatimModuleSyntax`.
 
 ### API Reference
 
-#### `resolveDbPath(): string` (defined in `src/hub/core/db.ts`)
+#### `resolveDbPath(): string` (defined in `src/shared/dbPath.ts`)
 
-Dynamically determines the DuckDB file path.
+Dynamically determines the DuckDB file path. Used by both hub and chatbot.
 
 - **Parameters:** None.
 - **Returns:** `string` (resolved database path).
@@ -146,7 +182,7 @@ Dynamically determines the DuckDB file path.
   3. Else `data/nba.duckdb`.
 
 ```ts
-import { resolveDbPath } from './core/db.js'; // from within src/hub/
+import { resolveDbPath } from '../shared/dbPath.js'; // from within src/chatbot/ or src/hub/
 
 const activePath = resolveDbPath(); // e.g. 'data/fixtures/nba.ci.duckdb'
 ```
@@ -154,9 +190,10 @@ const activePath = resolveDbPath(); // e.g. 'data/fixtures/nba.ci.duckdb'
 ### Automation & Script Details
 
 - **`scripts/build-ci-fixture.ts`** (`bun run fixture:build`): Subset from local `data/nba.duckdb`; `CHECKPOINT` to avoid WAL commits.
-- **`scripts/ci-guards.sh`**: Hub test focus guards, sibling-tab import ban, Biome zero-warning policy.
+- **`scripts/ci-guards.sh`**: Hub/chatbot test focus guards, sibling-tab import ban, Biome zero-warning policy.
 - **`scripts/sync-keyboard-map.ts`**: Writes `src/hub/shared/utils/keyboard-map.json`.
 - **`scripts/capture-spans-dump.ts`**: Span dump for hub shell debugging (imports `src/hub/core/*`).
+- **`scripts/chatbot-smoke.ts`**: Real API smoke test validating chatbot answers against expected keywords.
 - **`scripts/agent-smoke.sh`**: Fast hub loop (formatters + TUI integration + golden) on CI fixture.
 - **`format:check`**: Biome write on `src/` + `scripts/`, then `git diff --exit-code`.
 - **`audit`**: Fails on moderate+ advisories.
@@ -171,19 +208,20 @@ const activePath = resolveDbPath(); // e.g. 'data/fixtures/nba.ci.duckdb'
 - **Indentation:** 2 spaces (`biome.json`)
 - **Formatter:** Biome, single quotes, semicolons
 - **Line length:** 100 characters
+- **Imports:** Biome `organizeImports` is enabled and run by `biome check --write` / Lefthook.
 
 ### Naming Conventions
 
-- **Variables & functions:** `camelCase` (e.g. `selectedGameIdx` in `src/hub/tabs/gameCenter/tab.ts`)
-- **Types & classes:** `PascalCase` (e.g. `GameCenterTab`)
-- **Constants:** `SCREAMING_SNAKE_CASE` or theme `PascalCase` (e.g. `DEFAULT_DB_PATH`, `Theme`)
+- **Variables & functions:** `camelCase` (e.g. `selectedGameIdx`, `getChatbotGraph`)
+- **Types & classes:** `PascalCase` (e.g. `ChatbotState`, `GameCenterTab`)
+- **Constants:** `SCREAMING_SNAKE_CASE` or theme `PascalCase` (e.g. `MAX_SQL_RETRIES`, `DEFAULT_DB_PATH`, `Theme`)
 - **DB tables/columns:** `snake_case` (e.g. `dim_game`, `player_id`)
 
 ### Import Organization
 
-- **Local imports:** Relative paths with `.js` extension in TypeScript (e.g. `import { initDb } from './core/db.js'` in `src/hub/index.ts`).
+- **Local imports:** Relative paths with `.js` extension in TypeScript (e.g. `import { initDb } from './db.js'`).
 - **Order:** Node built-ins (`node:`) → third-party → relative local.
-- **Scope:** Hub code stays under `src/hub/`; chatbot under `src/chatbot/` until shared modules are introduced.
+- **Scope:** Hub code stays under `src/hub/`; chatbot under `src/chatbot/`; shared under `src/shared/`.
 
 ## Architecture Notes
 
@@ -205,9 +243,25 @@ const activePath = resolveDbPath(); // e.g. 'data/fixtures/nba.ci.duckdb'
    data/nba.duckdb  |  data/fixtures/nba.ci.duckdb
 ```
 
-```text
-src/chatbot/index.ts  →  (future: LLM / API layer, may share hub db helpers later)
+### Chatbot Agent Graph
+
 ```
+START → classify_intent → llm → [toolsCondition] → tools → sql_critic → llm → END
+                              ↓                          ↓
+                             END              [error + retries<3]
+                                       ↓
+                                    llm (retry)
+                                       ↓
+                              [error + retries≥3]
+                                       ↓
+                                      END
+```
+
+- **`classify_intent` node**: Deterministic keyword-based classification (no LLM call). Tags the question with a category like `career_leaders`, `awards`, `games`, etc.
+- **`llm` node**: Calls the model with bound tools (`query_nba_db`, `get_schema_info`, `list_nba_tables`, `check_nba_sql`). Returns tool calls or final answer.
+- **`tools` node** (`ToolNode`): Executes tool calls. Supports parallel execution when the LLM emits multiple tool calls in a single response.
+- **`sql_critic` node**: Examines tool output for SQL errors. Classifies errors (schema, syntax, transient) and routes back to LLM for correction up to `MAX_SQL_RETRIES=3`. Resets retry count on success. Routes to END when exhausted.
+- **State** (`ChatbotState`): `messages` (MessagesValue), `sqlRetryCount` (optional number), and `intentCategory` (optional string). Do not add state fields unless a graph node reads/writes them.
 
 ### Key Components (hub)
 
@@ -217,12 +271,24 @@ src/chatbot/index.ts  →  (future: LLM / API layer, may share hub db helpers la
 - **SQL:** `src/hub/tabs/<tabId>/queries.ts` per tab.
 - **Tabs:** `src/hub/tabs/<tabId>/` — `tab.ts`, optional `queries.ts`, `index.ts` export; focus via `Tab` / `Shift+Tab`.
 
+### Key Components (chatbot)
+
+- **Graph:** `src/chatbot/agent/graph.ts` — `buildGraph()` creates the StateGraph with llm/tools/sql_critic nodes, `getChatbotGraph()` returns cached singleton, `resetGraph()` invalidates cache for model changes.
+- **Streaming:** `src/chatbot/agent/streaming.ts` — `streamQuery()` yields `StreamEvent` (token, tool_start, tool_end, tool_error, usage, done, error) via LangGraph `streamEvents` v2.
+- **Model:** `src/chatbot/agent/model.ts` — `createModel()` returns `ChatOpenAI` pointed at OpenRouter with `temperature: 0.3`.
+- **Tools:** `src/chatbot/agent/tools.ts` — `query_nba_db` (read-only SQL execution with schema pre-validation) and `get_schema_info` (on-demand table/column discovery).
+- **Error classification:** `src/chatbot/utils/retry.ts` — `categorizeDbError()` (transient/schema/syntax/permanent), `formatErrorForLLM()` (structured error messages for LLM consumption).
+- **SQL utilities:** `src/chatbot/utils/sql.ts` — `validateReadOnlySql()`, `validateSchemaReferences()` (pre-execution table existence check), `extractSql()`, `executeSql()`.
+- **Metrics:** `src/chatbot/utils/metrics.ts` — Structured NDJSON logger for duration, tokens, SQL queries, error rates.
+
 ### Coupling & Dependencies
 
 - `src/hub/core/db.ts` — single DuckDB connection for all hub views.
+- `src/chatbot/db.ts` — separate DuckDB connection (richer introspection: `getTableRefs()`, `getColumns()`, `getTables()`).
+- `src/shared/dbPath.ts` — shared path resolution used by both.
 - Tabs: `src/hub/core/*`, `src/hub/shared/*`, own tab folder only — **never sibling tabs**.
 - Tests: `getTab(shell, 'game-center')` via `src/hub/tests/helpers/tabs.ts` (stable ids, not numeric tab index).
-- Chatbot: isolated; no hub imports until designed otherwise.
+- Chatbot: isolated; shares only `src/shared/dbPath.ts` with hub.
 
 ### Adding a New Hub Tab
 
@@ -233,49 +299,80 @@ src/chatbot/index.ts  →  (future: LLM / API layer, may share hub db helpers la
 
 ### Adding Chatbot Features
 
-1. Implement under `src/chatbot/` (new modules as needed).
-2. Prefer importing shared logic from a future `src/shared/` or extracted hub modules only after an explicit refactor — avoid tight coupling to TUI tab classes.
-3. Add `chatbot:*` scripts to `package.json` when subcommands grow beyond `chatbot:start`.
+1. **New tool**: Add to `src/chatbot/agent/tools.ts` → bind in `graph.ts` `bindTools([...])` + `ToolNode([...])`.
+2. **Graph node**: Add to `buildGraph()` in `graph.ts` → wire edges.
+3. **State field**: Add to `ChatbotState` in `state.ts` only if a graph node reads/writes it.
+4. **Stream event**: Add to `StreamEvent` union in `streaming.ts` → handle in `chatApp.ts`.
+5. **Tests**: Add to `src/chatbot/__tests__/`; use `mock.module()` for `@langchain/openai` and `../db.js`.
 
 ## Dos and Don'ts
 
 ### Do
 
-- Use `resolveDbPath()` in hub code for CI-safe DB paths (`src/hub/core/db.ts`).
+- Use `resolveDbPath()` for CI-safe DB paths (`src/shared/dbPath.ts`).
 - Pass `--concurrency=1` to `bun test` (DuckDB + snapshot stability).
-- Convert ANSI text with `ansiToStyledText` before `TextRenderable` writes (`src/hub/tabs/gameCenter/tab.ts`).
+- Convert ANSI text with `ansiToStyledText` before `TextRenderable` writes.
 - Put new terminal features in `src/hub/`; new conversational features in `src/chatbot/`.
-- Follow `.agent/subtask-template.md` when writing subtask delegation prompts (position-sensitive critical rules, ≤4 nesting levels, 30-50% token reduction, @references for single-source rules).
+- Use `mock.module()` in chatbot tests to mock `@langchain/openai` and `../db.js`.
+- Use `zod/v4` for tool schemas and state validation.
+- Read `.agent/subtask-template.md` before writing every subtask delegation prompt.
 
 ### Don't
 
 - Commit `data/nba.duckdb` (~1.5 GB).
-- Use `.only(` / `.skip(` in `src/hub/tests/` (CI blocked).
+- Use `.only(` / `.skip(` in test files (CI blocked).
 - Commit `any` or untyped `let` (Biome errors).
 - Merge with Biome warnings or unformatted `src/` / `scripts/`.
-- Leak raw ANSI into snapshot assertions (`src/hub/tests/helpers/ansi.ts`).
+- Leak raw ANSI into snapshot assertions.
 - Commit `bbr-screenshots/` or generated `.firecrawl/bbr-map-full.txt`.
-- Import `src/hub/tabs/*` from `src/chatbot/` (or vice versa) without a deliberate shared layer.
+- Import `src/hub/tabs/*` from `src/chatbot/` (or vice versa) beyond `src/shared/`.
+- Wrap `interrupt()` calls in try/catch blocks (interrupts throw to signal the runtime).
 
 ## Testing Strategy
 
 | Layer | Location | Notes |
 |-------|----------|-------|
-| Unit | `src/hub/tests/formatters.test.ts` | No database |
-| Integration | `src/hub/tests/tui_integration.test.ts` | OpenTUI `createTestRenderer` |
-| Spans | `src/hub/tests/spans_frame.test.ts` | Structured focus/tab colors |
-| Golden | `src/hub/tests/golden_snapshot.test.ts` | `src/hub/tests/snapshots/` |
-| BBR parser | `src/hub/tests/bbrIntegration.test.ts` | Optional `.firecrawl/` fixtures locally |
+| Hub unit | `src/hub/tests/formatters.test.ts` | No database |
+| Hub integration | `src/hub/tests/tui_integration.test.ts` | OpenTUI `createTestRenderer` |
+| Hub spans | `src/hub/tests/spans_frame.test.ts` | Structured focus/tab colors |
+| Hub golden | `src/hub/tests/golden_snapshot.test.ts` | `src/hub/tests/snapshots/` |
+| Hub BBR | `src/hub/tests/bbrIntegration.test.ts` | Optional `.firecrawl/` fixtures locally |
+| Chatbot graph | `src/chatbot/__tests__/processQuestion.test.ts` | Mocked LLM + DB, tests ReAct + critic loops |
+| Chatbot intent | `src/chatbot/__tests__/intentClassification.test.ts` | Deterministic keyword classification |
+| Chatbot SQL | `src/chatbot/__tests__/executeSql.test.ts` | Real DuckDB, tests validation + execution |
+| Chatbot extraction | `src/chatbot/__tests__/sqlExtraction.test.ts` | SQL parsing from LLM output |
+| Chatbot formatting | `src/chatbot/__tests__/formatResults.test.ts` | Pretty-print formatting |
+| Chatbot system | `src/chatbot/__tests__/systemPrompt.test.ts` | Dynamic prompt building |
+| Chatbot ANSI | `src/chatbot/__tests__/ansi.test.ts` | ANSI-to-StyledText conversion |
+| Chatbot retry | `src/chatbot/__tests__/retry.test.ts` | Error classification, retry behavior, LLM error prefixes |
+| Chatbot streaming | `src/chatbot/__tests__/streaming.test.ts` | `streamQuery()` token/tool/usage/done/error events |
+| Smoke | `scripts/chatbot-smoke.ts` | Real API, fact-checked NBA questions |
 
 - **Full hub suite:** `bun test src/hub/tests --concurrency=1` or `bun run ci:integration` with `NBA_DUCKDB_PATH=data/fixtures/nba.ci.duckdb`.
+- **Full chatbot suite:** `bun test src/chatbot/__tests__ --concurrency=1`.
+- **Strict chatbot typecheck:** `bun run typecheck:chatbot`.
+- **Chatbot smoke:** `OPENROUTER_API_KEY=... bun run chatbot:smoke` (facts) or `chatbot:smoke:100` (full suite).
 - **Agent smoke:** `NBA_DUCKDB_PATH=data/fixtures/nba.ci.duckdb bash scripts/agent-smoke.sh` (~30s).
 - **Keyboard map:** `src/hub/shared/utils/keyboard-map.json` ← `keyboardHelp.ts`; see `docs/agent-tui.md`.
-- **Spans dump:** `bun run scripts/capture-spans-dump.ts [tabIndex]` with CI fixture path set.
 - **Honors overlay:** `NBA_HONORS_DUCKDB_PATH` for `v_player_honors_full` while game data stays on `NBA_DUCKDB_PATH`.
+
+## Chatbot Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `OPENROUTER_API_KEY` | OpenRouter API key (required) | — |
+| `MODEL` | Model name (e.g. `openai/gpt-oss-120b`) | `openai/gpt-oss-120b` |
+| `NBA_DUCKDB_PATH` | DuckDB path | `data/nba.duckdb` |
+| `NBA_HONORS_DUCKDB_PATH` | Optional honors DB | — |
+| `CHATBOT_DEBUG` | Enable debug logging to stderr | `false` |
+| `CHATBOT_PERSIST_DIR` | Directory for persistent checkpoints (`SqliteSaver`) | — (uses `MemorySaver`) |
+| `CHATBOT_METRICS_DIR` | Metrics output directory | `data/` |
+| `LANGSMITH_TRACING` | Enable LangSmith tracing | — |
+| `LANGSMITH_API_KEY` | LangSmith API key | — |
 
 ## Security & Compliance
 
-- **Secrets:** Hub/chatbot DB work is local DuckDB; BBR crawl needs `FIRECRAWL_API_KEY` only for map/crawl scripts.
+- **Secrets:** Hub/chatbot DB work is local DuckDB; BBR crawl needs `FIRECRAWL_API_KEY`; chatbot needs `OPENROUTER_API_KEY`.
 - **License:** No LICENSE file; source-available — do not redistribute without permission.
 
 ## Agent Guardrails
@@ -283,7 +380,7 @@ src/chatbot/index.ts  →  (future: LLM / API layer, may share hub db helpers la
 ### Allowed Without Asking
 
 - Read/search any file; file-scoped lint, format, `tsc`.
-- Run hub tests with `concurrency=1`.
+- Run hub or chatbot tests with `concurrency=1`.
 
 ### Ask Before Doing
 
@@ -291,9 +388,12 @@ src/chatbot/index.ts  →  (future: LLM / API layer, may share hub db helpers la
 - Change `package.json` dependencies.
 - Edit `.github/workflows/ci.yml`.
 - Git commit or push.
+- Modify `src/shared/` (shared by both packages).
 
 ## Unknowns & TODOs
 
-- [ ] **Chatbot:** Implement `src/chatbot/` beyond placeholder; decide shared DB/API layer with hub.
+- [ ] **Chatbot persistence:** `SqliteSaver` available via `CHATBOT_PERSIST_DIR`; not yet surfaced in TUI as save/load feature.
+- [ ] **Hub-chatbot bridge:** Embed chatbot in hub TUI as a new tab or overlay.
 - [ ] **nbadb pipeline:** Building `data/nba.duckdb` is out of repo scope.
 - [ ] **License:** Add LICENSE (open-source vs source-available).
+- [ ] **Chatbot HITL:** Interrupt-based SQL approval pattern documented but not wired due to complexity; available as future feature.

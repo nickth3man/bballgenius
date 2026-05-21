@@ -2,6 +2,8 @@ export interface NbaEvalQuery {
   id: string;
   category: string;
   question: string;
+  expectedTools?: string[];
+  expectNoSqlError?: boolean;
 }
 
 export const NBA_100_QUERIES: NbaEvalQuery[] = [
@@ -49,6 +51,8 @@ export const NBA_100_QUERIES: NbaEvalQuery[] = [
     id: 'career-009',
     category: 'career leaders',
     question: 'What are LeBron James regular season career points, rebounds, and assists?',
+    expectedTools: ['query_nba_db'],
+    expectNoSqlError: true,
   },
   {
     id: 'career-010',
@@ -65,6 +69,8 @@ export const NBA_100_QUERIES: NbaEvalQuery[] = [
     category: 'career leaders',
     question:
       'How many regular season triple-doubles does Nikola Jokic have in the game box score data?',
+    expectedTools: ['query_nba_db'],
+    expectNoSqlError: true,
   },
   {
     id: 'career-013',
@@ -157,7 +163,13 @@ export const NBA_100_QUERIES: NbaEvalQuery[] = [
     category: 'season leaders',
     question: 'Which NBA players had the highest BPM in the 2023-24 season?',
   },
-  { id: 'awards-001', category: 'awards', question: 'Who won NBA MVP in the 2023-24 season?' },
+  {
+    id: 'awards-001',
+    category: 'awards',
+    question: 'Who won NBA MVP in the 2023-24 season?',
+    expectedTools: ['query_nba_db'],
+    expectNoSqlError: true,
+  },
   { id: 'awards-002', category: 'awards', question: 'Who won NBA MVP in the 2022-23 season?' },
   {
     id: 'awards-003',
@@ -305,6 +317,8 @@ export const NBA_100_QUERIES: NbaEvalQuery[] = [
     category: 'shot charts',
     question:
       'How many three pointers did Stephen Curry make in the 2015-16 regular season shot chart data?',
+    expectedTools: ['query_nba_db'],
+    expectNoSqlError: true,
   },
   {
     id: 'shots-002',
@@ -356,6 +370,8 @@ export const NBA_100_QUERIES: NbaEvalQuery[] = [
     id: 'identity-001',
     category: 'identity',
     question: 'What Basketball-Reference ID is linked to LeBron James?',
+    expectedTools: ['query_nba_db'],
+    expectNoSqlError: true,
   },
   {
     id: 'identity-002',
@@ -482,6 +498,8 @@ export const NBA_100_QUERIES: NbaEvalQuery[] = [
     id: 'quality-005',
     category: 'data quality',
     question: 'Which schemas and tables are available for NBA questions?',
+    expectedTools: ['list_nba_tables'],
+    expectNoSqlError: true,
   },
   {
     id: 'cross-001',
