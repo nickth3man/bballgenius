@@ -1,0 +1,12 @@
+{
+  "startedAt": "2026-05-22T07:32:12.459Z",
+  "endedAt": "2026-05-22T07:43:23.909Z",
+  "elapsedSec": 671,
+  "model": "nvidia/nemotron-nano-9b-v2",
+  "totalPassed": 45,
+  "totalAttempted": 45,
+  "totalExpected": 45,
+  "allPassed": true,
+  "runDir": ".runs\\nba-chatbot\\2026-05-22T07-32-12-459Z",
+  "failures": []
+}
