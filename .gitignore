@@ -7,8 +7,22 @@ dist/
 # Local full DuckDB dataset (download separately; ~1.5 GB)
 data/nba.duckdb
 data/**/*.wal
+data/chatbot-metrics.ndjson
+data/test-metrics/
 
 # BBR Firecrawl artifacts (local crawl output)
 bbr-screenshots/
 .firecrawl/
 .archive/
+
+# AI tool config directories
+.claude/
+.codex/
+.cursor/
+.entire/
+.opencode/
+
+# Runtime artifacts
+.runs/
+logs/
+results/
