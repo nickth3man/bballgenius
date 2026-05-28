@@ -3,15 +3,20 @@
   "checkpoint_id": "be95b0e305a9",
   "strategy": "manual-commit",
   "branch": "fix/hub-unified-star-schema",
-  "checkpoints_count": 2,
+  "checkpoints_count": 3,
   "files_touched": [
     ".env.example",
+    "package.json",
     "src/chatbot/__tests__/retry.test.ts",
     "src/chatbot/agent/graph.ts",
     "src/chatbot/agent/model.ts",
     "src/chatbot/agent/state.ts",
     "src/chatbot/agent/streaming.ts",
     "src/chatbot/agent/tools.ts",
+    "src/chatbot/eval/bbr-truth.json",
+    "src/chatbot/eval/bbrTruth.ts",
+    "src/chatbot/eval/dbTruth.ts",
+    "src/chatbot/eval/matrixHarness.ts",
     "src/chatbot/features/modelSelector.ts",
     "src/chatbot/scripts/iterate_loop.ts",
     "src/chatbot/systemPrompt.ts",
@@ -30,13 +35,19 @@
       "transcript": "/be/95b0e305a9/1/full.jsonl",
       "content_hash": "/be/95b0e305a9/1/content_hash.txt",
       "prompt": "/be/95b0e305a9/1/prompt.txt"
+    },
+    {
+      "metadata": "/be/95b0e305a9/2/metadata.json",
+      "transcript": "/be/95b0e305a9/2/full.jsonl",
+      "content_hash": "/be/95b0e305a9/2/content_hash.txt",
+      "prompt": "/be/95b0e305a9/2/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 20737,
-    "cache_creation_tokens": 146067,
-    "cache_read_tokens": 4682441,
-    "output_tokens": 37867,
-    "api_call_count": 62
+    "input_tokens": 57915,
+    "cache_creation_tokens": 496877,
+    "cache_read_tokens": 27049762,
+    "output_tokens": 155774,
+    "api_call_count": 186
   }
 }
