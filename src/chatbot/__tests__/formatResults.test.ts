@@ -13,7 +13,8 @@ describe('formatResultsPretty', () => {
     expect(result).toContain('30');
     expect(result).toContain('Stephen Curry');
     expect(result).toContain('28');
-    expect(result).toContain('---');
+    expect(result).toContain('┌');
+    expect(result).toContain('┘');
   });
 
   test('empty array returns no results message', () => {
@@ -30,7 +31,8 @@ describe('formatResultsPretty', () => {
     expect(result).toContain('Player B');
     expect(result).toContain('Lakers');
     expect(result).toContain('10');
-    expect(result).toMatch(/Player A \| {2}\| 10/);
+    expect(result).toContain('│ Player A');
+    expect(result).toContain('│ 10');
   });
 
   test('undefined values handled gracefully', () => {
@@ -54,7 +56,7 @@ describe('formatResultsPretty', () => {
     expect(result).toContain('col');
     expect(result).toContain('value');
     const lines = result.split('\n');
-    expect(lines).toHaveLength(3);
+    expect(lines).toHaveLength(5);
   });
 
   test('very long cell value', () => {
@@ -100,7 +102,8 @@ describe('formatResultsPretty', () => {
     expect(result).toContain('Alice');
     expect(result).toContain('Bob');
     const lines = result.split('\n');
-    expect(lines[0]).toBe('name');
-    expect(lines[1]).toBe('---');
+    expect(lines[0]).toContain('┌');
+    expect(lines[1]).toContain('name');
+    expect(lines[2]).toContain('├');
   });
 });

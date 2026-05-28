@@ -1,5 +1,6 @@
 import { getTables, query } from '../db.js';
 import { ERROR_PREFIX, formatErrorForLLM, withRetry } from './retry.js';
+import { formatResultsTable } from './tableFormatter.js';
 
 const BLOCKED_SQL_PATTERNS = [
   /\b(insert|update|delete|merge|create|drop|alter|truncate|attach|detach)\b/i,
@@ -94,7 +95,16 @@ export async function validateSchemaReferences(sql: string): Promise<SchemaValid
   const existingTables = new Set((await getTables()).map((t) => t.toLowerCase()));
 
   for (const ref of tableRefs) {
-    if (!existingTables.has(ref) && !existingTables.has(`main.${ref}`)) {
+    // existingTables stores main-schema tables WITHOUT the "main." prefix
+    // (qualifyTableName omits the schema for main). So "main.dim_player" must
+    // also be checked as just "dim_player".
+    const withoutMainPrefix = ref.startsWith('main.') ? ref.slice(5) : null;
+    const found =
+      existingTables.has(ref) ||
+      existingTables.has(`main.${ref}`) ||
+      (withoutMainPrefix != null && existingTables.has(withoutMainPrefix));
+
+    if (!found) {
       errors.push({
         type: 'missing_table',
         message: `Table "${ref}" does not exist in the database.`,
@@ -150,24 +160,5 @@ function containsErrorPrefix(content: string): boolean {
 }
 
 export function formatResultsPretty(results: Record<string, unknown>[]): string {
-  if (results.length === 0) {
-    return 'Query returned no results.';
-  }
-  const headers = Object.keys(results[0]!);
-  const maxRows = 20;
-  const showing =
-    results.length > maxRows ? `Rows: ${results.length} (showing first ${maxRows})\n` : '';
-  const lines: string[] = [];
-  lines.push(headers.join(' | '));
-  lines.push(headers.map(() => '---').join(' | '));
-  const rows = results.slice(0, maxRows);
-  for (const row of rows) {
-    const vals = headers.map((h) => {
-      const v = row[h];
-      return v === null || v === undefined ? '' : String(v);
-    });
-    lines.push(vals.join(' | '));
-  }
-  const body = lines.join('\n');
-  return showing ? showing + body : body;
+  return formatResultsTable(results);
 }
