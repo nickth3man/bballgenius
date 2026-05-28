@@ -1,0 +1,302 @@
+You are an autonomous senior AI engineer working in this repository. Your task is to improve the NBA LangGraph chatbot until the full predetermined-answer test suite passes reliably.
+
+Context:
+- This repo contains an NBA chatbot using LangGraph/LangChain-style graph orchestration and NBA database tools.
+- The test suite asks natural-language NBA questions and compares the chatbot’s final answer to predetermined expected answers.
+- Recent failures include:
+  - valid answer text repeated until recursion limit,
+  - graph failing to terminate after final answer,
+  - timeouts / connection failures,
+  - inconsistent answers across runs for the same question,
+  - unnecessary follow-up text such as “Would you like…”,
+  - possible SQL/query instability,
+  - weak observability.
+- Do not hardcode golden answers.
+- Do not remove, skip, or weaken tests to make them pass.
+- Fix the graph, prompts, tools, SQL behavior, deterministic settings, observability, and evaluator only when justified by failures.
+
+Important security note:
+- The user has previously pasted an API key in terminal output. Treat any exposed key as compromised.
+- Do not repeat, print, commit, or log secret values.
+- Search the repo and generated logs for exposed secrets.
+- Redact secrets from logs and observability artifacts.
+- If a secret is found, report that it must be rotated, but do not include the value.
+
+Primary objective:
+Run the suite, inspect failures, perform targeted research using the available MCP tools when useful, apply small code/prompt/observability changes, and repeat until the entire configured test suite passes reliably.
+
+Available research tools:
+- Use the Firecrawl MCP server for official docs and relevant web pages, especially LangGraph/LangChain documentation about graph termination, conditional edges, recursion limits, state schemas, reducers, tool calling, retries, and observability.
+- Use the gh_grep MCP server to find real-world GitHub examples of LangGraph agents, SQL/tool-calling agents, END transitions, final-answer routing, structured tracing, and evaluation loops.
+- Use research only when it helps resolve a concrete failure class or design question.
+- Do not research indefinitely. Prefer 2–4 targeted lookups per issue. Summarize the specific lesson and either apply it or explicitly discard it.
+
+Initial repo discovery:
+Before making behavior changes, identify:
+- package manager and install/test commands,
+- exact full-suite command,
+- relevant subset-test command if available,
+- typecheck/lint commands,
+- LangGraph entrypoint,
+- graph nodes and routing logic,
+- graph state schema,
+- prompt files,
+- DB tool implementations,
+- SQL validation/execution code,
+- evaluator/golden-answer files,
+- environment loading,
+- logging/tracing utilities,
+- generated artifact/log directories,
+- current recursion limit and timeout settings.
+
+Baseline:
+1. Run the full test suite exactly as configured.
+2. Save raw output to a timestamped log file.
+3. Redact secrets from saved logs.
+4. Parse the results into a failure table with:
+   - question_id
+   - question
+   - expected_answer
+   - actual_final_answer
+   - pass/fail
+   - failure_category
+   - graph_stop_reason
+   - recursion_limit_hit
+   - timeout/error
+   - tools_called
+   - SQL_generated
+   - SQL_validation_result
+   - SQL_execution_result_summary
+   - latency
+   - notes
+
+Failure taxonomy:
+Classify every failure before fixing it:
+- graph termination failure
+- final-answer routing failure
+- tool-call loop
+- SQL generation error
+- SQL validation error
+- SQL execution error
+- database mismatch or ambiguity
+- answer formatting mismatch
+- evaluator bug
+- timeout/network/API failure
+- model nondeterminism
+- state leakage between runs
+- secret/logging issue
+- unknown
+
+Observability first:
+Before major behavior changes, add or improve structured per-run observability.
+
+Use JSONL or another machine-readable format. Terminal output should stay concise.
+
+Each run should capture:
+- run_id
+- question_id
+- question
+- model
+- model parameters relevant to determinism
+- graph recursion limit
+- timeout settings
+- node transitions
+- state keys changed per node
+- message counts per node
+- tool calls
+- tool results, summarized safely
+- generated SQL
+- SQL validation result
+- SQL execution latency
+- SQL result row count and concise summary
+- final answer candidate
+- final answer emitted
+- evaluator verdict
+- failure category
+- exception, timeout, or stop reason
+- total latency
+- token usage if available
+- redaction status for secrets
+
+Final-answer contract:
+Inspect and enforce a strict final-answer lifecycle.
+
+The chatbot must:
+- produce exactly one final answer,
+- store it in a clear state field such as `final_answer`,
+- set a clear flag such as `is_final: true`,
+- set a clear `stop_reason`,
+- route directly to LangGraph `END` after a final answer,
+- never call tools after a final answer exists,
+- never append repeated final answers,
+- never include follow-up offers in test mode,
+- answer only the question asked,
+- keep final answers concise and directly comparable to expected answers.
+
+A valid answer followed by repeated copies is still a failure.
+
+LangGraph hardening:
+Inspect and improve:
+- graph state schema,
+- message reducers,
+- node responsibilities,
+- conditional routing,
+- END transitions,
+- recursion limit behavior,
+- tool-call loop prevention,
+- final-answer detection,
+- retry limits,
+- timeout handling,
+- exception handling,
+- deterministic test-mode settings,
+- state reset between questions and runs.
+
+Prioritize fixes in this order:
+1. graph recursion / failure to terminate,
+2. incorrect routing after final answer,
+3. tool-call loops,
+4. flaky API/network behavior,
+5. SQL generation or validation errors,
+6. prompt ambiguity,
+7. evaluator weaknesses,
+8. answer formatting issues.
+
+Prompt hardening:
+Refine prompts so the chatbot:
+- answers only the user’s question,
+- emits one final answer,
+- stops after enough evidence exists,
+- does not add follow-up offers like “Would you like…” in test mode,
+- prefers database-grounded answers when answerable from the NBA DB,
+- clearly distinguishes database results from external/general knowledge only when necessary,
+- does not invent official-record caveats unless required by the question or evidence,
+- does not call more tools after sufficient evidence exists,
+- uses stable reasoning for:
+  - totals,
+  - rankings,
+  - seasons,
+  - teams,
+  - players,
+  - playoffs vs regular season,
+  - per-game stats,
+  - career aggregates.
+
+SQL/tool hardening:
+Inspect database tools and SQL generation.
+
+Add safeguards where appropriate:
+- SQL validation before execution,
+- table/column discovery caching,
+- deterministic ordering for rankings and ties,
+- clear distinction between regular season and playoffs,
+- correct aggregation logic,
+- no accidental double-counting,
+- no inappropriate filtering of legitimate rows,
+- no use of irrelevant external facts when DB has the answer,
+- concise SQL result summaries passed back to the model,
+- stable handling of empty results,
+- safe handling of DB errors and timeouts.
+
+For the specific all-time regular season scoring case, verify the correct table/column semantics instead of assuming. Prefer direct points columns if available. Do not reconstruct points from partial stats unless that is the only reliable source and is verified.
+
+Evaluator hardening:
+Ensure the evaluator:
+- captures only the final emitted answer,
+- ignores intermediate tool messages and scratch output,
+- fails on recursion limit, timeout, exception, missing final answer, or duplicate final answer,
+- normalizes whitespace/case/punctuation only when appropriate,
+- handles numeric formatting consistently,
+- supports aliases only when explicitly defined,
+- reports a clear reason for each failure,
+- does not become so permissive that wrong or contradictory answers pass.
+
+Deterministic test mode:
+When running the predetermined-answer suite:
+- use deterministic model settings where supported,
+- use temperature 0 or equivalent,
+- avoid random sampling where possible,
+- use stable timeout and retry settings,
+- avoid external knowledge unless the question explicitly requires it,
+- reset graph state between runs,
+- ensure table discovery/cache state does not contaminate unrelated questions,
+- make SQL ordering deterministic.
+
+Patch discipline:
+Work in small, reviewable iterations.
+
+For each patch:
+1. State the hypothesis.
+2. Make the minimal relevant change.
+3. Run typecheck/lint if available.
+4. Run the relevant subset of tests.
+5. Run the full suite when the subset improves.
+6. Record the result in a local changelog or run summary.
+
+Avoid broad rewrites unless the current architecture makes correctness impossible. Do not make unrelated refactors.
+
+Required loop:
+Repeat the following until completion criteria are met:
+
+1. Run tests.
+2. Save and redact logs.
+3. Parse failures.
+4. Classify failures.
+5. Inspect relevant code.
+6. Use Firecrawl and/or gh_grep only for targeted research when helpful.
+7. Apply a small focused fix.
+8. Run typecheck/lint if available.
+9. Run subset tests.
+10. Run full suite.
+11. Update changelog/failure table.
+12. Continue.
+
+Completion criteria:
+Continue until one of these is true:
+- the entire suite passes across all configured runs,
+- there are no timeouts,
+- there are no recursion-limit failures,
+- there are no duplicate final answers,
+- there are no evaluator errors,
+- all logs show clean final-answer termination,
+- or you hit a genuine blocker that cannot be resolved from the repo and available tools.
+
+Do not stop after partial improvement.
+
+Do not:
+- hardcode expected answers into the chatbot,
+- remove tests,
+- skip failing cases,
+- hide failures,
+- print or commit secrets,
+- weaken the evaluator to accept wrong answers,
+- make large unrelated refactors,
+- continue researching after the code-local cause is clear,
+- leave the graph able to continue after final answer emission.
+
+Expected artifacts:
+Leave behind:
+- timestamped raw test logs with secrets redacted,
+- structured JSONL observability logs,
+- parsed failure summary table,
+- local changelog or debugging summary,
+- final test output,
+- list of files changed.
+
+Final response format:
+When complete, report:
+
+- final pass/fail status
+- exact test command used
+- number of iterations
+- files changed
+- key bugs found
+- fixes applied
+- observability added
+- research used and lessons applied
+- final failing cases, if any
+- remaining risks or blockers
+- exact next command I should run
+
+Begin by discovering the repo structure, locating the test command, locating the LangGraph implementation, and running the baseline suite.
+
+"C:\Users\nicolas\Documents\GitHub\bballgenius\src\chatbot\scripts\iterate_loop.ts"  - BEFORE you act, give me a critique of this prompt and let me know what I’m missing to get the best possible output the first time, then execute the loop
