@@ -1,0 +1,24 @@
+{
+  "startedAt": "2026-05-22T03:44:35.556Z",
+  "endedAt": "2026-05-22T03:45:57.353Z",
+  "elapsedSec": 82,
+  "model": "nvidia/nemotron-nano-9b-v2",
+  "totalPassed": 5,
+  "totalAttempted": 6,
+  "totalExpected": 6,
+  "allPassed": false,
+  "runDir": ".runs\\nba-chatbot\\2026-05-22T03-44-35-556Z",
+  "failures": [
+    {
+      "runId": "specific-001-r1-1779421536830",
+      "questionId": "specific-001",
+      "question": "What was Michael Jordan PER in the 1995 playoffs?",
+      "expected": "24.8",
+      "actual": "I couldn't find Michael Jordan's PER for the 1995 playoffs in the database. The query returned no results for player_id 893 in the 1994-95 season with is_playoffs = true. This might indicate the data isn't available in the current database schema.",
+      "category": "wrong_answer",
+      "reason": "Expected numeric answer 24.8.",
+      "tools": 3,
+      "stopReason": "done_event"
+    }
+  ]
+}

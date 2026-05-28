@@ -1,0 +1,2 @@
+run_id,question_id,question,expected,actual,category,reason,tools,stop_reason
+"specific-001-r1-1779421536830","specific-001","What was Michael Jordan PER in the 1995 playoffs?","24.8","I couldn't find Michael Jordan's PER for the 1995 playoffs in the database. The query returned no results for player_id 893 in the 1994-95 season with is_playoffs = true. This might indicate the data isn't available in the current database schema.","wrong_answer","Expected numeric answer 24.8.","3","done_event"
