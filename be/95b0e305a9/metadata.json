@@ -1,0 +1,35 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "be95b0e305a9",
+  "strategy": "manual-commit",
+  "branch": "fix/hub-unified-star-schema",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".env.example",
+    "src/chatbot/__tests__/retry.test.ts",
+    "src/chatbot/agent/graph.ts",
+    "src/chatbot/agent/model.ts",
+    "src/chatbot/agent/state.ts",
+    "src/chatbot/agent/streaming.ts",
+    "src/chatbot/agent/tools.ts",
+    "src/chatbot/features/modelSelector.ts",
+    "src/chatbot/systemPrompt.ts",
+    "src/chatbot/utils/metrics.ts",
+    "src/chatbot/utils/retry.ts"
+  ],
+  "sessions": [
+    {
+      "metadata": "/be/95b0e305a9/0/metadata.json",
+      "transcript": "/be/95b0e305a9/0/full.jsonl",
+      "content_hash": "/be/95b0e305a9/0/content_hash.txt",
+      "prompt": "/be/95b0e305a9/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 12356,
+    "cache_creation_tokens": 42405,
+    "cache_read_tokens": 68636,
+    "output_tokens": 2033,
+    "api_call_count": 4
+  }
+}
