@@ -3,24 +3,32 @@
   "checkpoint_id": "be95b0e305a9",
   "strategy": "manual-commit",
   "branch": "fix/hub-unified-star-schema",
-  "checkpoints_count": 9,
+  "checkpoints_count": 10,
   "files_touched": [
     ".env.example",
     "bun.lock",
     "package.json",
+    "scripts/chatbot-eval-multi-model.ts",
+    "scripts/iteration-1-focused.ts",
+    "scripts/quick-test.ts",
     "src/chatbot/__tests__/accessibility.test.ts",
     "src/chatbot/__tests__/ansi.test.ts",
+    "src/chatbot/__tests__/metrics.test.ts",
     "src/chatbot/__tests__/retry.test.ts",
     "src/chatbot/__tests__/theme.test.ts",
     "src/chatbot/agent/graph.ts",
     "src/chatbot/agent/model.ts",
+    "src/chatbot/agent/schemaFilter.ts",
     "src/chatbot/agent/state.ts",
     "src/chatbot/agent/streaming.ts",
+    "src/chatbot/agent/toolNames.ts",
     "src/chatbot/agent/tools.ts",
     "src/chatbot/eval/bbr-truth.json",
     "src/chatbot/eval/bbrTruth.ts",
     "src/chatbot/eval/dbTruth.ts",
+    "src/chatbot/eval/ground-truth.json",
     "src/chatbot/eval/matrixHarness.ts",
+    "src/chatbot/eval/question-matrix.ts",
     "src/chatbot/features/modelSelector.ts",
     "src/chatbot/scripts/iterate_loop.ts",
     "src/chatbot/systemPrompt.ts",
@@ -147,13 +155,19 @@
       "transcript": "/be/95b0e305a9/18/full.jsonl",
       "content_hash": "/be/95b0e305a9/18/content_hash.txt",
       "prompt": "/be/95b0e305a9/18/prompt.txt"
+    },
+    {
+      "metadata": "/be/95b0e305a9/19/metadata.json",
+      "transcript": "/be/95b0e305a9/19/full.jsonl",
+      "content_hash": "/be/95b0e305a9/19/content_hash.txt",
+      "prompt": "/be/95b0e305a9/19/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 264555,
+    "input_tokens": 269043,
     "cache_creation_tokens": 814445,
-    "cache_read_tokens": 37898162,
-    "output_tokens": 229538,
-    "api_call_count": 329
+    "cache_read_tokens": 37975666,
+    "output_tokens": 230361,
+    "api_call_count": 333
   }
 }
