@@ -1,0 +1,49 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "be95b0e305a9",
+  "session_id": "ses_1b1f8b3e4ffesJLlWWsTbt0en4",
+  "strategy": "manual-commit",
+  "created_at": "2026-05-28T20:21:17.2548091Z",
+  "branch": "fix/hub-unified-star-schema",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".env.example",
+    "bun.lock",
+    "package.json",
+    "src/chatbot/__tests__/retry.test.ts",
+    "src/chatbot/agent/graph.ts",
+    "src/chatbot/agent/model.ts",
+    "src/chatbot/agent/state.ts",
+    "src/chatbot/agent/streaming.ts",
+    "src/chatbot/agent/tools.ts",
+    "src/chatbot/features/modelSelector.ts",
+    "src/chatbot/systemPrompt.ts",
+    "src/chatbot/utils/metrics.ts",
+    "src/chatbot/utils/retry.ts"
+  ],
+  "agent": "OpenCode",
+  "model": "glm-5.1",
+  "turn_id": "fe715deb3ea2",
+  "token_usage": {
+    "input_tokens": 30885,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 608192,
+    "output_tokens": 8064,
+    "api_call_count": 13
+  },
+  "session_metrics": {
+    "turn_count": 1
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-05-28T20:21:17.2402452Z",
+    "agent_lines": 0,
+    "agent_removed": 212,
+    "human_added": 4412,
+    "human_modified": 2223,
+    "human_removed": 0,
+    "total_committed": 6635,
+    "total_lines_changed": 6931,
+    "agent_percentage": 3.0587216851825136,
+    "metric_version": 2
+  }
+}
