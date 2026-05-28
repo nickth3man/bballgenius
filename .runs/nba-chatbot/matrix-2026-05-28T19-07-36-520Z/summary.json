@@ -1,0 +1,26 @@
+{
+  "startedAt": "2026-05-28T19:07:36.520Z",
+  "endedAt": "2026-05-28T19:09:02.259Z",
+  "model": "nvidia/nemotron-nano-9b-v2",
+  "truthSource": "basketball-reference.com",
+  "totalPassed": 4,
+  "total": 5,
+  "byVerdict": {
+    "pass": 4,
+    "agent_bug": 1
+  },
+  "byTier": {
+    "simple": {
+      "pass": 4,
+      "total": 5
+    }
+  },
+  "dataQualityIssues": [],
+  "staleTestExpectations": [
+    {
+      "id": "simple-005",
+      "matrixExpected": "Joel Embiid",
+      "bbrExpected": "Luka Dončić"
+    }
+  ]
+}

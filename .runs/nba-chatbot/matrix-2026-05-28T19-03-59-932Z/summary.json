@@ -1,0 +1,20 @@
+{
+  "startedAt": "2026-05-28T19:03:59.932Z",
+  "endedAt": "2026-05-28T19:04:43.437Z",
+  "model": "nvidia/nemotron-nano-9b-v2",
+  "truthSource": "basketball-reference.com",
+  "totalPassed": 3,
+  "total": 4,
+  "byVerdict": {
+    "pass": 3,
+    "agent_bug": 1
+  },
+  "byTier": {
+    "simple": {
+      "pass": 3,
+      "total": 4
+    }
+  },
+  "dataQualityIssues": [],
+  "staleTestExpectations": []
+}
