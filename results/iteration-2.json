@@ -1,0 +1,2312 @@
+[
+  {
+    "iteration": 2,
+    "model": "stepfun/step-3.5-flash",
+    "results": [
+      {
+        "questionId": "simple-001",
+        "model": "stepfun/step-3.5-flash",
+        "question": "Who is the all-time NBA regular season scoring leader?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 16,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "simple-002",
+        "model": "stepfun/step-3.5-flash",
+        "question": "How many career points does LeBron James have?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 16,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "simple-003",
+        "model": "stepfun/step-3.5-flash",
+        "question": "Who won the NBA MVP award in the 2023-24 season?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 14,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "simple-004",
+        "model": "stepfun/step-3.5-flash",
+        "question": "What was the Boston Celtics record in the 2023-24 season?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 16,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "simple-005",
+        "model": "stepfun/step-3.5-flash",
+        "question": "Who led the NBA in points per game in the 2023-24 season?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 17,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "simple-006",
+        "model": "stepfun/step-3.5-flash",
+        "question": "What was the final score of the 2016 NBA Finals Game 7?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 15,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "simple-007",
+        "model": "stepfun/step-3.5-flash",
+        "question": "Who is the all-time leader in career assists?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 16,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "simple-008",
+        "model": "stepfun/step-3.5-flash",
+        "question": "How many career steals does Michael Jordan have?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 16,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "multi-001",
+        "model": "stepfun/step-3.5-flash",
+        "question": "Who has more career points: Michael Jordan or Kobe Bryant?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 17,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "multi-002",
+        "model": "stepfun/step-3.5-flash",
+        "question": "Compare the career points, assists, and rebounds of LeBron James and Michael Jordan. Who has more in each category?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 16,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "multi-003",
+        "model": "stepfun/step-3.5-flash",
+        "question": "Which team had a better record in their respective seasons: the 2023-24 Boston Celtics or the 2015-16 Golden State Warriors?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 14,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "multi-004",
+        "model": "stepfun/step-3.5-flash",
+        "question": "Who are the top 3 all-time NBA scoring leaders and how many points does each have?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 16,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "multi-005",
+        "model": "stepfun/step-3.5-flash",
+        "question": "In the 2016 NBA Finals Game 7, who scored more points: LeBron James or Draymond Green?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 15,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "multi-006",
+        "model": "stepfun/step-3.5-flash",
+        "question": "Who has won more MVP awards: Stephen Curry or Giannis Antetokounmpo?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 15,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "multi-007",
+        "model": "stepfun/step-3.5-flash",
+        "question": "Who led the NBA in both points per game and rebounds per game in the 2023-24 season?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 17,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "multi-008",
+        "model": "stepfun/step-3.5-flash",
+        "question": "What is the combined total of career points for the top 3 all-time scoring leaders?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 17,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "vague-001",
+        "model": "stepfun/step-3.5-flash",
+        "question": "Who scored the most?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 16,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "vague-002",
+        "model": "stepfun/step-3.5-flash",
+        "question": "How many did he get?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 17,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "vague-003",
+        "model": "stepfun/step-3.5-flash",
+        "question": "Tell me about the best season.",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 15,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "vague-004",
+        "model": "stepfun/step-3.5-flash",
+        "question": "Who is the leader?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 17,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "vague-005",
+        "model": "stepfun/step-3.5-flash",
+        "question": "What happened in that game?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 19,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "vague-006",
+        "model": "stepfun/step-3.5-flash",
+        "question": "How good was Jordan?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 17,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "vague-007",
+        "model": "stepfun/step-3.5-flash",
+        "question": "What are the stats?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 15,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "specific-001",
+        "model": "stepfun/step-3.5-flash",
+        "question": "What was Michael Jordan PER in the 1995 playoffs?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 15,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "specific-002",
+        "model": "stepfun/step-3.5-flash",
+        "question": "How many triple-doubles did Wilt Chamberlain have in the 1961-62 season?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 14,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "specific-003",
+        "model": "stepfun/step-3.5-flash",
+        "question": "What was the exact attendance for the 2016 NBA Finals Game 7?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 16,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "specific-004",
+        "model": "stepfun/step-3.5-flash",
+        "question": "What was Stephen Curry shooting percentage from 30-35 feet in the 2015-16 season?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 16,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "specific-005",
+        "model": "stepfun/step-3.5-flash",
+        "question": "How many times did LeBron James switch teams in the offseason of 2014?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 14,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "specific-006",
+        "model": "stepfun/step-3.5-flash",
+        "question": "What was the average wingspan of players drafted in the first round of the 2003 NBA draft?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 17,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "specific-007",
+        "model": "stepfun/step-3.5-flash",
+        "question": "How many career points did Michael Jordan score against the Utah Jazz in the 1998 playoffs?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 14,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      }
+    ],
+    "passCount": 0,
+    "failCount": 30,
+    "failurePatterns": {
+      "SQL_ERROR": [
+        "simple-001",
+        "simple-002",
+        "simple-003",
+        "simple-004",
+        "simple-005",
+        "simple-006",
+        "simple-007",
+        "simple-008",
+        "multi-001",
+        "multi-002",
+        "multi-003",
+        "multi-004",
+        "multi-005",
+        "multi-006",
+        "multi-007",
+        "multi-008",
+        "vague-001",
+        "vague-002",
+        "vague-003",
+        "vague-004",
+        "vague-005",
+        "vague-006",
+        "vague-007",
+        "specific-001",
+        "specific-002",
+        "specific-003",
+        "specific-004",
+        "specific-005",
+        "specific-006",
+        "specific-007"
+      ]
+    }
+  },
+  {
+    "iteration": 2,
+    "model": "google/gemini-2.5-flash-lite",
+    "results": [
+      {
+        "questionId": "simple-001",
+        "model": "google/gemini-2.5-flash-lite",
+        "question": "Who is the all-time NBA regular season scoring leader?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 16,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "simple-002",
+        "model": "google/gemini-2.5-flash-lite",
+        "question": "How many career points does LeBron James have?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 16,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "simple-003",
+        "model": "google/gemini-2.5-flash-lite",
+        "question": "Who won the NBA MVP award in the 2023-24 season?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 15,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "simple-004",
+        "model": "google/gemini-2.5-flash-lite",
+        "question": "What was the Boston Celtics record in the 2023-24 season?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 13,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "simple-005",
+        "model": "google/gemini-2.5-flash-lite",
+        "question": "Who led the NBA in points per game in the 2023-24 season?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 15,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "simple-006",
+        "model": "google/gemini-2.5-flash-lite",
+        "question": "What was the final score of the 2016 NBA Finals Game 7?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 15,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "simple-007",
+        "model": "google/gemini-2.5-flash-lite",
+        "question": "Who is the all-time leader in career assists?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 15,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "simple-008",
+        "model": "google/gemini-2.5-flash-lite",
+        "question": "How many career steals does Michael Jordan have?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 14,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "multi-001",
+        "model": "google/gemini-2.5-flash-lite",
+        "question": "Who has more career points: Michael Jordan or Kobe Bryant?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 14,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "multi-002",
+        "model": "google/gemini-2.5-flash-lite",
+        "question": "Compare the career points, assists, and rebounds of LeBron James and Michael Jordan. Who has more in each category?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 16,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "multi-003",
+        "model": "google/gemini-2.5-flash-lite",
+        "question": "Which team had a better record in their respective seasons: the 2023-24 Boston Celtics or the 2015-16 Golden State Warriors?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 17,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "multi-004",
+        "model": "google/gemini-2.5-flash-lite",
+        "question": "Who are the top 3 all-time NBA scoring leaders and how many points does each have?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 16,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "multi-005",
+        "model": "google/gemini-2.5-flash-lite",
+        "question": "In the 2016 NBA Finals Game 7, who scored more points: LeBron James or Draymond Green?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 16,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "multi-006",
+        "model": "google/gemini-2.5-flash-lite",
+        "question": "Who has won more MVP awards: Stephen Curry or Giannis Antetokounmpo?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 16,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "multi-007",
+        "model": "google/gemini-2.5-flash-lite",
+        "question": "Who led the NBA in both points per game and rebounds per game in the 2023-24 season?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 15,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "multi-008",
+        "model": "google/gemini-2.5-flash-lite",
+        "question": "What is the combined total of career points for the top 3 all-time scoring leaders?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 16,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "vague-001",
+        "model": "google/gemini-2.5-flash-lite",
+        "question": "Who scored the most?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 16,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "vague-002",
+        "model": "google/gemini-2.5-flash-lite",
+        "question": "How many did he get?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 17,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "vague-003",
+        "model": "google/gemini-2.5-flash-lite",
+        "question": "Tell me about the best season.",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 16,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "vague-004",
+        "model": "google/gemini-2.5-flash-lite",
+        "question": "Who is the leader?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 16,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "vague-005",
+        "model": "google/gemini-2.5-flash-lite",
+        "question": "What happened in that game?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 15,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "vague-006",
+        "model": "google/gemini-2.5-flash-lite",
+        "question": "How good was Jordan?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 15,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "vague-007",
+        "model": "google/gemini-2.5-flash-lite",
+        "question": "What are the stats?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 15,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "specific-001",
+        "model": "google/gemini-2.5-flash-lite",
+        "question": "What was Michael Jordan PER in the 1995 playoffs?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 16,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "specific-002",
+        "model": "google/gemini-2.5-flash-lite",
+        "question": "How many triple-doubles did Wilt Chamberlain have in the 1961-62 season?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 15,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "specific-003",
+        "model": "google/gemini-2.5-flash-lite",
+        "question": "What was the exact attendance for the 2016 NBA Finals Game 7?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 15,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "specific-004",
+        "model": "google/gemini-2.5-flash-lite",
+        "question": "What was Stephen Curry shooting percentage from 30-35 feet in the 2015-16 season?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 17,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "specific-005",
+        "model": "google/gemini-2.5-flash-lite",
+        "question": "How many times did LeBron James switch teams in the offseason of 2014?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 16,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "specific-006",
+        "model": "google/gemini-2.5-flash-lite",
+        "question": "What was the average wingspan of players drafted in the first round of the 2003 NBA draft?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 14,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "specific-007",
+        "model": "google/gemini-2.5-flash-lite",
+        "question": "How many career points did Michael Jordan score against the Utah Jazz in the 1998 playoffs?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 14,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      }
+    ],
+    "passCount": 0,
+    "failCount": 30,
+    "failurePatterns": {
+      "SQL_ERROR": [
+        "simple-001",
+        "simple-002",
+        "simple-003",
+        "simple-004",
+        "simple-005",
+        "simple-006",
+        "simple-007",
+        "simple-008",
+        "multi-001",
+        "multi-002",
+        "multi-003",
+        "multi-004",
+        "multi-005",
+        "multi-006",
+        "multi-007",
+        "multi-008",
+        "vague-001",
+        "vague-002",
+        "vague-003",
+        "vague-004",
+        "vague-005",
+        "vague-006",
+        "vague-007",
+        "specific-001",
+        "specific-002",
+        "specific-003",
+        "specific-004",
+        "specific-005",
+        "specific-006",
+        "specific-007"
+      ]
+    }
+  },
+  {
+    "iteration": 2,
+    "model": "openai/gpt-oss-120b",
+    "results": [
+      {
+        "questionId": "simple-001",
+        "model": "openai/gpt-oss-120b",
+        "question": "Who is the all-time NBA regular season scoring leader?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 15,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "simple-002",
+        "model": "openai/gpt-oss-120b",
+        "question": "How many career points does LeBron James have?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 15,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "simple-003",
+        "model": "openai/gpt-oss-120b",
+        "question": "Who won the NBA MVP award in the 2023-24 season?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 16,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "simple-004",
+        "model": "openai/gpt-oss-120b",
+        "question": "What was the Boston Celtics record in the 2023-24 season?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 16,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "simple-005",
+        "model": "openai/gpt-oss-120b",
+        "question": "Who led the NBA in points per game in the 2023-24 season?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 15,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "simple-006",
+        "model": "openai/gpt-oss-120b",
+        "question": "What was the final score of the 2016 NBA Finals Game 7?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 16,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "simple-007",
+        "model": "openai/gpt-oss-120b",
+        "question": "Who is the all-time leader in career assists?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 15,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "simple-008",
+        "model": "openai/gpt-oss-120b",
+        "question": "How many career steals does Michael Jordan have?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 16,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "multi-001",
+        "model": "openai/gpt-oss-120b",
+        "question": "Who has more career points: Michael Jordan or Kobe Bryant?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 17,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "multi-002",
+        "model": "openai/gpt-oss-120b",
+        "question": "Compare the career points, assists, and rebounds of LeBron James and Michael Jordan. Who has more in each category?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 19,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "multi-003",
+        "model": "openai/gpt-oss-120b",
+        "question": "Which team had a better record in their respective seasons: the 2023-24 Boston Celtics or the 2015-16 Golden State Warriors?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 17,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "multi-004",
+        "model": "openai/gpt-oss-120b",
+        "question": "Who are the top 3 all-time NBA scoring leaders and how many points does each have?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 19,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "multi-005",
+        "model": "openai/gpt-oss-120b",
+        "question": "In the 2016 NBA Finals Game 7, who scored more points: LeBron James or Draymond Green?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 16,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "multi-006",
+        "model": "openai/gpt-oss-120b",
+        "question": "Who has won more MVP awards: Stephen Curry or Giannis Antetokounmpo?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 15,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "multi-007",
+        "model": "openai/gpt-oss-120b",
+        "question": "Who led the NBA in both points per game and rebounds per game in the 2023-24 season?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 33,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "multi-008",
+        "model": "openai/gpt-oss-120b",
+        "question": "What is the combined total of career points for the top 3 all-time scoring leaders?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 16,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "vague-001",
+        "model": "openai/gpt-oss-120b",
+        "question": "Who scored the most?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 15,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "vague-002",
+        "model": "openai/gpt-oss-120b",
+        "question": "How many did he get?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 16,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "vague-003",
+        "model": "openai/gpt-oss-120b",
+        "question": "Tell me about the best season.",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 15,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "vague-004",
+        "model": "openai/gpt-oss-120b",
+        "question": "Who is the leader?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 14,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "vague-005",
+        "model": "openai/gpt-oss-120b",
+        "question": "What happened in that game?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 15,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "vague-006",
+        "model": "openai/gpt-oss-120b",
+        "question": "How good was Jordan?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 14,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "vague-007",
+        "model": "openai/gpt-oss-120b",
+        "question": "What are the stats?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 15,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "specific-001",
+        "model": "openai/gpt-oss-120b",
+        "question": "What was Michael Jordan PER in the 1995 playoffs?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 18,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "specific-002",
+        "model": "openai/gpt-oss-120b",
+        "question": "How many triple-doubles did Wilt Chamberlain have in the 1961-62 season?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 16,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "specific-003",
+        "model": "openai/gpt-oss-120b",
+        "question": "What was the exact attendance for the 2016 NBA Finals Game 7?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 16,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "specific-004",
+        "model": "openai/gpt-oss-120b",
+        "question": "What was Stephen Curry shooting percentage from 30-35 feet in the 2015-16 season?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 15,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "specific-005",
+        "model": "openai/gpt-oss-120b",
+        "question": "How many times did LeBron James switch teams in the offseason of 2014?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 17,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "specific-006",
+        "model": "openai/gpt-oss-120b",
+        "question": "What was the average wingspan of players drafted in the first round of the 2003 NBA draft?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 16,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "specific-007",
+        "model": "openai/gpt-oss-120b",
+        "question": "How many career points did Michael Jordan score against the Utah Jazz in the 1998 playoffs?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 13,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      }
+    ],
+    "passCount": 0,
+    "failCount": 30,
+    "failurePatterns": {
+      "SQL_ERROR": [
+        "simple-001",
+        "simple-002",
+        "simple-003",
+        "simple-004",
+        "simple-005",
+        "simple-006",
+        "simple-007",
+        "simple-008",
+        "multi-001",
+        "multi-002",
+        "multi-003",
+        "multi-004",
+        "multi-005",
+        "multi-006",
+        "multi-007",
+        "multi-008",
+        "vague-001",
+        "vague-002",
+        "vague-003",
+        "vague-004",
+        "vague-005",
+        "vague-006",
+        "vague-007",
+        "specific-001",
+        "specific-002",
+        "specific-003",
+        "specific-004",
+        "specific-005",
+        "specific-006",
+        "specific-007"
+      ]
+    }
+  },
+  {
+    "iteration": 2,
+    "model": "tencent/hy3-preview",
+    "results": [
+      {
+        "questionId": "simple-001",
+        "model": "tencent/hy3-preview",
+        "question": "Who is the all-time NBA regular season scoring leader?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 14,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "simple-002",
+        "model": "tencent/hy3-preview",
+        "question": "How many career points does LeBron James have?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 15,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "simple-003",
+        "model": "tencent/hy3-preview",
+        "question": "Who won the NBA MVP award in the 2023-24 season?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 14,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "simple-004",
+        "model": "tencent/hy3-preview",
+        "question": "What was the Boston Celtics record in the 2023-24 season?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 18,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "simple-005",
+        "model": "tencent/hy3-preview",
+        "question": "Who led the NBA in points per game in the 2023-24 season?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 16,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "simple-006",
+        "model": "tencent/hy3-preview",
+        "question": "What was the final score of the 2016 NBA Finals Game 7?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 15,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "simple-007",
+        "model": "tencent/hy3-preview",
+        "question": "Who is the all-time leader in career assists?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 15,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "simple-008",
+        "model": "tencent/hy3-preview",
+        "question": "How many career steals does Michael Jordan have?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 14,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "multi-001",
+        "model": "tencent/hy3-preview",
+        "question": "Who has more career points: Michael Jordan or Kobe Bryant?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 16,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "multi-002",
+        "model": "tencent/hy3-preview",
+        "question": "Compare the career points, assists, and rebounds of LeBron James and Michael Jordan. Who has more in each category?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 15,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "multi-003",
+        "model": "tencent/hy3-preview",
+        "question": "Which team had a better record in their respective seasons: the 2023-24 Boston Celtics or the 2015-16 Golden State Warriors?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 15,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "multi-004",
+        "model": "tencent/hy3-preview",
+        "question": "Who are the top 3 all-time NBA scoring leaders and how many points does each have?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 15,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "multi-005",
+        "model": "tencent/hy3-preview",
+        "question": "In the 2016 NBA Finals Game 7, who scored more points: LeBron James or Draymond Green?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 15,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "multi-006",
+        "model": "tencent/hy3-preview",
+        "question": "Who has won more MVP awards: Stephen Curry or Giannis Antetokounmpo?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 15,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "multi-007",
+        "model": "tencent/hy3-preview",
+        "question": "Who led the NBA in both points per game and rebounds per game in the 2023-24 season?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 15,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "multi-008",
+        "model": "tencent/hy3-preview",
+        "question": "What is the combined total of career points for the top 3 all-time scoring leaders?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 16,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "vague-001",
+        "model": "tencent/hy3-preview",
+        "question": "Who scored the most?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 17,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "vague-002",
+        "model": "tencent/hy3-preview",
+        "question": "How many did he get?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 17,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "vague-003",
+        "model": "tencent/hy3-preview",
+        "question": "Tell me about the best season.",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 15,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "vague-004",
+        "model": "tencent/hy3-preview",
+        "question": "Who is the leader?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 16,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "vague-005",
+        "model": "tencent/hy3-preview",
+        "question": "What happened in that game?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 15,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "vague-006",
+        "model": "tencent/hy3-preview",
+        "question": "How good was Jordan?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 15,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "vague-007",
+        "model": "tencent/hy3-preview",
+        "question": "What are the stats?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 15,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "specific-001",
+        "model": "tencent/hy3-preview",
+        "question": "What was Michael Jordan PER in the 1995 playoffs?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 16,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "specific-002",
+        "model": "tencent/hy3-preview",
+        "question": "How many triple-doubles did Wilt Chamberlain have in the 1961-62 season?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 15,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "specific-003",
+        "model": "tencent/hy3-preview",
+        "question": "What was the exact attendance for the 2016 NBA Finals Game 7?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 15,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "specific-004",
+        "model": "tencent/hy3-preview",
+        "question": "What was Stephen Curry shooting percentage from 30-35 feet in the 2015-16 season?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 16,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "specific-005",
+        "model": "tencent/hy3-preview",
+        "question": "How many times did LeBron James switch teams in the offseason of 2014?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 15,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "specific-006",
+        "model": "tencent/hy3-preview",
+        "question": "What was the average wingspan of players drafted in the first round of the 2003 NBA draft?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 15,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "specific-007",
+        "model": "tencent/hy3-preview",
+        "question": "How many career points did Michael Jordan score against the Utah Jazz in the 1998 playoffs?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 16,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      }
+    ],
+    "passCount": 0,
+    "failCount": 30,
+    "failurePatterns": {
+      "SQL_ERROR": [
+        "simple-001",
+        "simple-002",
+        "simple-003",
+        "simple-004",
+        "simple-005",
+        "simple-006",
+        "simple-007",
+        "simple-008",
+        "multi-001",
+        "multi-002",
+        "multi-003",
+        "multi-004",
+        "multi-005",
+        "multi-006",
+        "multi-007",
+        "multi-008",
+        "vague-001",
+        "vague-002",
+        "vague-003",
+        "vague-004",
+        "vague-005",
+        "vague-006",
+        "vague-007",
+        "specific-001",
+        "specific-002",
+        "specific-003",
+        "specific-004",
+        "specific-005",
+        "specific-006",
+        "specific-007"
+      ]
+    }
+  },
+  {
+    "iteration": 2,
+    "model": "deepseek/deepseek-v4-flash",
+    "results": [
+      {
+        "questionId": "simple-001",
+        "model": "deepseek/deepseek-v4-flash",
+        "question": "Who is the all-time NBA regular season scoring leader?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 16,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "simple-002",
+        "model": "deepseek/deepseek-v4-flash",
+        "question": "How many career points does LeBron James have?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 14,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "simple-003",
+        "model": "deepseek/deepseek-v4-flash",
+        "question": "Who won the NBA MVP award in the 2023-24 season?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 14,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "simple-004",
+        "model": "deepseek/deepseek-v4-flash",
+        "question": "What was the Boston Celtics record in the 2023-24 season?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 15,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "simple-005",
+        "model": "deepseek/deepseek-v4-flash",
+        "question": "Who led the NBA in points per game in the 2023-24 season?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 21,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "simple-006",
+        "model": "deepseek/deepseek-v4-flash",
+        "question": "What was the final score of the 2016 NBA Finals Game 7?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 16,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "simple-007",
+        "model": "deepseek/deepseek-v4-flash",
+        "question": "Who is the all-time leader in career assists?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 15,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "simple-008",
+        "model": "deepseek/deepseek-v4-flash",
+        "question": "How many career steals does Michael Jordan have?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 16,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "multi-001",
+        "model": "deepseek/deepseek-v4-flash",
+        "question": "Who has more career points: Michael Jordan or Kobe Bryant?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 16,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "multi-002",
+        "model": "deepseek/deepseek-v4-flash",
+        "question": "Compare the career points, assists, and rebounds of LeBron James and Michael Jordan. Who has more in each category?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 15,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "multi-003",
+        "model": "deepseek/deepseek-v4-flash",
+        "question": "Which team had a better record in their respective seasons: the 2023-24 Boston Celtics or the 2015-16 Golden State Warriors?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 15,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "multi-004",
+        "model": "deepseek/deepseek-v4-flash",
+        "question": "Who are the top 3 all-time NBA scoring leaders and how many points does each have?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 14,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "multi-005",
+        "model": "deepseek/deepseek-v4-flash",
+        "question": "In the 2016 NBA Finals Game 7, who scored more points: LeBron James or Draymond Green?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 15,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "multi-006",
+        "model": "deepseek/deepseek-v4-flash",
+        "question": "Who has won more MVP awards: Stephen Curry or Giannis Antetokounmpo?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 15,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "multi-007",
+        "model": "deepseek/deepseek-v4-flash",
+        "question": "Who led the NBA in both points per game and rebounds per game in the 2023-24 season?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 14,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "multi-008",
+        "model": "deepseek/deepseek-v4-flash",
+        "question": "What is the combined total of career points for the top 3 all-time scoring leaders?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 14,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "vague-001",
+        "model": "deepseek/deepseek-v4-flash",
+        "question": "Who scored the most?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 14,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "vague-002",
+        "model": "deepseek/deepseek-v4-flash",
+        "question": "How many did he get?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 13,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "vague-003",
+        "model": "deepseek/deepseek-v4-flash",
+        "question": "Tell me about the best season.",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 14,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "vague-004",
+        "model": "deepseek/deepseek-v4-flash",
+        "question": "Who is the leader?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 16,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "vague-005",
+        "model": "deepseek/deepseek-v4-flash",
+        "question": "What happened in that game?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 16,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "vague-006",
+        "model": "deepseek/deepseek-v4-flash",
+        "question": "How good was Jordan?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 16,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "vague-007",
+        "model": "deepseek/deepseek-v4-flash",
+        "question": "What are the stats?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 14,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "specific-001",
+        "model": "deepseek/deepseek-v4-flash",
+        "question": "What was Michael Jordan PER in the 1995 playoffs?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 14,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "specific-002",
+        "model": "deepseek/deepseek-v4-flash",
+        "question": "How many triple-doubles did Wilt Chamberlain have in the 1961-62 season?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 15,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "specific-003",
+        "model": "deepseek/deepseek-v4-flash",
+        "question": "What was the exact attendance for the 2016 NBA Finals Game 7?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 17,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "specific-004",
+        "model": "deepseek/deepseek-v4-flash",
+        "question": "What was Stephen Curry shooting percentage from 30-35 feet in the 2015-16 season?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 15,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "specific-005",
+        "model": "deepseek/deepseek-v4-flash",
+        "question": "How many times did LeBron James switch teams in the offseason of 2014?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 15,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "specific-006",
+        "model": "deepseek/deepseek-v4-flash",
+        "question": "What was the average wingspan of players drafted in the first round of the 2003 NBA draft?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 14,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      },
+      {
+        "questionId": "specific-007",
+        "model": "deepseek/deepseek-v4-flash",
+        "question": "How many career points did Michael Jordan score against the Utah Jazz in the 1998 playoffs?",
+        "answer": "",
+        "passed": false,
+        "failureType": "SQL_ERROR",
+        "reasons": [
+          "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+        ],
+        "toolCalls": 0,
+        "durationMs": 17,
+        "error": "401 User not found.\n\nTroubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/\n"
+      }
+    ],
+    "passCount": 0,
+    "failCount": 30,
+    "failurePatterns": {
+      "SQL_ERROR": [
+        "simple-001",
+        "simple-002",
+        "simple-003",
+        "simple-004",
+        "simple-005",
+        "simple-006",
+        "simple-007",
+        "simple-008",
+        "multi-001",
+        "multi-002",
+        "multi-003",
+        "multi-004",
+        "multi-005",
+        "multi-006",
+        "multi-007",
+        "multi-008",
+        "vague-001",
+        "vague-002",
+        "vague-003",
+        "vague-004",
+        "vague-005",
+        "vague-006",
+        "vague-007",
+        "specific-001",
+        "specific-002",
+        "specific-003",
+        "specific-004",
+        "specific-005",
+        "specific-006",
+        "specific-007"
+      ]
+    }
+  }
+]
