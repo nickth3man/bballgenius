@@ -1,0 +1,24 @@
+
+ Game Center               Career Time-Machine       SQL Sandbox
+
+────────────────────────────────────────────────────────────────────────────────
+╭─Database Schema──╮ ╭─SQL Input (Ctrl+R / Ctrl+E Execute)─────────────────────╮
+│dim_player        │ │SELECT * FROM dim_team LIMIT 10;
+│ ▶ ▶ dim_player   │ │                                                         │
+│                  │ │Tip: Enter any standard DuckDB SQL statement.            │
+│                  │ │Keys: [Ctrl+R] or [Ctrl+E] Run, [Enter] Execute/Auto-    │
+│                  │ ╰─────────────────────────────────────────────────────────╯
+│                  │ ╭─Query Results───────────────────────────────────────────╮
+│                  │ │No query has been executed yet.                          │
+│                  │ │                                                         │
+│                  │ │                                                         │
+│                  │ │                                                         │
+│                  │ │                                                         │
+│                  │ │                                                         │
+│                  │ │                                                         │
+│                  │ │                                                         │
+│                  │ │                                                         │
+│                  │ │                                                         │
+│                  │ │                                                         │
+╰──────────────────╯ ╰─────────────────────────────────────────────────────────╯
+            [BBaFKeys:uF1-3/1-3t←|→TTabeShift+Tabg?m|_Escnquite5GB)

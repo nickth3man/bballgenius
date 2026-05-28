@@ -1,0 +1,633 @@
+{
+  "meta": {
+    "title": "NBA Facts Test Suite — Comprehensive Test Cases",
+    "description": "Structured NBA facts organized by category for building a test suite. Sources verified from basketball-reference.com, nba.com, and authoritative sports databases.",
+    "lastUpdated": "2026-05-20",
+    "totalTestCases": 35
+  },
+  "testCases": [
+    {
+      "id": "ALL-TIME-001",
+      "category": "all_time_leaders",
+      "subcategory": "points",
+      "question": "Who are the top 3 all-time NBA regular season points leaders?",
+      "expectedAnswer": {
+        "rank1": { "player": "LeBron James", "value": 43440, "active": true },
+        "rank2": { "player": "Kareem Abdul-Jabbar", "value": 38387, "active": false },
+        "rank3": { "player": "Karl Malone", "value": 36928, "active": false }
+      },
+      "source": "https://www.basketball-reference.com/leaders/pts_career.html",
+      "confidence": "high",
+      "notes": "LeBron is active; totals accurate as of May 2026. Kareem held the record from 1984-2023."
+    },
+    {
+      "id": "ALL-TIME-002",
+      "category": "all_time_leaders",
+      "subcategory": "assists",
+      "question": "Who are the top 3 all-time NBA regular season assists leaders?",
+      "expectedAnswer": {
+        "rank1": { "player": "John Stockton", "value": 15806, "active": false },
+        "rank2": { "player": "Chris Paul", "value": 12552, "active": true },
+        "rank3": { "player": "Jason Kidd", "value": 12091, "active": false }
+      },
+      "source": "https://www.basketball-reference.com/leaders/ast_career.html",
+      "confidence": "high",
+      "notes": "Stockton's record is widely considered unbreakable — 3,000+ assists ahead of #2."
+    },
+    {
+      "id": "ALL-TIME-003",
+      "category": "all_time_leaders",
+      "subcategory": "rebounds",
+      "question": "Who are the top 3 all-time NBA regular season rebounds leaders?",
+      "expectedAnswer": {
+        "rank1": { "player": "Wilt Chamberlain", "value": 23924, "active": false },
+        "rank2": { "player": "Bill Russell", "value": 21620, "active": false },
+        "rank3": { "player": "Kareem Abdul-Jabbar", "value": 17440, "active": false }
+      },
+      "source": "https://www.basketball-reference.com/leaders/trb_career.html",
+      "confidence": "high",
+      "notes": "Offensive and defensive rebounds were not separately tracked early in NBA history. Kareem is #3 (17440), not Moses Malone."
+    },
+    {
+      "id": "ALL-TIME-004",
+      "category": "all_time_leaders",
+      "subcategory": "steals",
+      "question": "Who are the top 3 all-time NBA regular season steals leaders?",
+      "expectedAnswer": {
+        "rank1": { "player": "John Stockton", "value": 3265, "active": false },
+        "rank2": { "player": "Chris Paul", "value": 2728, "active": true },
+        "rank3": { "player": "Jason Kidd", "value": 2684, "active": false }
+      },
+      "source": "https://www.basketball-reference.com/leaders/stl_career.html",
+      "confidence": "high",
+      "notes": "Steals only officially tracked since the 1973-74 season."
+    },
+    {
+      "id": "ALL-TIME-005",
+      "category": "all_time_leaders",
+      "subcategory": "blocks",
+      "question": "Who are the top 3 all-time NBA regular season blocks leaders?",
+      "expectedAnswer": {
+        "rank1": { "player": "Hakeem Olajuwon", "value": 3830, "active": false },
+        "rank2": { "player": "Dikembe Mutombo", "value": 3289, "active": false },
+        "rank3": { "player": "Kareem Abdul-Jabbar", "value": 3189, "active": false }
+      },
+      "source": "https://www.basketball-reference.com/leaders/blk_career.html",
+      "confidence": "high",
+      "notes": "Blocks only officially tracked since the 1973-74 season. Wilt Chamberlain's blocks were never officially recorded."
+    },
+    {
+      "id": "ALL-TIME-006",
+      "category": "all_time_leaders",
+      "subcategory": "three_pointers",
+      "question": "Who are the top 3 all-time NBA regular season three-point field goal leaders?",
+      "expectedAnswer": {
+        "rank1": { "player": "Stephen Curry", "value": 4248, "active": true },
+        "rank2": { "player": "James Harden", "value": 3390, "active": true },
+        "rank3": { "player": "Ray Allen", "value": 2973, "active": false }
+      },
+      "source": "https://www.basketball-reference.com/leaders/fg3_career.html",
+      "confidence": "high",
+      "notes": "Curry surpassed Ray Allen's record on Dec 14, 2021. The 3-point line was only introduced in 1979-80."
+    },
+    {
+      "id": "SINGLE-SEASON-001",
+      "category": "single_season_records",
+      "subcategory": "points_per_game",
+      "question": "What is the highest points per game average in a single NBA season?",
+      "expectedAnswer": {
+        "rank1": { "player": "Wilt Chamberlain", "value": "50.36", "season": "1961-62", "team": "Philadelphia Warriors" },
+        "rank2": { "player": "Wilt Chamberlain", "value": "44.83", "season": "1962-63", "team": "San Francisco Warriors" },
+        "rank3": { "player": "Wilt Chamberlain", "value": "38.39", "season": "1960-61", "team": "Philadelphia Warriors" }
+      },
+      "source": "https://www.basketball-reference.com/leaders/pts_per_g_season.html",
+      "confidence": "high",
+      "notes": "Wilt holds the top 4 spots. Michael Jordan's 37.09 in 1986-87 is 5th — the highest by a non-Wilt player."
+    },
+    {
+      "id": "SINGLE-SEASON-002",
+      "category": "single_season_records",
+      "subcategory": "total_points",
+      "question": "What is the most total points scored in a single NBA season?",
+      "expectedAnswer": {
+        "player": "Wilt Chamberlain",
+        "value": 4029,
+        "season": "1961-62",
+        "games": 80,
+        "team": "Philadelphia Warriors"
+      },
+      "source": "https://www.basketball-reference.com/leaders/pts_season.html",
+      "confidence": "high",
+      "notes": "Wilt averaged 50.4 PPG over 80 games. No player has scored 4,000 points in a season since."
+    },
+    {
+      "id": "SINGLE-SEASON-003",
+      "category": "single_season_records",
+      "subcategory": "assists_per_game",
+      "question": "What is the highest assists per game average in a single NBA season?",
+      "expectedAnswer": {
+        "rank1": { "player": "John Stockton", "value": "14.54", "season": "1989-90", "assists": 1134, "games": 78 },
+        "rank2": { "player": "John Stockton", "value": "14.20", "season": "1990-91", "assists": 1164, "games": 82 }
+      },
+      "source": "https://www.basketball-reference.com/leaders/ast_per_g_season.html",
+      "confidence": "high",
+      "notes": "Stockton holds the top 5 single-season APG records. No active player has come close."
+    },
+    {
+      "id": "SINGLE-SEASON-004",
+      "category": "single_season_records",
+      "subcategory": "total_assists",
+      "question": "What is the most total assists in a single NBA season?",
+      "expectedAnswer": {
+        "player": "John Stockton",
+        "value": 1164,
+        "season": "1990-91",
+        "games": 82,
+        "team": "Utah Jazz"
+      },
+      "source": "https://www.basketball-reference.com/leaders/ast_season.html",
+      "confidence": "high",
+      "notes": "Stockton also had 1,134 in 1989-90. Both are far ahead of the rest of NBA history."
+    },
+    {
+      "id": "SINGLE-SEASON-005",
+      "category": "single_season_records",
+      "subcategory": "rebounds_per_game",
+      "question": "What is the highest rebounds per game average in a single NBA season?",
+      "expectedAnswer": {
+        "rank1": { "player": "Wilt Chamberlain", "value": "27.20", "season": "1960-61", "rebounds": 2149 },
+        "rank2": { "player": "Wilt Chamberlain", "value": "26.96", "season": "1959-60" },
+        "rank3": { "player": "Wilt Chamberlain", "value": "25.66", "season": "1961-62" }
+      },
+      "source": "https://www.basketball-reference.com/leaders/trb_per_g_season.html",
+      "confidence": "high",
+      "notes": "Wilt owns the top 6 single-season RPG marks. His 27.2 RPG is arguably the most unbreakable record in sports."
+    },
+    {
+      "id": "SINGLE-SEASON-006",
+      "category": "single_season_records",
+      "subcategory": "total_rebounds",
+      "question": "What is the most total rebounds in a single NBA season?",
+      "expectedAnswer": {
+        "player": "Wilt Chamberlain",
+        "value": 2149,
+        "season": "1960-61",
+        "games": 79,
+        "team": "Philadelphia Warriors"
+      },
+      "source": "https://www.basketball-reference.com/leaders/trb_season.html",
+      "confidence": "high",
+      "notes": "Wilt also had 2,052 rebounds in 1961-62. No other player has ever reached 2,000 in a season."
+    },
+    {
+      "id": "SINGLE-GAME-001",
+      "category": "single_game_records",
+      "subcategory": "points",
+      "question": "What is the most points scored by a player in a single NBA game?",
+      "expectedAnswer": {
+        "rank1": { "player": "Wilt Chamberlain", "value": 100, "date": "1962-03-02", "team": "Philadelphia Warriors", "opponent": "New York Knicks" },
+        "rank2": { "player": "Bam Adebayo", "value": 83, "date": "2026-03-10", "team": "Miami Heat" },
+        "rank3": { "player": "Kobe Bryant", "value": 81, "date": "2006-01-22", "team": "Los Angeles Lakers", "opponent": "Toronto Raptors" }
+      },
+      "source": "https://www.basketball-reference.com/leaders/pts_game.html",
+      "confidence": "high",
+      "notes": "Wilt's 100 is the longest-standing record. Bam Adebayo scored 83 in 2026 (confirmed via BBR). Kobe's 81 is now #3."
+    },
+    {
+      "id": "SINGLE-GAME-002",
+      "category": "single_game_records",
+      "subcategory": "assists",
+      "question": "What is the most assists in a single NBA game?",
+      "expectedAnswer": {
+        "rank1": { "player": "Scott Skiles", "value": 30, "date": "1990-12-30", "team": "Orlando Magic", "opponent": "Denver Nuggets" },
+        "rank2": { "player": "John Stockton", "value": 28, "date": "1991-01-15", "team": "Utah Jazz" }
+      },
+      "source": "https://www.basketball-reference.com/leaders/ast_game.html",
+      "confidence": "high",
+      "notes": "Record since 1983-84 season (when full play-by-play tracking began). Early NBA records are incomplete."
+    },
+    {
+      "id": "SINGLE-GAME-003",
+      "category": "single_game_records",
+      "subcategory": "rebounds",
+      "question": "What is the most rebounds in a single NBA game?",
+      "expectedAnswer": {
+        "rank1": { "player": "Wilt Chamberlain", "value": 55, "date": "1960-11-24", "team": "Philadelphia Warriors", "opponent": "Boston Celtics" }
+      },
+      "source": "https://www.basketball-reference.com/leaders/trb_game.html",
+      "confidence": "high",
+      "notes": "Set against Bill Russell and the Celtics. No player has grabbed 40+ rebounds since the 1970s."
+    },
+    {
+      "id": "CHAMPIONSHIP-001",
+      "category": "championship_data",
+      "subcategory": "most_titles",
+      "question": "Which NBA team has the most championships?",
+      "expectedAnswer": {
+        "rank1": { "team": "Boston Celtics", "titles": 18, "mostRecent": "2024" },
+        "rank2": { "team": "Los Angeles Lakers", "titles": 17, "mostRecent": "2020" },
+        "rank3": { "team": "Golden State Warriors", "titles": 7, "mostRecent": "2022" }
+      },
+      "source": "https://www.basketball-reference.com/playoffs/",
+      "confidence": "high",
+      "notes": "Celtics broke the tie with the Lakers in 2024. Lakers' titles include Minneapolis Lakers era (5 titles)."
+    },
+    {
+      "id": "CHAMPIONSHIP-002",
+      "category": "championship_data",
+      "subcategory": "specific_year",
+      "question": "Who won the NBA championship in 2004 and who was Finals MVP?",
+      "expectedAnswer": {
+        "champion": "Detroit Pistons",
+        "opponent": "Los Angeles Lakers",
+        "series": "4-1",
+        "finalsMVP": "Chauncey Billups"
+      },
+      "source": "https://www.basketball-reference.com/playoffs/2004-nba-finals-pistons-vs-lakers.html",
+      "confidence": "high",
+      "notes": "Major upset — Lakers had Shaq, Kobe, Malone, and Payton. Pistons won with defense."
+    },
+    {
+      "id": "CHAMPIONSHIP-003",
+      "category": "championship_data",
+      "subcategory": "specific_year",
+      "question": "Who won the NBA championship in 1995 and who was Finals MVP?",
+      "expectedAnswer": {
+        "champion": "Houston Rockets",
+        "opponent": "Orlando Magic",
+        "series": "4-0",
+        "finalsMVP": "Hakeem Olajuwon"
+      },
+      "source": "https://www.basketball-reference.com/playoffs/",
+      "confidence": "high",
+      "notes": "Rockets were a #6 seed — the lowest seed to ever win a championship. Olajuwon dominated Shaq in the Finals."
+    },
+    {
+      "id": "CHAMPIONSHIP-004",
+      "category": "championship_data",
+      "subcategory": "finals_mvp",
+      "question": "Who were the NBA Finals MVPs from 2020 to 2024?",
+      "expectedAnswer": {
+        "2020": { "player": "LeBron James", "team": "Los Angeles Lakers" },
+        "2021": { "player": "Giannis Antetokounmpo", "team": "Milwaukee Bucks" },
+        "2022": { "player": "Stephen Curry", "team": "Golden State Warriors" },
+        "2023": { "player": "Nikola Jokic", "team": "Denver Nuggets" },
+        "2024": { "player": "Jaylen Brown", "team": "Boston Celtics" }
+      },
+      "source": "https://www.nba.com/news/history-finals-mvp-winners",
+      "confidence": "high",
+      "notes": "First career Finals MVP for each of Curry and Brown. LeBron won his 4th in 2020."
+    },
+    {
+      "id": "AWARD-001",
+      "category": "award_history",
+      "subcategory": "mvp",
+      "question": "Who won the NBA MVP awards from 2020 to 2024?",
+      "expectedAnswer": {
+        "2020": { "player": "Giannis Antetokounmpo", "team": "Milwaukee Bucks" },
+        "2021": { "player": "Nikola Jokic", "team": "Denver Nuggets" },
+        "2022": { "player": "Nikola Jokic", "team": "Denver Nuggets" },
+        "2023": { "player": "Joel Embiid", "team": "Philadelphia 76ers" },
+        "2024": { "player": "Nikola Jokic", "team": "Denver Nuggets" }
+      },
+      "source": "https://www.basketball-reference.com/awards/mvp.html",
+      "confidence": "high",
+      "notes": "Jokic won 3 of 5 MVPs. Embiid's 2023 win was his first. Giannis won back-to-back in 2019 and 2020."
+    },
+    {
+      "id": "AWARD-002",
+      "category": "award_history",
+      "subcategory": "rookie_of_the_year",
+      "question": "Who won the NBA Rookie of the Year awards from 2020 to 2024?",
+      "expectedAnswer": {
+        "2020": { "player": "Ja Morant", "team": "Memphis Grizzlies" },
+        "2021": { "player": "LaMelo Ball", "team": "Charlotte Hornets" },
+        "2022": { "player": "Scottie Barnes", "team": "Toronto Raptors" },
+        "2023": { "player": "Paolo Banchero", "team": "Orlando Magic" },
+        "2024": { "player": "Victor Wembanyama", "team": "San Antonio Spurs" }
+      },
+      "source": "https://www.nba.com/news/history-rookie-of-the-year-winners",
+      "confidence": "high",
+      "notes": "Wembanyama was a unanimous ROY. Banchero won the award as the #1 pick in 2023."
+    },
+    {
+      "id": "AWARD-003",
+      "category": "award_history",
+      "subcategory": "defensive_player_of_the_year",
+      "question": "Who won the NBA Defensive Player of the Year awards from 2020 to 2024?",
+      "expectedAnswer": {
+        "2020": { "player": "Giannis Antetokounmpo", "team": "Milwaukee Bucks" },
+        "2021": { "player": "Rudy Gobert", "team": "Utah Jazz" },
+        "2022": { "player": "Marcus Smart", "team": "Boston Celtics" },
+        "2023": { "player": "Jaren Jackson Jr.", "team": "Memphis Grizzlies" },
+        "2024": { "player": "Rudy Gobert", "team": "Minnesota Timberwolves" }
+      },
+      "source": "https://www.nba.com/news/history-defensive-player-of-the-year-winners",
+      "confidence": "high",
+      "notes": "Smart is the only guard to win DPOY since Gary Payton in 1996. Gobert is a 4-time winner."
+    },
+    {
+      "id": "TEAM-001",
+      "category": "team_data",
+      "subcategory": "defunct_relocated",
+      "question": "What happened to the Seattle SuperSonics?",
+      "expectedAnswer": {
+        "originalTeam": "Seattle SuperSonics",
+        "newTeam": "Oklahoma City Thunder",
+        "relocationYear": 2008,
+        "firstSeasonAsThunder": "2008-09",
+        "nbaTitleWithSonics": 1,
+        "sonicsTitleYear": 1979
+      },
+      "source": "https://www.basketball-reference.com/teams/OKC/",
+      "confidence": "high",
+      "notes": "Seattle retains rights to the SuperSonics name, logo, and colors. The Thunder inherited the franchise's history."
+    },
+    {
+      "id": "TEAM-002",
+      "category": "team_data",
+      "subcategory": "current_teams",
+      "question": "How many NBA teams are there currently, and what conference are the Boston Celtics in?",
+      "expectedAnswer": {
+        "totalTeams": 30,
+        "easternConference": 15,
+        "westernConference": 15,
+        "celticsConference": "Eastern",
+        "celticsDivision": "Atlantic"
+      },
+      "source": "https://www.nba.com/teams",
+      "confidence": "high",
+      "notes": "NBA has had 30 teams since the Charlotte Bobcats (now Hornets) joined in 2004."
+    },
+    {
+      "id": "ROOKIE-001",
+      "category": "rookie_data",
+      "subcategory": "draft_picks",
+      "question": "Who were the #1 overall draft picks from 2020 to 2024?",
+      "expectedAnswer": {
+        "2020": { "player": "Anthony Edwards", "team": "Minnesota Timberwolves" },
+        "2021": { "player": "Cade Cunningham", "team": "Detroit Pistons" },
+        "2022": { "player": "Paolo Banchero", "team": "Orlando Magic" },
+        "2023": { "player": "Victor Wembanyama", "team": "San Antonio Spurs" },
+        "2024": { "player": "Zaccharie Risacher", "team": "Atlanta Hawks" }
+      },
+      "source": "https://www.basketball-reference.com/draft/",
+      "confidence": "high",
+      "notes": "Wembanyama was widely considered the most hyped prospect since LeBron in 2003."
+    },
+    {
+      "id": "ROOKIE-002",
+      "category": "rookie_data",
+      "subcategory": "rookie_season_stats",
+      "question": "What were Victor Wembanyama's rookie season averages in 2023-24?",
+      "expectedAnswer": {
+        "player": "Victor Wembanyama",
+        "team": "San Antonio Spurs",
+        "season": "2023-24",
+        "games": 71,
+        "points": 21.4,
+        "rebounds": 10.6,
+        "assists": 3.9,
+        "blocks": 3.6,
+        "steals": 1.2
+      },
+      "source": "https://www.basketball-reference.com/players/w/wembavi01.html",
+      "confidence": "high",
+      "notes": "Won ROY unanimously. Led the league in blocks as a rookie."
+    },
+    {
+      "id": "SEASON-BOUNDARY-001",
+      "category": "season_boundary_cases",
+      "subcategory": "lockout_seasons",
+      "question": "How many games were played in each team's regular season during the 1998-99 lockout season?",
+      "expectedAnswer": {
+        "season": "1998-99",
+        "gamesPerTeam": 50,
+        "normalGames": 82,
+        "reason": "204-day lockout",
+        "champion": "San Antonio Spurs"
+      },
+      "source": "https://en.wikipedia.org/wiki/1998%E2%80%9399_NBA_lockout",
+      "confidence": "high",
+      "notes": "Shortest season in NBA history (by games). The Spurs won the first of their 5 titles."
+    },
+    {
+      "id": "SEASON-BOUNDARY-002",
+      "category": "season_boundary_cases",
+      "subcategory": "lockout_seasons",
+      "question": "How many games were played in each team's regular season during the 2011-12 lockout season?",
+      "expectedAnswer": {
+        "season": "2011-12",
+        "gamesPerTeam": 66,
+        "normalGames": 82,
+        "reason": "Lockout ended on Christmas Day",
+        "champion": "Miami Heat"
+      },
+      "source": "https://en.wikipedia.org/wiki/2011_NBA_lockout",
+      "confidence": "high",
+      "notes": "Season started on Christmas Day. LeBron won his first championship."
+    },
+    {
+      "id": "EDGE-001",
+      "category": "edge_cases",
+      "subcategory": "most_teams",
+      "question": "Which NBA player has played for the most franchises?",
+      "expectedAnswer": {
+        "player": "Ish Smith",
+        "teamsCount": 13,
+        "careerSpan": "2011-2024",
+        "notableTeams": ["Houston Rockets", "Memphis Grizzlies", "Golden State Warriors", "Orlando Magic", "Milwaukee Bucks", "Phoenix Suns", "Oklahoma City Thunder", "Philadelphia 76ers", "New Orleans Pelicans", "Detroit Pistons", "Washington Wizards", "Denver Nuggets", "Charlotte Hornets"]
+      },
+      "source": "https://www.basketball-reference.com/leaders/most_franchises.html",
+      "confidence": "high",
+      "notes": "Chucky Brown (12) and Jim Jackson (12) are tied for 2nd. Smith's record includes multiple stints with some teams."
+    },
+    {
+      "id": "EDGE-002",
+      "category": "edge_cases",
+      "subcategory": "identical_names",
+      "question": "Are there any NBA players with the exact same name who played in the league?",
+      "expectedAnswer": {
+        "example": "George Johnson",
+        "details": "Three different players named George Johnson played in the NBA (1970s-80s): George Johnson (C, played for Bulls), George T. Johnson (C/PF, played for Warriors/Bucks/Nuggets/Spurs), and George E. Johnson (PF, played for Rockets) — not related.",
+        "otherExamples": ["Charles Jones (3 different players)", "Charles Smith (multiple)", "Dee Brown (multiple)"]
+      },
+      "source": "https://www.basketball-reference.com/players/",
+      "confidence": "medium",
+      "notes": "There have been at least 3 George Johnsons and 3 Charles Joneses. Some were contemporaries who played in the same era."
+    },
+    {
+      "id": "EDGE-003",
+      "category": "edge_cases",
+      "subcategory": "shortest_career",
+      "question": "Who has the shortest NBA career?",
+      "expectedAnswer": {
+        "player": "JamesOn Curry",
+        "careerLength": "3.9 seconds",
+        "team": "Los Angeles Clippers",
+        "season": "2009-10",
+        "reason": "Signed a 10-day contract, played 3.9 seconds in his only game, never played again"
+      },
+      "source": "https://www.basketball-reference.com/players/c/curryja01.html",
+      "confidence": "medium",
+      "notes": "Not related to Stephen Curry. He came into the game, committed a foul, and was substituted out."
+    },
+    {
+      "id": "EDGE-004",
+      "category": "edge_cases",
+      "subcategory": "longest_career",
+      "question": "Who holds the record for most NBA regular season games played?",
+      "expectedAnswer": {
+        "player": "LeBron James",
+        "value": "Most games played (active record-breaker)",
+        "previousRecord": "Robert Parish (1,611 games)",
+        "note": "LeBron has surpassed Kareem Abdul-Jabbar (1,560) and Robert Parish (1,611) as of the 2025-26 season"
+      },
+      "source": "https://www.basketball-reference.com/players/j/jamesle01.html",
+      "confidence": "high",
+      "notes": "LeBron also holds the record for most career points and most career minutes. Parish's record stood from 1996."
+    },
+    {
+      "id": "STAT-EDGE-001",
+      "category": "statistical_edge_cases",
+      "subcategory": "zero_points",
+      "question": "Who holds the record for most rebounds in a game with 0 points scored?",
+      "expectedAnswer": {
+        "player": "Dennis Rodman",
+        "value": 28,
+        "date": "1993-12-28",
+        "team": "San Antonio Spurs",
+        "note": "Rodman had multiple games with 20+ rebounds and 0 points. He finished with 25 rebounds and 0 points on 1994-01-15 as well."
+      },
+      "source": "https://www.basketball-reference.com/players/r/rodmade01.html",
+      "confidence": "medium",
+      "notes": "Rodman was famous for focusing exclusively on rebounding and defense. He had 28 rebounds, 0 points, 0 assists in one game."
+    },
+    {
+      "id": "STAT-EDGE-002",
+      "category": "statistical_edge_cases",
+      "subcategory": "perfect_shooting",
+      "question": "Who has the most field goal attempts in a game with 100% shooting?",
+      "expectedAnswer": {
+        "player": "Wilt Chamberlain",
+        "fgm_attempts": "18-18",
+        "points": 42,
+        "date": "1967-02-24",
+        "team": "Philadelphia 76ers",
+        "opponent": "Baltimore Bullets"
+      },
+      "source": "https://www.basketball-reference.com/players/c/chambwi01.html",
+      "confidence": "medium",
+      "notes": "Wilt had multiple perfect shooting games. He also went 14-14, 12-12, etc."
+    },
+    {
+      "id": "STAT-EDGE-003",
+      "category": "statistical_edge_cases",
+      "subcategory": "triple_doubles",
+      "question": "Who has the most career triple-doubles in NBA history?",
+      "expectedAnswer": {
+        "rank1": { "player": "Russell Westbrook", "value": 209, "active": true },
+        "rank2": { "player": "Nikola Jokic", "value": 197, "active": true },
+        "rank3": { "player": "Oscar Robertson", "value": 181, "active": false }
+      },
+      "source": "https://www.nba.com/news/most-triple-doubles-in-nba-history",
+      "confidence": "high",
+      "notes": "Westbrook broke Robertson's record (181) in 2021. Robertson averaged a triple-double for an entire season in 1961-62."
+    },
+    {
+      "id": "STAT-EDGE-004",
+      "category": "statistical_edge_cases",
+      "subcategory": "single_season_triple_double",
+      "question": "Which players have averaged a triple-double for an entire NBA season?",
+      "expectedAnswer": {
+        "players": [
+          { "name": "Oscar Robertson", "season": "1961-62", "stats": "30.8 PPG / 12.5 RPG / 11.4 APG" },
+          { "name": "Russell Westbrook", "season": "2016-17", "stats": "31.6 PPG / 10.7 RPG / 10.4 APG" },
+          { "name": "Russell Westbrook", "season": "2017-18", "stats": "25.4 PPG / 10.1 RPG / 10.3 APG" },
+          { "name": "Russell Westbrook", "season": "2018-19", "stats": "22.9 PPG / 11.1 RPG / 10.7 APG" },
+          { "name": "Russell Westbrook", "season": "2020-21", "stats": "22.2 PPG / 11.5 RPG / 11.7 APG" }
+        ],
+        "totalInstances": 5,
+        "uniquePlayers": 2
+      },
+      "source": "https://www.basketball-reference.com/players/w/westbru01.html",
+      "confidence": "high",
+      "notes": "Jokic has also come close but has not officially averaged a triple-double for a full season yet (as of 2025-26)."
+    },
+    {
+      "id": "STAT-EDGE-005",
+      "category": "statistical_edge_cases",
+      "subcategory": "quadruple_double",
+      "question": "How many official quadruple-doubles (points, rebounds, assists, steals or blocks all in double figures) have been recorded in NBA history?",
+      "expectedAnswer": {
+        "count": 4,
+        "players": [
+          { "player": "Nate Thurmond", "date": "1974-10-18", "line": "22 PTS / 14 REB / 13 AST / 12 BLK", "team": "Chicago Bulls" },
+          { "player": "Alvin Robertson", "date": "1986-02-18", "line": "20 PTS / 11 REB / 10 AST / 10 STL", "team": "San Antonio Spurs" },
+          { "player": "Hakeem Olajuwon", "date": "1990-03-29", "line": "18 PTS / 16 REB / 10 AST / 11 BLK", "team": "Houston Rockets" },
+          { "player": "David Robinson", "date": "1994-02-17", "line": "34 PTS / 10 REB / 10 AST / 10 BLK", "team": "San Antonio Spurs" }
+        ]
+      },
+      "source": "https://www.basketball-reference.com/",
+      "confidence": "high",
+      "notes": "Wilt Chamberlain and Oscar Robertson each unofficially had several but blocks/steals weren't tracked then."
+    },
+    {
+      "id": "STAT-EDGE-006",
+      "category": "statistical_edge_cases",
+      "subcategory": "five_by_five",
+      "question": "What is a '5x5' game in the NBA, and who has the most?",
+      "expectedAnswer": {
+        "definition": "A game with at least 5 points, 5 rebounds, 5 assists, 5 steals, and 5 blocks",
+        "mostAllTime": { "player": "Hakeem Olajuwon", "count": 6 },
+        "mostRecentExample": { "player": "Victor Wembanyama", "date": "2024-2025 season" },
+        "note": "Extremely rare — only a handful of players have ever recorded one."
+      },
+      "source": "https://www.basketball-reference.com/",
+      "confidence": "medium",
+      "notes": "Olajuwon has the most 5x5 games in history. Wembanyama recorded one as a rookie."
+    }
+  ],
+  "categories": {
+    "all_time_leaders": {
+      "count": 6,
+      "description": "Career leaders in points, assists, rebounds, steals, blocks, and three-pointers"
+    },
+    "single_season_records": {
+      "count": 6,
+      "description": "Single season records for PPG, total points, APG, total assists, RPG, total rebounds"
+    },
+    "single_game_records": {
+      "count": 3,
+      "description": "Single game records for points, assists, and rebounds"
+    },
+    "championship_data": {
+      "count": 4,
+      "description": "Most titles, specific year champions, Finals MVPs"
+    },
+    "award_history": {
+      "count": 3,
+      "description": "Recent MVP, ROY, and DPOY winners (2020-2024)"
+    },
+    "team_data": {
+      "count": 2,
+      "description": "Defunct/relocated teams, current team counts"
+    },
+    "rookie_data": {
+      "count": 2,
+      "description": "Recent #1 draft picks, rookie season stats"
+    },
+    "season_boundary_cases": {
+      "count": 2,
+      "description": "Lockout-shortened seasons (1999, 2012)"
+    },
+    "edge_cases": {
+      "count": 4,
+      "description": "Most teams played for, identical names, shortest/longest careers"
+    },
+    "statistical_edge_cases": {
+      "count": 6,
+      "description": "Zero-point games, perfect shooting, triple-doubles, quadruple-doubles, 5x5 games"
+    }
+  }
+}

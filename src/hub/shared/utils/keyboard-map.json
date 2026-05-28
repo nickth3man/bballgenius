@@ -1,0 +1,132 @@
+{
+  "global": [
+    {
+      "keys": "F1 / 1",
+      "action": "Game Center"
+    },
+    {
+      "keys": "F2 / 2",
+      "action": "Career Time-Machine"
+    },
+    {
+      "keys": "F3 / 3",
+      "action": "SQL Sandbox"
+    },
+    {
+      "keys": "Left/Right",
+      "action": "Navigate tabs (when tab bar focused)"
+    },
+    {
+      "keys": "Tab",
+      "action": "Cycle focus (when not typing)"
+    },
+    {
+      "keys": "Shift+Tab",
+      "action": "Cycle focus backward"
+    },
+    {
+      "keys": "Esc",
+      "action": "Blur input, or quit"
+    },
+    {
+      "keys": "Ctrl+C",
+      "action": "Quit"
+    },
+    {
+      "keys": "?",
+      "action": "Toggle this help"
+    }
+  ],
+  "tabs": {
+    "game-center": [
+      {
+        "keys": "Up/Down",
+        "action": "Navigate games or players (focused panel)"
+      },
+      {
+        "keys": "Tab",
+        "action": "Cycle Games / Box Score / Shot Chart"
+      }
+    ],
+    "time-machine": [
+      {
+        "keys": "Type",
+        "action": "Search players (search focused)"
+      },
+      {
+        "keys": "Up/Down",
+        "action": "Move suggestion highlight, site section, or scroll dossier/stats"
+      },
+      {
+        "keys": "Left/Right or [/]",
+        "action": "Browse mirrored pages within selected site section"
+      },
+      {
+        "keys": "Enter",
+        "action": "Select highlighted player or load mirrored site page"
+      },
+      {
+        "keys": "Tab",
+        "action": "Insert tab in search, or cycle focus when not typing"
+      },
+      {
+        "keys": "Esc",
+        "action": "Blur search, focus dossier panel"
+      },
+      {
+        "keys": "C",
+        "action": "Toggle Player/Team Mode"
+      },
+      {
+        "keys": "P/G/E/F/N/S/H/L/O",
+        "action": "Player BBR sub-pages (profile, logs, splits, etc.)"
+      },
+      {
+        "keys": "M",
+        "action": "Open BBR site index (all mirrored sections)"
+      },
+      {
+        "keys": "0-9, A-Z",
+        "action": "Load site pages (leaders, leagues, awards, draft, WNBA, …)"
+      },
+      {
+        "keys": "L/E/S/A",
+        "action": "Team mode: Leaders, Leagues, ATL 2000 season, CHI adv gamelog"
+      },
+      {
+        "keys": "R/I/F/G/T/U/Y/W/V/X/Z",
+        "action": "Team compare sub-pages and franchise pages"
+      }
+    ],
+    "sql-sandbox": [
+      {
+        "keys": "Ctrl+R/E",
+        "action": "Run SQL query"
+      },
+      {
+        "keys": "Type",
+        "action": "Filter schema tables/columns (schema focused)"
+      },
+      {
+        "keys": "Up/Down",
+        "action": "Navigate schema tree"
+      },
+      {
+        "keys": "Enter",
+        "action": "Expand table / insert column name"
+      },
+      {
+        "keys": "Tab",
+        "action": "Accept autocomplete, or cycle focus when not typing"
+      },
+      {
+        "keys": "↑↓",
+        "action": "Cycle autocomplete suggestions (SQL input)"
+      },
+      {
+        "keys": "Esc",
+        "action": "Blur input, focus schema tree"
+      }
+    ]
+  }
+}

@@ -1,0 +1,24 @@
+
+ Game Center               Career Time-Machine       SQL Sandbox
+
+────────────────────────────────────────────────────────────────────────────────
+╭─Games─────────╮ ╭─Box Score─────────────────────╮ ╭─Shot Chart───────────────╮
+│  ▶ [05-05] L█ │ │ ┌───────────────────────────█ │ │ All Players              │
+│    [05-05] C  │ │ │ Player                      │ │ Shots: 77/93 (45.3% FG)  │
+│    [05-04] P  │ │ ├───────────────────────────  │ │ Zones: paint 90 | corner │
+│    [05-04] M  │ │ │ ▶ All Players               │ │                          │
+│    [05-03] T  │ │ │   LeBron James              │ │ ─────────x───────────────│
+│    [05-03] O  │ │ │   Rui Hachimura             │ │ │o│          │   oooox═  │
+│    [05-02] P  │ │ │   Marcus Smart              │ │ │o│ o  xxo   │oxxxooox  x│
+│    [05-01] L  │ │ │   Deandre Ayton             │ │ │ │x     o   │xoxxxxx  xo│
+│    [05-01] C  │ │ │   Austin Reaves             │ │ │ │          │    ox     │
+│    [05-01] D  │ │ │   Luke Kennard              │ │ │o│·       xo│   o oxx   │
+│    [04-30] B  │ │ │   Jaxson Hayes              │ │ │xx··     x xxo    xx x  │
+│    [04-30] D  │ │ │   Jake LaRavia              │ │ │x ox·    x  └─────x─o─o─│
+│    [04-30] N  │ │ │   Jarred Vanderbilt         │ │ │   ox··            x    │
+│    [04-29] O  │ │ │   Dalton Knecht             │ │ │     oxx··o             │
+│    [04-29] T  │ │ │   Adou Thiero               │ │ │        o  o···   o   x │
+│    [04-29] H  │ │ │   Maxi Kleber               │ │ │             x  x x xxx │
+│    [04-28] P  │ │ │   Nick Smith Jr.            │ │ │                 x      │
+╰───────────────╯ ╰───────────────────────────────╯ ╰──────────────────────────╯
+            GamesKeys:uF1-3/1-3|←P→aTab:Shift+Tabe?s||Escdquit.game
