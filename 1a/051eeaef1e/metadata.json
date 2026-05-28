@@ -3,7 +3,7 @@
   "checkpoint_id": "1a051eeaef1e",
   "strategy": "manual-commit",
   "branch": "fix/hub-unified-star-schema",
-  "checkpoints_count": 41,
+  "checkpoints_count": 42,
   "files_touched": [
     "src/chatbot/__tests__/markdown.test.ts",
     "src/chatbot/__tests__/spinner.test.ts",
@@ -153,6 +153,12 @@
       "transcript": "/1a/051eeaef1e/22/full.jsonl",
       "content_hash": "/1a/051eeaef1e/22/content_hash.txt",
       "prompt": "/1a/051eeaef1e/22/prompt.txt"
+    },
+    {
+      "metadata": "/1a/051eeaef1e/23/metadata.json",
+      "transcript": "/1a/051eeaef1e/23/full.jsonl",
+      "content_hash": "/1a/051eeaef1e/23/content_hash.txt",
+      "prompt": "/1a/051eeaef1e/23/prompt.txt"
     }
   ],
   "token_usage": {
@@ -160,6 +166,6 @@
     "cache_creation_tokens": 1269709,
     "cache_read_tokens": 71812665,
     "output_tokens": 352307,
-    "api_call_count": 696
+    "api_call_count": 697
   }
 }
