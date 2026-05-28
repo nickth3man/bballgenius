@@ -1,0 +1,12 @@
+Research why Bun's `.env` file might be overridden by a system-level environment variable.
+
+Specific question: In Bun, when both a system-level environment variable (e.g. from Windows System Properties) AND a `.env` file define the same key (e.g. `OPENROUTER_API_KEY`), which takes precedence? 
+
+Use firecrawl to scrape the Bun documentation at https://bun.sh/docs/runtime/env about environment variable loading order and precedence.
+
+Also use gh_grep to search for patterns in the Bun repo (oven-sh/bun) about env loading precedence.
+
+Report:
+1. Which takes precedence: system env or .env file?
+2. How to force Bun to reload .env after it's been modified
+3. Any Bun-specific caching of env vars
