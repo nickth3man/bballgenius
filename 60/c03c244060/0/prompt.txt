@@ -1,0 +1,5 @@
+run the nba hub  - BEFORE you act, give me a critique of this prompt and let me know what I’m missing to get the best possible output the first time.
+
+---
+
+analyze all data connected to the hub, make sure it's all accessible in the tui run the nba hub  - BEFORE you act, give me a critique of this prompt and let me know what I’m missing to get the best possible output the first time.
