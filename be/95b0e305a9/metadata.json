@@ -3,11 +3,12 @@
   "checkpoint_id": "be95b0e305a9",
   "strategy": "manual-commit",
   "branch": "fix/hub-unified-star-schema",
-  "checkpoints_count": 5,
+  "checkpoints_count": 6,
   "files_touched": [
     ".env.example",
     "bun.lock",
     "package.json",
+    "src/chatbot/__tests__/ansi.test.ts",
     "src/chatbot/__tests__/retry.test.ts",
     "src/chatbot/agent/graph.ts",
     "src/chatbot/agent/model.ts",
@@ -21,8 +22,14 @@
     "src/chatbot/features/modelSelector.ts",
     "src/chatbot/scripts/iterate_loop.ts",
     "src/chatbot/systemPrompt.ts",
+    "src/chatbot/utils/ansi.ts",
     "src/chatbot/utils/metrics.ts",
-    "src/chatbot/utils/retry.ts"
+    "src/chatbot/utils/retry.ts",
+    "src/hub/tabs/gameCenter/tab.ts",
+    "src/hub/tabs/timeMachine/tab.ts",
+    "src/hub/tabs/timeMachine/teamMode.ts",
+    "src/hub/tests/snapshots/game_center_init.txt",
+    "src/hub/tests/snapshots/time_machine_team_compare.txt"
   ],
   "sessions": [
     {
@@ -66,13 +73,19 @@
       "transcript": "/be/95b0e305a9/6/full.jsonl",
       "content_hash": "/be/95b0e305a9/6/content_hash.txt",
       "prompt": "/be/95b0e305a9/6/prompt.txt"
+    },
+    {
+      "metadata": "/be/95b0e305a9/7/metadata.json",
+      "transcript": "/be/95b0e305a9/7/full.jsonl",
+      "content_hash": "/be/95b0e305a9/7/content_hash.txt",
+      "prompt": "/be/95b0e305a9/7/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 84585,
-    "cache_creation_tokens": 661770,
-    "cache_read_tokens": 31496274,
-    "output_tokens": 201551,
-    "api_call_count": 256
+    "input_tokens": 84633,
+    "cache_creation_tokens": 723318,
+    "cache_read_tokens": 31919313,
+    "output_tokens": 203728,
+    "api_call_count": 264
   }
 }
