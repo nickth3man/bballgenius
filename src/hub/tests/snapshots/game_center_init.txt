@@ -3,22 +3,22 @@
 
 ────────────────────────────────────────────────────────────────────────────────
 ╭─Games────────╮ ╭─Box Score─────────────────────────╮ ╭─Shot Chart────────────╮
-│Error loading │ │Select a game to view box scores.  │ │Select a game with shot│
-│Catalog Error:│ │                                   │ │                       │
-│Did you mean "│ │                                   │ │                       │
-│              │ │                                   │ │                       │
-│LINE 15:     F│ │                                   │ │                       │
-│              │ │                                   │ │                       │
-│              │ │                                   │ │                       │
-│              │ │                                   │ │                       │
-│              │ │                                   │ │                       │
-│              │ │                                   │ │                       │
-│              │ │                                   │ │                       │
-│              │ │                                   │ │                       │
-│              │ │                                   │ │                       │
-│              │ │                                   │ │                       │
-│              │ │                                   │ │                       │
-│              │ │                                   │ │                       │
-│              │ │                                   │ │                       │
+│ ▶ [05-05] LA█│ │┌───────────────────────────┬─────█│ │All Players            │
+│   [05-05] CL │ ││ Player                    │ Team │ │Shots: 77/93 (45.3% FG)│
+│   [05-04] PH │ │├───────────────────────────┼───── │ │Zones: paint 90 | corne│
+│   [05-04] MI │ ││ ▶ All Players             │ ---  │ │                       │
+│   [05-03] TO │ ││   LeBron James            │ LAL  │ │─────────x─────────────│
+│   [05-03] OR │ ││   Rui Hachimura           │ LAL  │ ││o│          │   oooox═│
+│   [05-02] PH │ ││   Marcus Smart            │ LAL  │ ││o│ o  xxo   │oxxxooox │
+│   [05-01] LA │ ││   Deandre Ayton           │ LAL  │ ││ │x     o   │xoxxxxx  │
+│   [05-01] CL │ ││   Austin Reaves           │ LAL  │ ││ │          │    ox   │
+│   [05-01] DE │ ││   Luke Kennard            │ LAL  │ ││o│·       xo│   o oxx │
+│   [04-30] BO │ ││   Jaxson Hayes            │ LAL  │ ││xx··     x xxo    xx x│
+│   [04-30] DE │ ││   Jake LaRavia            │ LAL  │ ││x ox·    x  └─────x─o─│
+│   [04-30] NY │ ││   Jarred Vanderbilt       │ LAL  │ ││   ox··            x  │
+│   [04-29] OR │ ││   Dalton Knecht           │ LAL  │ ││     oxx··o           │
+│   [04-29] TO │ ││   Adou Thiero             │ LAL  │ ││        o  o···   o   │
+│   [04-29] HO │ ││   Maxi Kleber             │ LAL  │ ││             x  x x xx│
+│   [04-28] PO │ ││   Nick Smith Jr.          │ LAL  │ ││                 x    │
 ╰──────────────╯ ╰───────────────────────────────────╯ ╰───────────────────────╯
-            [GameKeys:uF1-3/1-3|←P→aTab:Shift+Tabe?s||Escdquit.game
+            GamesKeys:uF1-3/1-3|←P→aTab:Shift+Tabe?s||Escdquit.game
