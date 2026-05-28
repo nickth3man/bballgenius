@@ -1,0 +1,220 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "1a051eeaef1e",
+  "session_id": "ses_1b2a775dcffegee90o2LsB4a3V",
+  "strategy": "manual-commit",
+  "created_at": "2026-05-28T20:18:56.1867463Z",
+  "branch": "fix/hub-unified-star-schema",
+  "checkpoints_count": 18,
+  "files_touched": [
+    "src/chatbot/chatApp.ts",
+    "src/chatbot/utils/theme.ts"
+  ],
+  "agent": "OpenCode",
+  "model": "glm-5.1",
+  "turn_id": "d517173ee680",
+  "token_usage": {
+    "input_tokens": 323381,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 7862400,
+    "output_tokens": 24286,
+    "api_call_count": 68
+  },
+  "session_metrics": {
+    "turn_count": 24
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-05-28T20:18:56.1606932Z",
+    "agent_lines": 0,
+    "agent_removed": 0,
+    "human_added": 199,
+    "human_modified": 60,
+    "human_removed": 0,
+    "total_committed": 199,
+    "total_lines_changed": 285,
+    "agent_percentage": 0,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 13936,
+      "user_lines_removed": 217,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0,
+      "user_added_per_file": {
+        ".claude/agents/entire-search.md": 25,
+        ".claude/settings.json": 84,
+        ".codex/agents/entire-search.toml": 23,
+        ".codex/config.toml": 3,
+        ".codex/hooks.json": 52,
+        ".cursor/hooks.json": 40,
+        ".opencode/plugins/entire.ts": 216,
+        "data/chatbot-metrics.ndjson": 35,
+        "results/EVAL_REPORT.md": 146,
+        "results/iteration-1.json": 2312,
+        "results/iteration-2.json": 2312,
+        "results/iteration-3.json": 2312,
+        "results/iteration-4.json": 2312,
+        "results/iteration-5.json": 2312,
+        "scripts/chatbot-eval-multi-model.ts": 437,
+        "scripts/iteration-1-focused.ts": 98,
+        "scripts/quick-test.ts": 63,
+        "scripts/test-nemotron.ts": 84,
+        "src/chatbot/__tests__/metrics.test.ts": 184,
+        "src/chatbot/__tests__/retry.test.ts": 35,
+        "src/chatbot/__tests__/theme.test.ts": 32,
+        "src/chatbot/agent/graph.ts": 51,
+        "src/chatbot/agent/state.ts": 6,
+        "src/chatbot/agent/streaming.ts": 1,
+        "src/chatbot/agent/toolNames.ts": 4,
+        "src/chatbot/agent/tools.ts": 12,
+        "src/chatbot/chatApp.ts": 7,
+        "src/chatbot/eval/ground-truth.json": 135,
+        "src/chatbot/eval/question-matrix.ts": 320,
+        "src/chatbot/features/modelSelector.ts": 1,
+        "src/chatbot/systemPrompt.ts": 72,
+        "src/chatbot/utils/metrics.ts": 163,
+        "src/chatbot/utils/retry.ts": 15,
+        "src/chatbot/utils/theme.ts": 32
+      },
+      "user_removed_per_file": {
+        "src/chatbot/agent/graph.ts": 4,
+        "src/chatbot/agent/streaming.ts": 1,
+        "src/chatbot/agent/tools.ts": 6,
+        "src/chatbot/chatApp.ts": 44,
+        "src/chatbot/features/modelSelector.ts": 6,
+        "src/chatbot/systemPrompt.ts": 34,
+        "src/chatbot/utils/metrics.ts": 122
+      }
+    },
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    },
+    {
+      "checkpoint_number": 3,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 13936,
+      "agent_lines_removed": 217
+    },
+    {
+      "checkpoint_number": 4,
+      "user_lines_added": 6,
+      "user_lines_removed": 0,
+      "agent_lines_added": 14108,
+      "agent_lines_removed": 221,
+      "user_added_per_file": {
+        "data/chatbot-metrics.ndjson": 6
+      }
+    },
+    {
+      "checkpoint_number": 5,
+      "user_lines_added": 6,
+      "user_lines_removed": 0,
+      "agent_lines_added": 14108,
+      "agent_lines_removed": 221,
+      "user_added_per_file": {
+        "data/chatbot-metrics.ndjson": 6
+      }
+    },
+    {
+      "checkpoint_number": 6,
+      "user_lines_added": 6,
+      "user_lines_removed": 0,
+      "agent_lines_added": 14108,
+      "agent_lines_removed": 221,
+      "user_added_per_file": {
+        "data/chatbot-metrics.ndjson": 6
+      }
+    },
+    {
+      "checkpoint_number": 7,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    },
+    {
+      "checkpoint_number": 8,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    },
+    {
+      "checkpoint_number": 9,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 14114,
+      "agent_lines_removed": 221
+    },
+    {
+      "checkpoint_number": 10,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 14114,
+      "agent_lines_removed": 221
+    },
+    {
+      "checkpoint_number": 11,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    },
+    {
+      "checkpoint_number": 12,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 14307,
+      "agent_lines_removed": 221
+    },
+    {
+      "checkpoint_number": 13,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    },
+    {
+      "checkpoint_number": 14,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 14307,
+      "agent_lines_removed": 221
+    },
+    {
+      "checkpoint_number": 15,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    },
+    {
+      "checkpoint_number": 16,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 14307,
+      "agent_lines_removed": 221
+    },
+    {
+      "checkpoint_number": 17,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    },
+    {
+      "checkpoint_number": 18,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 14273,
+      "agent_lines_removed": 221
+    }
+  ]
+}
