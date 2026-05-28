@@ -3,7 +3,7 @@
   "checkpoint_id": "be95b0e305a9",
   "strategy": "manual-commit",
   "branch": "fix/hub-unified-star-schema",
-  "checkpoints_count": 10,
+  "checkpoints_count": 11,
   "files_touched": [
     ".env.example",
     "bun.lock",
@@ -173,13 +173,19 @@
       "transcript": "/be/95b0e305a9/21/full.jsonl",
       "content_hash": "/be/95b0e305a9/21/content_hash.txt",
       "prompt": "/be/95b0e305a9/21/prompt.txt"
+    },
+    {
+      "metadata": "/be/95b0e305a9/22/metadata.json",
+      "transcript": "/be/95b0e305a9/22/full.jsonl",
+      "content_hash": "/be/95b0e305a9/22/content_hash.txt",
+      "prompt": "/be/95b0e305a9/22/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 269043,
+    "input_tokens": 1248776,
     "cache_creation_tokens": 814445,
-    "cache_read_tokens": 37975666,
-    "output_tokens": 230361,
-    "api_call_count": 333
+    "cache_read_tokens": 64453874,
+    "output_tokens": 290102,
+    "api_call_count": 576
   }
 }
