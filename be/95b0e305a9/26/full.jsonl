@@ -1,0 +1,895 @@
+{
+  "info": {
+    "id": "ses_1b2a69cdeffelkb4mAul2PvDb8",
+    "slug": "quick-orchid",
+    "projectID": "0c46fb5d797641591d2c0443a46971182cb21aee",
+    "directory": "C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius",
+    "path": "",
+    "parentID": "ses_1b2a775dcffegee90o2LsB4a3V",
+    "title": "Scout chatbot architecture (@scout subagent)",
+    "agent": "scout",
+    "model": {
+      "id": "deepseek-v4-flash",
+      "providerID": "opencode-go",
+      "variant": "default"
+    },
+    "version": "1.15.7",
+    "summary": {
+      "additions": 0,
+      "deletions": 0,
+      "files": 0
+    },
+    "cost": 0.01031282,
+    "tokens": {
+      "input": 53001,
+      "output": 8561,
+      "reasoning": 138,
+      "cache": {
+        "read": 163200,
+        "write": 0
+      }
+    },
+    "permission": [
+      {
+        "permission": "todowrite",
+        "action": "deny",
+        "pattern": "*"
+      },
+      {
+        "permission": "task",
+        "action": "deny",
+        "pattern": "*"
+      }
+    ],
+    "time": {
+      "created": 1779414164257,
+      "updated": 1779414239204
+    }
+  },
+  "messages": [
+    {
+      "info": {
+        "role": "user",
+        "time": {
+          "created": 1779414164279
+        },
+        "tools": {
+          "todowrite": false,
+          "task": false
+        },
+        "agent": "scout",
+        "model": {
+          "providerID": "opencode-go",
+          "modelID": "deepseek-v4-flash"
+        },
+        "summary": {
+          "diffs": []
+        },
+        "id": "msg_e4d5963320016IICnYN6cOpxLt",
+        "sessionID": "ses_1b2a69cdeffelkb4mAul2PvDb8"
+      },
+      "parts": [
+        {
+          "type": "text",
+          "text": "Research the chatbot codebase at C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\ to understand the current architecture for implementing 4 planned changes. Read these files thoroughly and return detailed findings:\n\n1. `src/chatbot/agent/graph.ts` - The LangGraph state graph definition (nodes, edges, routing)\n2. `src/chatbot/agent/state.ts` - ChatbotState type definition  \n3. `src/chatbot/agent/tools.ts` - Tool definitions (query_nba_db, get_schema_info, etc.)\n4. `src/chatbot/systemPrompt.ts` - System prompt builder (how schemas are injected)\n5. `src/chatbot/agent/model.ts` - Model creation and binding\n6. `src/chatbot/utils/retry.ts` - Error classification and retry logic (sql_critic)\n7. `src/chatbot/utils/sql.ts` - SQL utilities (extractSql, validateReadOnlySql, etc.)\n\nFor each file, return:\n- Full content or key excerpts showing the structure\n- How `intentCategory` is used (or not used) after classification\n- How schemas are currently injected into the system prompt\n- The sql_critic node's logic (looping detection, retry counting, error routing)\n- The `finalize` node if it exists\n- How tool calls are tracked (toolCallHistory, MAX_TOTAL_TOOL_CALLS, recursionLimit)\n- The complete list of tables and schemas used in the system prompt\n- How `classify_intent` works and what intent categories exist\n\nAlso check:\n- `src/chatbot/agent/streaming.ts` - streaming event types\n- `src/chatbot/db.ts` - DuckDB access patterns\n\nReturn all findings in a structured format so I can plan the implementation.",
+          "snippetsProcessed": true,
+          "id": "prt_e4d596349001UrGpnTwcrQMvvM",
+          "sessionID": "ses_1b2a69cdeffelkb4mAul2PvDb8",
+          "messageID": "msg_e4d5963320016IICnYN6cOpxLt"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_e4d5963320016IICnYN6cOpxLt",
+        "role": "assistant",
+        "mode": "scout",
+        "agent": "scout",
+        "path": {
+          "cwd": "C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius",
+          "root": "C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius"
+        },
+        "cost": 0.0038598,
+        "tokens": {
+          "total": 27127,
+          "input": 26684,
+          "output": 417,
+          "reasoning": 26,
+          "cache": {
+            "write": 0,
+            "read": 0
+          }
+        },
+        "modelID": "deepseek-v4-flash",
+        "providerID": "opencode-go",
+        "time": {
+          "created": 1779414164767,
+          "completed": 1779414169073
+        },
+        "finish": "tool-calls",
+        "id": "msg_e4d59651f001er7g5X2qJPZbGP",
+        "sessionID": "ses_1b2a69cdeffelkb4mAul2PvDb8"
+      },
+      "parts": [
+        {
+          "snapshot": "dd4d6a133575de101809d9815deaa483b32dd862",
+          "type": "step-start",
+          "id": "prt_e4d596865001wlacoFPXnBElWy",
+          "sessionID": "ses_1b2a69cdeffelkb4mAul2PvDb8",
+          "messageID": "msg_e4d59651f001er7g5X2qJPZbGP"
+        },
+        {
+          "type": "reasoning",
+          "text": "The user wants me to thoroughly research the chatbot codebase to understand the current architecture. Let me read all the specified files systematically.",
+          "time": {
+            "start": 1779414166457,
+            "end": 1779414166743
+          },
+          "id": "prt_e4d596bb90018v97gZKMUPl833",
+          "sessionID": "ses_1b2a69cdeffelkb4mAul2PvDb8",
+          "messageID": "msg_e4d59651f001er7g5X2qJPZbGP"
+        },
+        {
+          "type": "text",
+          "text": "I'll read all the specified files in parallel to build a comprehensive understanding of the chatbot architecture.",
+          "time": {
+            "start": 1779414166745,
+            "end": 1779414168826
+          },
+          "id": "prt_e4d596cd9001Bgj4qacReao3VB",
+          "sessionID": "ses_1b2a69cdeffelkb4mAul2PvDb8",
+          "messageID": "msg_e4d59651f001er7g5X2qJPZbGP"
+        },
+        {
+          "type": "tool",
+          "tool": "read",
+          "callID": "call_00_3eN7vw2Vwp0mKDWZZjAs6951",
+          "state": {
+            "status": "completed",
+            "input": {
+              "filePath": "C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\agent\\graph.ts"
+            },
+            "output": "<path>C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\agent\\graph.ts</path>\n<type>file</type>\n<content>\n1: import { SystemMessage, ToolMessage } from '@langchain/core/messages';\n2: import { Command, END, MemorySaver, START, StateGraph } from '@langchain/langgraph';\n3: import { ToolNode, toolsCondition } from '@langchain/langgraph/prebuilt';\n4: import { ERROR_PREFIX } from '../utils/retry.js';\n5: import { createModel } from './model.js';\n6: import { ChatbotState, type ChatbotStateType } from './state.js';\n7: import { nbaTools } from './tools.js';\n8: \n9: const MAX_SQL_RETRIES = 3;\n10: const MAX_TOTAL_TOOL_CALLS = 20;\n11: \n12: const INTENT_PATTERNS: Array<{ pattern: RegExp; category: string }> = [\n13:   {\n14:     pattern:\n15:       /\\b(triple.doubles?|quadruple.doubles?|50.point|career\\s+(points|rebounds|assists|steals|blocks|games|three|free\\s+throw))\\b/i,\n16:     category: 'career_leaders',\n17:   },\n18:   {\n19:     pattern:\n20:       /\\b(career\\s+leader|all.time|most\\s+(points|rebounds|assists|steals|blocks|three|games))\\b/i,\n21:     category: 'career_leaders',\n22:   },\n23:   {\n24:     pattern:\n25:       /\\b(season\\s+leader|points?\\s+per\\s+game|assists?\\s+per\\s+game|rebounds?\\s+per\\s+game|led\\s+the\\s+nba)\\b/i,\n26:     category: 'season_leaders',\n27:   },\n28:   {\n29:     pattern:\n30:       /\\b(mvp|roy|rookie\\s+of\\s+the\\s+year|dpoy|defensive\\s+player|all.nba|all.defensive|all.star|all.rookie)\\b/i,\n31:     category: 'awards',\n32:   },\n33:   { pattern: /\\b(award|honor|winner|vote)\\b/i, category: 'awards' },\n34:   {\n35:     pattern:\n36:       /\\b(team\\s+(record|season|rating|srs|pace|offensive|defensive)|warriors|bulls|celtics|lakers)\\b/i,\n37:     category: 'team_seasons',\n38:   },\n39:   {\n40:     pattern: /\\b(cross.check|cross\\s+schema|between\\s+(main|unified|bref|nbadb))\\b/i,\n41:     category: 'cross_schema',\n42:   },\n43:   {\n44:     pattern: /\\b(finals?\\s+game|final\\s+score|box\\s+score|stat\\s+line|game_id)\\b/i,\n45:     category: 'games',\n46:   },\n47:   {\n48:     pattern:\n49:       /\\b(shot\\s+chart|three\\s+pointer|corner\\s+three|mid.range|at\\s+the\\s+rim|shot\\s+distribution)\\b/i,\n50:     category: 'shot_charts',\n51:   },\n52:   { pattern: /\\b(play.by.play|turnover|made\\s+shot)\\b/i, category: 'play_by_play' },\n53:   {\n54:     pattern:\n55:       /\\b(basketball.reference\\s+id|nba\\s+api\\s+(person_id|id)|identity\\s+bridge|unresolved|ambiguous)\\b/i,\n56:     category: 'identity',\n57:   },\n58:   { pattern: /\\b(draft\\s+pick|draft|first\\s+overall)\\b/i, category: 'draft' },\n59:   { pattern: /\\b(data\\s+quality|dq_results|row\\s+count|audit)\\b/i, category: 'data_quality' },\n60: ];\n61: \n62: function classifyQuestion(text: string): string {\n63:   for (const { pattern, category } of INTENT_PATTERNS) {\n64:     if (pattern.test(text)) return category;\n65:   }\n66:   return 'general';\n67: }\n68: \n69: export { classifyQuestion };\n70: \n71: const SQL_ERROR_PREFIXES = [\n72:   ERROR_PREFIX.SQL_ERROR,\n73:   ERROR_PREFIX.SCHEMA_ERROR,\n74:   ERROR_PREFIX.SYNTAX_ERROR,\n75:   ERROR_PREFIX.TRANSIENT_ERROR,\n76:   ERROR_PREFIX.SCHEMA_VALIDATION_FAILED,\n77: ];\n78: \n79: function containsSqlError(content: string): boolean {\n80:   const firstLine = (content.split('\\n')[0] ?? '').trim();\n81:   return SQL_ERROR_PREFIXES.some((prefix) => firstLine.startsWith(prefix));\n82: }\n83: \n84: function getTrailingToolMessages(state: ChatbotStateType): ToolMessage[] {\n85:   const toolMessages: ToolMessage[] = [];\n86:   for (let i = state.messages.length - 1; i >= 0; i--) {\n87:     const message = state.messages[i];\n88:     if (!ToolMessage.isInstance(message)) {\n89:       break;\n90:     }\n91:     toolMessages.unshift(message);\n92:   }\n93:   return toolMessages;\n94: }\n95: \n96: function trimMessagesForModel(state: ChatbotStateType) {\n97:   const messages = state.messages;\n98:   const systemMessages = messages.filter((message) => SystemMessage.isInstance(message));\n99:   const nonSystemMessages = messages.filter((message) => !SystemMessage.isInstance(message));\n100:   const retainedSystemMessages =\n101:     systemMessages.length <= 5 ? systemMessages : [systemMessages[0]!, ...systemMessages.slice(-4)];\n102:   return [...retainedSystemMessages, ...nonSystemMessages.slice(-40)];\n103: }\n104: \n105: function getCheckpointer() {\n106:   const persistDir = process.env['CHATBOT_PERSIST_DIR'];\n107:   if (persistDir) {\n108:     const { SqliteSaver } = require('@langchain/langgraph-checkpoint-sqlite') as {\n109:       SqliteSaver: new (opts: { path: string }) => MemorySaver;\n110:     };\n111:     return new SqliteSaver({ path: persistDir });\n112:   }\n113:   return new MemorySaver();\n114: }\n115: \n116: function buildGraph() {\n117:   const model = createModel().bindTools([...nbaTools]);\n118: \n119:   async function callModel(state: ChatbotStateType): Promise<Partial<ChatbotStateType>> {\n120:     const response = await model.invoke(trimMessagesForModel(state));\n121:     return { messages: [response] };\n122:   }\n123: \n124:   async function sqlCritic(state: ChatbotStateType): Promise<Partial<ChatbotStateType> | Command> {\n125:     const toolMessages = getTrailingToolMessages(state);\n126:     if (toolMessages.length === 0) {\n127:       return new Command({ goto: 'llm', update: { sqlRetryCount: 0 } });\n128:     }\n129: \n130:     // Track tool calls\n131:     const toolCallHistory = state.toolCallHistory ?? [];\n132:     const newToolCalls = toolMessages.map((msg) => ({\n133:       toolName: msg.name || 'unknown',\n134:       args: typeof msg.content === 'string' ? msg.content.slice(0, 200) : JSON.stringify(msg.content).slice(0, 200),\n135:       timestamp: Date.now(),\n136:     }));\n137:     const updatedHistory = [...toolCallHistory, ...newToolCalls];\n138:     const totalToolCalls = (state.totalToolCalls ?? 0) + toolMessages.length;\n139: \n140:     // Check max total tool calls\n141:     if (totalToolCalls > MAX_TOTAL_TOOL_CALLS) {\n142:       return new Command({\n143:         goto: 'finalize',\n144:         update: { toolCallHistory: updatedHistory, totalToolCalls },\n145:       });\n146:     }\n147: \n148:     // Detect loop: same tool called 3+ times in last 6 calls\n149:     const recentCalls = updatedHistory.slice(-6);\n150:     const callSignatures = recentCalls.map(c => `${c.toolName}:${c.args}`);\n151:     const isLooping = callSignatures.some((sig, i) => {\n152:       const occurrences = callSignatures.slice(i + 1).filter(s => s === sig).length;\n153:       return occurrences >= 2;\n154:     });\n155: \n156:     if (isLooping) {\n157:       return new Command({\n158:         goto: 'finalize',\n159:         update: { toolCallHistory: updatedHistory, totalToolCalls },\n160:       });\n161:     }\n162: \n163:     const erroredContent = toolMessages\n164:       .map((message) => String(message.content))\n165:       .find((content) => containsSqlError(content));\n166:     const currentRetry = state.sqlRetryCount ?? 0;\n167: \n168:     if (erroredContent) {\n169:       if (currentRetry >= MAX_SQL_RETRIES) {\n170:         const errorMsg = new SystemMessage(\n171:           `SQL validation failed after ${MAX_SQL_RETRIES} retries. Unable to execute query.`,\n172:         );\n173:         return new Command({\n174:           goto: END,\n175:           update: { messages: [errorMsg], sqlRetryCount: currentRetry, toolCallHistory: updatedHistory, totalToolCalls },\n176:         });\n177:       }\n178: \n179:       const nextRetry = currentRetry + 1;\n180:       const systemMsg = new SystemMessage(\n181:         `SQL validation failed: ${erroredContent}. Please correct the query.`,\n182:       );\n183:       return new Command({\n184:         goto: 'llm',\n185:         update: { messages: [systemMsg], sqlRetryCount: nextRetry, toolCallHistory: updatedHistory, totalToolCalls },\n186:       });\n187:     }\n188: \n189:     return new Command({ goto: 'llm', update: { sqlRetryCount: 0, toolCallHistory: updatedHistory, totalToolCalls } });\n190:   }\n191: \n192:   async function classifyIntent(state: ChatbotStateType): Promise<Partial<ChatbotStateType>> {\n193:     const messages = state.messages;\n194:     for (let i = messages.length - 1; i >= 0; i--) {\n195:       const message = messages[i]!;\n196:       if (message._getType() === 'human' && typeof message.content === 'string') {\n197:         const category = classifyQuestion(message.content);\n198:         return { intentCategory: category };\n199:       }\n200:     }\n201:     return { intentCategory: 'general' };\n202:   }\n203: \n204:   const toolNode = new ToolNode([...nbaTools]);\n205: \n206:   // Finalize node: calls LLM without tools to synthesize final answer\n207:   const finalizeModel = createModel();\n208:   async function finalize(state: ChatbotStateType): Promise<Partial<ChatbotStateType>> {\n209:     const finalizePrompt = new SystemMessage(\n210:       'You have gathered information from the database. Now synthesize a clear, concise final answer to the user question based on the tool results in the conversation history. ' +\n211:       'Do not mention tools, SQL, or the database. Just provide the answer. If you do not have enough information, say \"I do not have enough information to answer that question.\"'\n212:     );\n213:     const response = await finalizeModel.invoke([finalizePrompt, ...state.messages.slice(-10)]);\n214:     return { messages: [response] };\n215:   }\n216: \n217:   return new StateGraph(ChatbotState)\n218:     .addNode('classify_intent', classifyIntent)\n219:     .addNode('llm', callModel)\n220:     .addNode('tools', toolNode)\n221:     .addNode('sql_critic', sqlCritic, { ends: ['llm', 'finalize', END] })\n222:     .addNode('finalize', finalize)\n223:     .addEdge(START, 'classify_intent')\n224:     .addEdge('classify_intent', 'llm')\n225:     .addConditionalEdges('llm', toolsCondition, {\n226:       tools: 'tools',\n227:       [END]: END,\n228:     })\n229:     .addEdge('tools', 'sql_critic')\n230:     .addEdge('finalize', END)\n231:     .compile({ checkpointer: getCheckpointer() });\n232: }\n233: \n234: let _graph: ReturnType<typeof buildGraph> | undefined;\n235: \n236: export function getChatbotGraph() {\n237:   if (!_graph) {\n238:     _graph = buildGraph();\n239:   }\n240:   return _graph;\n241: }\n242: \n243: export function resetGraph() {\n244:   _graph = undefined;\n245: }\n\n(End of file - total 245 lines)\n</content>\n\n<system-reminder>\nInstructions from: C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\AGENTS.md\n# AGENTS.md — chatbot\n\n## Package Purpose\n\nTerminal-based NBA analytics chatbot using LangGraph ReAct agent with DuckDB querying, streaming output, and error-correction loop.\n\n## Subagent Delegation\n\nAlways read `.agent/subtask-template.md` from the repository root immediately before creating any subagent/task prompt. Apply its prompt rules to every delegation: critical instructions in the first 15%, nesting depth <=4, 40-50% instruction ratio, single-source rule references, and token-efficient wording that preserves domain precision.\n\nThis applies to all `task` tool calls for chatbot work, including scout/research, review, testing, and implementation subagents. Do not rely on remembered template details; reread the file each time before delegating.\n\n## Agent Graph\n\n```\nSTART → classify_intent → llm → [toolsCondition] → tools → sql_critic → llm → END\n```\n\n### Nodes\n\n| Node | File | Purpose |\n|------|------|---------|\n| `classify_intent` | `agent/graph.ts` | Deterministic keyword-based question classification (no LLM call) |\n| `llm` | `agent/graph.ts` | Calls OpenRouter model with bound tools, returns tool calls or final answer |\n| `tools` | `agent/graph.ts` | `ToolNode([queryNbaDb, getSchemaInfo, listNbaTables, checkNbaSql])` — executes tool calls (parallel when multiple) |\n| `sql_critic` | `agent/graph.ts` | Validates tool output for SQL errors, routes back to `llm` for correction up to `MAX_SQL_RETRIES=3` |\n\n### State\n\n`agent/state.ts` — `StateSchema` with:\n- `messages: MessagesValue` — LangGraph message history (required)\n- `sqlRetryCount: z.number().optional()` — current SQL error retry count\n- `intentCategory: z.string().optional()` — deterministic question category (career_leaders, awards, etc.)\n\n### Tools\n\n| Tool | File | Description |\n|------|------|-------------|\n| `query_nba_db` | `agent/tools.ts:7` | Executes read-only DuckDB SQL with pre-execution schema validation |\n| `get_schema_info` | `agent/tools.ts:59` | On-demand table/column discovery with partial name matching |\n\n## Module Map\n\n```text\nsrc/chatbot/\n├── index.ts              # TUI bootstrap — initDb(), buildSystemPrompt(), createChatApp()\n├── chatApp.ts            # Chat UI (OpenTUI): scrollable display, streaming, model selector, metrics\n├── db.ts                 # DuckDB singleton + schema introspection (getTableRefs, getColumns, getTables)\n├── openrouter.ts         # OpenRouter API: model list, model selection\n├── systemPrompt.ts       # Dynamic system prompt builder from live database schema\n├── agent/                # LangGraph agent core\n│   ├── graph.ts          # buildGraph() — StateGraph with llm/tools/sql_critic nodes\n│   ├── state.ts          # ChatbotState — MessagesValue + sqlRetryCount\n│   ├── tools.ts          # query_nba_db + get_schema_info (Zod schemas)\n│   ├── model.ts          # createModel() — ChatOpenAI @ OpenRouter, temp=0.3\n│   └── streaming.ts      # streamQuery() async generator — StreamEvent union\n├── utils/                # Stateless utilities\n│   ├── sql.ts            # validateReadOnlySql, validateSchemaReferences, extractSql, executeSql, formatResultsPretty\n│   ├── retry.ts          # categorizeDbError (transient/schema/syntax/permanent), formatErrorForLLM, withRetry\n│   ├── metrics.ts        # NDJSON metrics logger (duration, tokens, SQL, errors)\n│   ├── ansi.ts           # ansiToStyledText conversion for OpenTUI\n│   └── theme.ts          # TokyoNight color palette\n├── features/\n│   └── modelSelector.ts  # Interactive model picker overlay (arrow keys, search, vim navigation)\n├── eval/\n│   └── nba-100-queries.ts # 100 categorized NBA questions (17 categories)\n└── __tests/              # Bun tests with LangChain mocking\n    ├── processQuestion.test.ts  # Graph behavior: ReAct, critic, retry, parallel calls\n    ├── executeSql.test.ts       # SQL validation + execution against real DB\n    ├── sqlExtraction.test.ts    # SQL extraction from LLM markdown output\n    ├── formatResults.test.ts    # Pretty-print formatting\n    ├── systemPrompt.test.ts     # Dynamic prompt building\n    ├── ansi.test.ts             # ANSI-to-StyledText conversion\n    ├── retry.test.ts            # Error classification, retry behavior, LLM error prefixes\n    └── streaming.test.ts        # streamQuery token/tool/usage/done/error events\n```\n\n## Key Patterns\n\n### Error-Proof SQL Execution\n\n`sql_critic` validates every tool result before routing. Errors are classified by `categorizeDbError()` (transient → retry, schema → correct, syntax → correct, permanent → surface). Error prefixes are centralized in `ERROR_PREFIX` (`utils/retry.ts`) and consumed by `graph.ts`/`sql.ts` to avoid string drift. The critic enforces `MAX_SQL_RETRIES=3` before giving up.\n\n### Schema Pre-Validation\n\nBefore DuckDB execution, `validateSchemaReferences()` checks table existence against `information_schema`. This catches table name typos before they become DuckDB parse errors.\n\n### Parallel Tool Calls\n\n`ToolNode` supports parallel execution when the LLM emits multiple `tool_calls` in a single response. The system prompt instructs the LLM to use parallel calls for comparisons (e.g., \"Compare LeBron vs MJ stats\").\n\n### Streaming via streamEvents v2\n\n`streamQuery()` yields typed `StreamEvent` events: `token` (LLM output chunks), `tool_start`/`tool_end`/`tool_error` (tool lifecycle), `usage` (token counts), `done` (final messages), `error` (exceptions).\n\n### Checkpointing\n\nGraph compiled with `getCheckpointer()` — `MemorySaver` default, `SqliteSaver` when `CHATBOT_PERSIST_DIR` set. Enables multi-turn conversation memory and future HITL support.\n\n### Singleton Graph\n\n`getChatbotGraph()` returns cached graph. `resetGraph()` invalidates cache (called on model change). Each invocation uses a unique `thread_id` for isolation.\n\n## Type Safety and Linting\n\nChatbot code is checked by the repo-wide `tsconfig.json` and a stricter chatbot-only config:\n\n```bash\nbun run typecheck          # full repo\nbun run typecheck:chatbot  # chatbot + shared with strictest options\n```\n\n`tsconfig.chatbot.json` enables `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `noPropertyAccessFromIndexSignature`, `noImplicitReturns`, `noImplicitOverride`, `noFallthroughCasesInSwitch`, unused checks, and `verbatimModuleSyntax`. Prefer guards/defaults over weakening types. Access environment variables and dynamic records with bracket syntax, e.g. `process.env['OPENROUTER_API_KEY']` and `input['sql']`.\n\nBiome is strict and runs with `--error-on-warnings`. Use `import type` / `export type`, avoid unused locals/imports, prefer `const`, and let Biome organize imports. Lefthook runs Biome on staged TypeScript/JSON files before commits.\n\n## Testing\n\nAll tests use `--concurrency=1` (DuckDB constraint). Mock pattern:\n\n```typescript\nmock.module('@langchain/openai', () => ({\n  ChatOpenAI: class {\n    bindTools() { return this; }\n    async invoke() { return new AIMessage('Mock response'); }\n  },\n}));\n\nmock.module('../db.js', () => ({\n  query: async () => [{ person_id: '2544' }],\n  getTables: async () => ['dim_player'],\n}));\n```\n\nRun all chatbot tests: `bun test src/chatbot/__tests__ --concurrency=1`\n\nRun the same checks used by chatbot CI:\n\n```bash\nbun run typecheck:chatbot\nbun test src/chatbot/__tests__ --concurrency=1\n```\n\nCI also blocks `.only(` / `.skip(` in `src/chatbot/__tests__/` via `scripts/ci-guards.sh`.\n\nWhen delegating chatbot testing or research to subagents, read `.agent/subtask-template.md` first and place the chatbot-specific success criteria near the top of the prompt.\n\n## Adding a New Tool\n\n1. Define in `agent/tools.ts` using `tool()` from `@langchain/core/tools` with Zod schema\n2. Add to `bindTools([...])` and `ToolNode([...])` in `agent/graph.ts`\n3. Handle new tool events in `chatApp.ts` stream handler (tool_start/tool_end)\n4. Add test in `__tests__/processQuestion.test.ts` with mock responses\n5. Update system prompt if the tool needs LLM guidance\n6. Run `bun run typecheck:chatbot` and `bun test src/chatbot/__tests__ --concurrency=1`\n\n## Adding a New Graph Node\n\n1. Define async function taking `state: ChatbotStateType`\n2. Return `Partial<ChatbotStateType>` for plain updates or `Command({ goto, update })` for routing\n3. Add `addNode('name', fn)` + edges to `buildGraph()`\n4. Add state fields to `ChatbotState` in `state.ts` only if a node reads/writes them\n5. Add corresponding tests\n6. Run `bun run typecheck:chatbot` and `bun test src/chatbot/__tests__ --concurrency=1`\n\n</system-reminder>",
+            "metadata": {
+              "preview": "import { SystemMessage, ToolMessage } from '@langchain/core/messages';\nimport { Command, END, MemorySaver, START, StateGraph } from '@langchain/langgraph';\nimport { ToolNode, toolsCondition } from '@langchain/langgraph/prebuilt';\nimport { ERROR_PREFIX } from '../utils/retry.js';\nimport { createModel } from './model.js';\nimport { ChatbotState, type ChatbotStateType } from './state.js';\nimport { nbaTools } from './tools.js';\n\nconst MAX_SQL_RETRIES = 3;\nconst MAX_TOTAL_TOOL_CALLS = 20;\n\nconst INTENT_PATTERNS: Array<{ pattern: RegExp; category: string }> = [\n  {\n    pattern:\n      /\\b(triple.doubles?|quadruple.doubles?|50.point|career\\s+(points|rebounds|assists|steals|blocks|games|three|free\\s+throw))\\b/i,\n    category: 'career_leaders',\n  },\n  {\n    pattern:\n      /\\b(career\\s+leader|all.time|most\\s+(points|rebounds|assists|steals|blocks|three|games))\\b/i,",
+              "truncated": false,
+              "loaded": [
+                "C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\AGENTS.md"
+              ]
+            },
+            "title": "src\\chatbot\\agent\\graph.ts",
+            "time": {
+              "start": 1779414167140,
+              "end": 1779414167215
+            }
+          },
+          "id": "prt_e4d596db6003WTZ3dE7x8jEPn3",
+          "sessionID": "ses_1b2a69cdeffelkb4mAul2PvDb8",
+          "messageID": "msg_e4d59651f001er7g5X2qJPZbGP"
+        },
+        {
+          "type": "tool",
+          "tool": "read",
+          "callID": "call_01_erBo2kct3Ncdt7c4ikxq1649",
+          "state": {
+            "status": "completed",
+            "input": {
+              "filePath": "C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\agent\\state.ts"
+            },
+            "output": "<path>C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\agent\\state.ts</path>\n<type>file</type>\n<content>\n1: import { MessagesValue, StateSchema } from '@langchain/langgraph';\n2: import { z } from 'zod/v4';\n3: \n4: export type IntentCategory =\n5:   | 'career_leaders'\n6:   | 'season_leaders'\n7:   | 'awards'\n8:   | 'team_seasons'\n9:   | 'games'\n10:   | 'shot_charts'\n11:   | 'play_by_play'\n12:   | 'identity'\n13:   | 'draft'\n14:   | 'data_quality'\n15:   | 'cross_schema'\n16:   | 'general';\n17: \n18: export const ChatbotState = new StateSchema({\n19:   messages: MessagesValue,\n20:   sqlRetryCount: z.number().optional(),\n21:   intentCategory: z.string().optional(),\n22:   toolCallHistory: z.array(z.object({\n23:     toolName: z.string(),\n24:     args: z.string(),\n25:     timestamp: z.number()\n26:   })).optional(),\n27:   totalToolCalls: z.number().optional(),\n28: });\n29: \n30: export type ChatbotStateType = (typeof ChatbotState)['State'];\n31: export type ChatbotUpdateType = (typeof ChatbotState)['Update'];\n\n(End of file - total 31 lines)\n</content>",
+            "metadata": {
+              "preview": "import { MessagesValue, StateSchema } from '@langchain/langgraph';\nimport { z } from 'zod/v4';\n\nexport type IntentCategory =\n  | 'career_leaders'\n  | 'season_leaders'\n  | 'awards'\n  | 'team_seasons'\n  | 'games'\n  | 'shot_charts'\n  | 'play_by_play'\n  | 'identity'\n  | 'draft'\n  | 'data_quality'\n  | 'cross_schema'\n  | 'general';\n\nexport const ChatbotState = new StateSchema({\n  messages: MessagesValue,\n  sqlRetryCount: z.number().optional(),",
+              "truncated": false,
+              "loaded": []
+            },
+            "title": "src\\chatbot\\agent\\state.ts",
+            "time": {
+              "start": 1779414167424,
+              "end": 1779414167484
+            }
+          },
+          "id": "prt_e4d596e79001eIO8PvEokQe09c",
+          "sessionID": "ses_1b2a69cdeffelkb4mAul2PvDb8",
+          "messageID": "msg_e4d59651f001er7g5X2qJPZbGP"
+        },
+        {
+          "type": "tool",
+          "tool": "read",
+          "callID": "call_02_aonWx9wWRrHio4R6kn0u9695",
+          "state": {
+            "status": "completed",
+            "input": {
+              "filePath": "C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\agent\\tools.ts"
+            },
+            "output": "<path>C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\agent\\tools.ts</path>\n<type>file</type>\n<content>\n1: import { tool } from '@langchain/core/tools';\n2: import { z } from 'zod/v4';\n3: import { getColumns, getTableRefs } from '../db.js';\n4: import { checkSql, executeSql } from '../utils/sql.js';\n5: import {\n6:   TOOL_CHECK_NBA_SQL,\n7:   TOOL_GET_SCHEMA_INFO,\n8:   TOOL_LIST_NBA_TABLES,\n9:   TOOL_QUERY_NBA_DB,\n10: } from './toolNames.js';\n11: \n12: export const queryNbaDb = tool(\n13:   async ({ sql }: { sql: string }) => {\n14:     const result = await executeSql(sql);\n15:     return result;\n16:   },\n17:   {\n18:     name: TOOL_QUERY_NBA_DB,\n19:     description:\n20:       'Execute a read-only DuckDB SQL query on the NBA database. ' +\n21:       'Use this for any NBA data lookup: player stats, game data, team info, awards, shot charts. ' +\n22:       'Prefer fully-qualified schema.table names. ' +\n23:       `For complex queries (3+ JOINs, unfamiliar tables), call ${TOOL_CHECK_NBA_SQL} first to validate. ` +\n24:       'Only SELECT, WITH...SELECT, or DESCRIBE statements are allowed.',\n25:     schema: z.object({\n26:       sql: z.string().describe('The read-only DuckDB SQL query to execute'),\n27:     }),\n28:   },\n29: );\n30: \n31: export const checkNbaSql = tool(\n32:   async ({ sql }: { sql: string }) => {\n33:     return await checkSql(sql);\n34:   },\n35:   {\n36:     name: TOOL_CHECK_NBA_SQL,\n37:     description:\n38:       'Validate a read-only NBA DuckDB SQL query WITHOUT executing it. ' +\n39:       'Returns OK if the SQL passes safety and schema checks, otherwise returns a ' +\n40:       'correction-oriented error message. ' +\n41:       `ALWAYS call this BEFORE ${TOOL_QUERY_NBA_DB} when the SQL has: ` +\n42:       '3+ JOIN clauses, unfamiliar table/column names, career-total aggregation patterns, ' +\n43:       'or any query where a syntax/schema error would waste an LLM round-trip. ' +\n44:       'Do NOT call this for simple single-table lookups you are confident about.',\n45:     schema: z.object({\n46:       sql: z.string().describe('The read-only DuckDB SQL query to validate without executing'),\n47:     }),\n48:   },\n49: );\n50: \n51: function formatTableList(tables: { schema: string; name: string; type: string }[]): string {\n52:   const bySchema = tables.reduce<Record<string, string[]>>((acc, t) => {\n53:     acc[t.schema] ??= [];\n54:     acc[t.schema]!.push(`${t.name}${t.type === 'VIEW' ? ' (view)' : ''}`);\n55:     return acc;\n56:   }, {});\n57: \n58:   const lines: string[] = [];\n59:   for (const [schema, names] of Object.entries(bySchema)) {\n60:     lines.push(`Schema: ${schema}`);\n61:     lines.push(`  ${names.join(', ')}`);\n62:   }\n63:   return lines.join('\\n');\n64: }\n65: \n66: function formatColumnList(columns: { name: string; type: string }[], limit = 30): string {\n67:   const visible = columns.slice(0, limit);\n68:   const lines = visible.map((c) => `| ${c.name} | ${c.type} |`);\n69:   const header = '| Column | Type |\\n|--------|------|';\n70:   const more = columns.length > limit ? `\\n... ${columns.length - limit} more columns` : '';\n71:   return `${header}\\n${lines.join('\\n')}${more}`;\n72: }\n73: \n74: export const getSchemaInfo = tool(\n75:   async ({ tableName }: { tableName: string }) => {\n76:     const tables = await getTableRefs();\n77:     const simpleMatch = tables.filter(\n78:       (t) =>\n79:         t.name.toLowerCase().includes(tableName.toLowerCase()) ||\n80:         t.qualifiedName.toLowerCase().includes(tableName.toLowerCase()),\n81:     );\n82: \n83:     if (simpleMatch.length === 0) {\n84:       return `No table matching \"${tableName}\" found. Available schemas:\\n${formatTableList(tables.slice(0, 20))}`;\n85:     }\n86: \n87:     if (simpleMatch.length === 1) {\n88:       const t = simpleMatch[0]!;\n89:       const columns = await getColumns(t.qualifiedName);\n90:       return `Table: ${t.qualifiedName} (${t.type})\\n${formatColumnList(columns)}`;\n91:     }\n92: \n93:     if (simpleMatch.length <= 5) {\n94:       const results = await Promise.all(\n95:         simpleMatch.map(async (t) => {\n96:           const columns = await getColumns(t.qualifiedName);\n97:           return `\\nTable: ${t.qualifiedName} (${t.type})\\n${formatColumnList(columns, 10)}`;\n98:         }),\n99:       );\n100:       return `Found ${simpleMatch.length} matching tables:${results.join('\\n')}`;\n101:     }\n102: \n103:     return `Found ${simpleMatch.length} tables matching \"${tableName}\". Be more specific:\\n${simpleMatch.map((t) => `  ${t.qualifiedName} (${t.type})`).join('\\n')}`;\n104:   },\n105:   {\n106:     name: TOOL_GET_SCHEMA_INFO,\n107:     description:\n108:       'Discover database schema: tables and column definitions. ' +\n109:       'Use this before writing queries to find the right table and column names. ' +\n110:       'Pass a table name (partial match supported) to get column details. ' +\n111:       'Pass an empty string to list all schemas and tables.',\n112:     schema: z.object({\n113:       tableName: z\n114:         .string()\n115:         .describe(\n116:           'Table name to look up (e.g. \"dim_player\", \"fact_game\"). Partial match supported.',\n117:         ),\n118:     }),\n119:   },\n120: );\n121: \n122: export const listNbaTables = tool(\n123:   async ({ search }: { search?: string }) => {\n124:     const tables = await getTableRefs();\n125:     const query = (search ?? '').trim().toLowerCase();\n126:     const matchingTables = query\n127:       ? tables.filter(\n128:           (table) =>\n129:             table.name.toLowerCase().includes(query) ||\n130:             table.qualifiedName.toLowerCase().includes(query),\n131:         )\n132:       : tables;\n133: \n134:     if (matchingTables.length === 0) {\n135:       return `No tables matching \"${search}\" found. Available tables:\\n${formatTableList(tables)}`;\n136:     }\n137: \n138:     return formatTableList(matchingTables);\n139:   },\n140:   {\n141:     name: TOOL_LIST_NBA_TABLES,\n142:     description:\n143:       'List available NBA database tables and views, optionally filtered by a search term. ' +\n144:       'Use this before get_schema_info when you are unsure which table contains the needed data.',\n145:     schema: z.object({\n146:       search: z\n147:         .string()\n148:         .optional()\n149:         .describe('Optional table-name search term, e.g. \"player\", \"game\", \"shot\".'),\n150:     }),\n151:   },\n152: );\n153: \n154: export const nbaTools = [queryNbaDb, getSchemaInfo, listNbaTables, checkNbaSql] as const;\n\n(End of file - total 154 lines)\n</content>",
+            "metadata": {
+              "preview": "import { tool } from '@langchain/core/tools';\nimport { z } from 'zod/v4';\nimport { getColumns, getTableRefs } from '../db.js';\nimport { checkSql, executeSql } from '../utils/sql.js';\nimport {\n  TOOL_CHECK_NBA_SQL,\n  TOOL_GET_SCHEMA_INFO,\n  TOOL_LIST_NBA_TABLES,\n  TOOL_QUERY_NBA_DB,\n} from './toolNames.js';\n\nexport const queryNbaDb = tool(\n  async ({ sql }: { sql: string }) => {\n    const result = await executeSql(sql);\n    return result;\n  },\n  {\n    name: TOOL_QUERY_NBA_DB,\n    description:\n      'Execute a read-only DuckDB SQL query on the NBA database. ' +",
+              "truncated": false,
+              "loaded": []
+            },
+            "title": "src\\chatbot\\agent\\tools.ts",
+            "time": {
+              "start": 1779414167677,
+              "end": 1779414167721
+            }
+          },
+          "id": "prt_e4d596f97001dUN9zLgAb6cMck",
+          "sessionID": "ses_1b2a69cdeffelkb4mAul2PvDb8",
+          "messageID": "msg_e4d59651f001er7g5X2qJPZbGP"
+        },
+        {
+          "type": "tool",
+          "tool": "read",
+          "callID": "call_03_amiF08DE4FtluVAM6hTk5998",
+          "state": {
+            "status": "completed",
+            "input": {
+              "filePath": "C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\systemPrompt.ts"
+            },
+            "output": "<path>C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\systemPrompt.ts</path>\n<type>file</type>\n<content>\n1: import { getColumns, getTableRefs } from './db.js';\n2: \n3: const DETAILED_COLUMN_LIMIT = 24;\n4: \n5: const SOURCE_PRIORITY = [\n6:   '1. Prefer curated semantic tables in unified_star and main for general NBA answers.',\n7:   '2. Use stg_bref and raw_bref for Basketball-Reference-specific facts and source checks.',\n8:   '3. Use nbadb, api, and stg_nba_api_sqlite when they expose game logs, shot charts, standings, or NBA API fields not present in curated tables.',\n9:   '4. Use raw_csv, raw_json, raw_parquet, and raw_sqlite only for provenance, diagnostics, or fields unavailable in curated/staged tables.',\n10:   '5. Use audit for data quality, lineage, row-count, and identity reconciliation questions.',\n11:   '6. If sources conflict, say so and prefer the highest-priority source that directly answers the question.',\n12: ];\n13: \n14: const CORE_TABLE_PATTERNS = [\n15:   'dim_player',\n16:   'dim_bref_player',\n17:   'bridge_player_source_id',\n18:   'fact_game',\n19:   'fact_player_game_stats',\n20:   'fact_team_game_stats',\n21:   'fact_play_by_play',\n22:   'fact_bref_player_season_totals',\n23:   'fact_bref_player_season_per_game',\n24:   'fact_bref_player_season_advanced',\n25:   'fact_bref_team_season_summary',\n26:   'fact_player_award_vote',\n27:   'fact_player_honor',\n28:   'v_player_honors_full',\n29:   'v_team_current',\n30:   'player_totals',\n31:   'player_per_game',\n32:   'advanced',\n33:   'player_shooting',\n34:   'team_summaries',\n35:   'team_totals',\n36:   'player_award_shares',\n37:   'draft_pick_history',\n38:   'fact_shot_chart',\n39:   'fact_player_game_log',\n40:   'v_shot_chart',\n41:   'player_identity_bridge',\n42:   'dq_results',\n43: ];\n44: \n45: const CORE_SCHEMA_PRIORITY = ['main', 'stg_bref', 'unified_star', 'nbadb', 'api', 'audit'];\n46: \n47: function normalizeMainTableName(tableName: string): string {\n48:   return tableName.includes('.') ? tableName : `main.${tableName}`;\n49: }\n50: \n51: async function discoverCoreTables(): Promise<string[]> {\n52:   const tables = await getTableRefs();\n53:   const tableNames = new Set(tables.map((table) => normalizeMainTableName(table.qualifiedName)));\n54: \n55:   const discovered: string[] = [];\n56:   for (const schema of CORE_SCHEMA_PRIORITY) {\n57:     for (const pattern of CORE_TABLE_PATTERNS) {\n58:       const qualified = `${schema}.${pattern}`;\n59:       if (tableNames.has(qualified) && !discovered.includes(qualified)) {\n60:         discovered.push(qualified);\n61:       }\n62:     }\n63:   }\n64: \n65:   for (const pattern of CORE_TABLE_PATTERNS) {\n66:     const qualified = `main.${pattern}`;\n67:     if (tableNames.has(qualified) && !discovered.includes(qualified)) {\n68:       discovered.push(qualified);\n69:     }\n70:   }\n71: \n72:   return discovered;\n73: }\n74: \n75: export async function buildSystemPrompt(): Promise<string> {\n76:   const tables = await getTableRefs();\n77:   const coreTables = await discoverCoreTables();\n78: \n79:   const tablesBySchema = tables.reduce<Record<string, string[]>>((acc, table) => {\n80:     acc[table.schema] ??= [];\n81:     acc[table.schema]!.push(`${table.name}${table.type === 'VIEW' ? ' (view)' : ''}`);\n82:     return acc;\n83:   }, {});\n84: \n85:   const schemaSections = Object.entries(tablesBySchema).map(([schemaName, names]) => {\n86:     return `## Schema: ${schemaName}\\n${names.join(', ')}`;\n87:   });\n88: \n89:   const tableSections = await Promise.all(\n90:     coreTables.map(async (tableName) => {\n91:       const columns = await getColumns(tableName);\n92:       const visibleColumns = columns.slice(0, DETAILED_COLUMN_LIMIT);\n93:       const rows = visibleColumns.map((col) => `| ${col.name} | ${col.type} |`).join('\\n');\n94:       const more =\n95:         columns.length > DETAILED_COLUMN_LIMIT\n96:           ? `\\n| ... | ${columns.length - DETAILED_COLUMN_LIMIT} more columns |`\n97:           : '';\n98:       return `## Core Table: ${tableName}\\n| Column | Type |\\n|--------|------|\\n${rows}${more}`;\n99:     }),\n100:   );\n101: \n102:   return [\n103:     'You are BBallGenius Chat, an NBA analytics assistant with access to a DuckDB database.',\n104:     '',\n105:     'CRITICAL RULES:',\n106:     '1. NEVER output raw SQL queries in your final answer. Always synthesize results into natural language.',\n107:     '2. After executing a query, provide a clear, concise answer based on the results.',\n108:     '3. If you detect you are repeating the same tool call, STOP and provide the best answer from available information.',\n109:     '4. LIMIT yourself to maximum 3 tool calls per question. If you cannot answer after 3 tool calls, provide the best answer you can.',\n110:     '5. For vague or ambiguous questions (e.g., \"Who scored the most?\", \"Tell me about the best season\"), you MUST ask the user for clarification instead of guessing. Say something like \"Could you clarify which player/season/statistic you are asking about?\"',\n111:     '6. ANTI-HALLUCINATION RULE: When reporting numbers, ONLY use the exact values returned by the SQL query. Do NOT invent, round, or estimate numbers. If the SQL query returns a number, report it exactly as returned. If you are unsure about a number, say \"I could not find that data.\"',\n112:     '7. ACCURACY RULE: If the database does not contain the requested data, explicitly say \"I do not have that information in the database\" instead of guessing or using your training knowledge.',\n113:     '',\n114:     'Available tools:',\n115:     '- query_nba_db: Execute read-only SQL queries on the NBA database.',\n116:     '- check_nba_sql: Validate read-only SQL before execution. Use this before',\n117:     '  complex joins, unfamiliar columns, or high-risk queries.',\n118:     '- list_nba_tables: List available tables/views, optionally filtered by topic.',\n119:     '- get_schema_info: Discover table structures and column definitions. Use this first',\n120:     '  when you need to find the right table or column names before writing a query.',\n121:     '',\n122:     'Parallel tool calls:',\n123:     '- For multi-player, multi-team, or comparison questions, call multiple tools in a',\n124:     '  single response when the queries are independent. The tools execute in parallel',\n125:     '  for speed. This is the preferred approach for comparisons.',\n126:     '  Example: \"Compare LeBron vs MJ career stats\" → call query_nba_db twice in one',\n127:     '  response (once per player), then synthesize the results.',\n128:     '  Example: \"Who has more MVPs, LeBron or Kareem?\" → call query_nba_db twice (once',\n129:     '  per player) in parallel, then compare the counts.',\n130:     '- Do NOT combine independent queries into a single UNION or complex join unless you',\n131:     '  need to compute a shared aggregate (e.g. \"who averaged more points\").',\n132:     '- Use get_schema_info in parallel with query_nba_db when you know some tables and',\n133:     '  need to discover others simultaneously.',\n134:     '',\n135:     'Chain stages (follow in order):',\n136:     '  Stage 1 — Understand: Parse the question. Identify fact type (leader, award, box score,',\n137:     '    shot chart, game log, cross-check, identity, etc.). Note if comparison or multi-part.',\n138:     '  Stage 2 — Locate: Choose the best table using source priority. Use list_nba_tables if',\n139:     '    unsure which table, or get_schema_info if you need column details.',\n140:     '  Stage 3 — Validate SQL: For complex joins, unfamiliar columns, or risky queries, call',\n141:     '    check_nba_sql BEFORE query_nba_db. This catches schema/syntax errors early.',\n142:     '  Stage 4 — Execute: Run query_nba_db with the validated SQL. Inspect returned rows.',\n143:     '  Stage 5 — Synthesize: Compose the answer from query results. If rows are empty or',\n144:     '    insufficient, state what is missing. Never guess or fabricate data.',\n145:     '',\n146:     'When to use each tool (by stage):',\n147:     '- Stage 2 (Locate): list_nba_tables, get_schema_info.',\n148:     '- Stage 3 (Validate): check_nba_sql for complex joins, unfamiliar tables, career-total',\n149:     '  queries, or any SQL with 3+ table references.',\n150:     '- Stage 4 (Execute): query_nba_db for the final read-only SQL.',\n151:     '- Prefer fully-qualified schema.table names (e.g., main.dim_player).',\n152:     '- If result rows are insufficient, say what is missing. Do not guess.',\n153:     '',\n154:     'High-priority output rules:',\n155:     'Canonical database guidance:',\n156:     '- The database has several useful schemas with overlapping data. All schemas are',\n157:     '  available for NBA questions; choose the table that most directly answers the question.',\n158:     '- Use fully qualified schema.table names whenever the table is outside main, and prefer',\n159:     '  fully qualified names for main tables when it improves clarity.',\n160:     ...SOURCE_PRIORITY.map((line) => `- ${line}`),\n161:     '- Player identity uses person_id. main.dim_player does not have full_name; build it with',\n162:     \"  first_name || ' ' || last_name when needed.\",\n163:     '- Source IDs are in main.bridge_player_source_id, including basketball_reference and',\n164:     '  nba_api IDs. Require non-ambiguous, resolved bridge rows for cross-schema player joins.',\n165:     '- Games are in fact_game or v_game_clean. Regular season games use',\n166:     \"  season_type = 'Regular', not 'Regular Season'.\",\n167:     '- Game box scores are in fact_player_game_stats with points, reb, assists, steals,',\n168:     '  blocks, num_minutes, team_id, opponent_team_id, and person_id.',\n169:     '- Season and career Basketball Reference totals are in fact_bref_player_season_totals.',\n170:     '- Per-game season records are in fact_bref_player_season_per_game.',\n171:     '- Awards are in fact_player_award_vote; use winner = true and award values like',\n172:     \"  'nba mvp', 'nba roy', and 'nba dpoy'.\",\n173:     '- Honors such as All-NBA, All-Defense, and All-Rookie are in fact_player_honor and',\n174:     '  v_player_honors_full.',\n175:     '- Team relocation/history is in dim_team. Current conference/division data is in',\n176:     '  nbadb.dim_team when needed.',\n177:     '- Play-by-play is in fact_play_by_play.',\n178:     '- Championship winners and Finals MVP are not represented reliably in the current DB;',\n179:     '  say that the DB does not contain the needed data instead of guessing.',\n180:     '',\n181:     'SQL cookbook:',\n182:     '- For career leaders from fact_bref_player_season_totals, avoid double-counting',\n183:     '  multi-team seasons. Rows like 2TM, 3TM, and 4TM are aggregate season rows;',\n184:     '  never sum those aggregate rows together with component team rows.',\n185:     '- Safe career-total pattern: first collapse to one row per person_id and',\n186:     '  season_end_year, preferring the 2TM/3TM/4TM aggregate row when present, then',\n187:     '  sum those season totals by player.',\n188:     \"- For single-season records, filter is_playoffs = false and league = 'NBA' when\",\n189:     '  those columns are present.',\n190:     '- For award winners, query fact_player_award_vote with winner = true and',\n191:     \"  lower(award) = 'nba mvp' / 'nba roy' / 'nba dpoy'.\",\n192:     '- For lockout season game counts, use fact_game with season_year such as',\n193:     \"  '1998-99' or '2011-12' and season_type = 'Regular'.\",\n194:     '- For Seattle SuperSonics relocation, find dim_team rows sharing the same team_id',\n195:     '  across Seattle SuperSonics and Oklahoma City Thunder.',\n196:     '- For triple-doubles, count games where at least three of points, reb, assists,',\n197:     '  steals, and blocks are >= 10 in fact_player_game_stats.',\n198:     '- For quadruple-doubles, count games where at least four of those five stats are >= 10.',\n199:     '',\n200:     'Available schemas and tables:',\n201:     '',\n202:     ...schemaSections,\n203:     '',\n204:     'Core table columns for common NBA questions:',\n205:     '',\n206:     ...tableSections,\n207:     '',\n208:     'EXAMPLE QUERIES (use these patterns):',\n209:     '- Career scoring leader: SELECT player_name, SUM(pts) as total FROM main.fact_bref_player_season_totals WHERE team_id NOT LIKE \"%TM%\" GROUP BY player_name ORDER BY total DESC LIMIT 1',\n210:     '- Season MVP winner: SELECT player_name FROM main.fact_player_award_vote WHERE award = \"nba mvp\" AND winner = true AND season_year = \"2023-24\"',\n211:     '- Team record: SELECT wins, losses, srs FROM main.fact_bref_team_season_summary WHERE team_name = \"Boston Celtics\" AND season_year = \"2023-24\"',\n212:     '- Player career stats: SELECT SUM(pts) as total_pts, SUM(ast) as total_ast FROM main.fact_bref_player_season_totals WHERE player_name = \"LeBron James\" AND team_id NOT LIKE \"%TM%\"',\n213:     '- Season leaders: SELECT player_name, pts_per_game FROM main.fact_bref_player_season_per_game WHERE season_year = \"2023-24\" ORDER BY pts_per_game DESC LIMIT 1',\n214:     '',\n215:     'SQL Guidelines:',\n216:     '- Use CTEs when a query needs deduplication or season-level collapsing',\n217:     '- Default to LIMIT 20 unless the user asks for more',\n218:     '- Use ROUND() for statistics to keep output readable',\n219:     '- Use snake_case for all table/column references',\n220:     '- The database contains NBA data from the 1950s to present',\n221:     '- Join tables using game_id for game-level data and person_id for player-level data',\n222:     '- Only write read-only SQL: SELECT, WITH ... SELECT, or DESCRIBE',\n223:     '- Never use INSERT, UPDATE, DELETE, CREATE, DROP, ALTER, or filesystem/network functions',\n224:   ].join('\\n');\n225: }\n\n(End of file - total 225 lines)\n</content>",
+            "metadata": {
+              "preview": "import { getColumns, getTableRefs } from './db.js';\n\nconst DETAILED_COLUMN_LIMIT = 24;\n\nconst SOURCE_PRIORITY = [\n  '1. Prefer curated semantic tables in unified_star and main for general NBA answers.',\n  '2. Use stg_bref and raw_bref for Basketball-Reference-specific facts and source checks.',\n  '3. Use nbadb, api, and stg_nba_api_sqlite when they expose game logs, shot charts, standings, or NBA API fields not present in curated tables.',\n  '4. Use raw_csv, raw_json, raw_parquet, and raw_sqlite only for provenance, diagnostics, or fields unavailable in curated/staged tables.',\n  '5. Use audit for data quality, lineage, row-count, and identity reconciliation questions.',\n  '6. If sources conflict, say so and prefer the highest-priority source that directly answers the question.',\n];\n\nconst CORE_TABLE_PATTERNS = [\n  'dim_player',\n  'dim_bref_player',\n  'bridge_player_source_id',\n  'fact_game',\n  'fact_player_game_stats',\n  'fact_team_game_stats',",
+              "truncated": false,
+              "loaded": []
+            },
+            "title": "src\\chatbot\\systemPrompt.ts",
+            "time": {
+              "start": 1779414167962,
+              "end": 1779414168124
+            }
+          },
+          "id": "prt_e4d5970b10016Fa5d2Pkin27AZ",
+          "sessionID": "ses_1b2a69cdeffelkb4mAul2PvDb8",
+          "messageID": "msg_e4d59651f001er7g5X2qJPZbGP"
+        },
+        {
+          "type": "tool",
+          "tool": "read",
+          "callID": "call_04_dUUkEpnXAbQ6KS6fg5D24491",
+          "state": {
+            "status": "completed",
+            "input": {
+              "filePath": "C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\agent\\model.ts"
+            },
+            "output": "<path>C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\agent\\model.ts</path>\n<type>file</type>\n<content>\n1: import { ChatOpenAI } from '@langchain/openai';\n2: import { getModel } from '../openrouter.js';\n3: \n4: export function createModel(): ChatOpenAI {\n5:   return new ChatOpenAI({\n6:     model: getModel(),\n7:     apiKey: process.env['OPENROUTER_API_KEY'] || 'sk-or-v1-missing',\n8:     configuration: {\n9:       baseURL: 'https://openrouter.ai/api/v1',\n10:       defaultHeaders: {\n11:         'HTTP-Referer': 'https://github.com/anomalyco/bballgenius',\n12:         'X-Title': 'BBallGenius Chatbot',\n13:       },\n14:     },\n15:     temperature: 0.3,\n16:     timeout: 120_000,\n17:     modelKwargs: { parallel_tool_calls: true },\n18:   });\n19: }\n\n(End of file - total 19 lines)\n</content>",
+            "metadata": {
+              "preview": "import { ChatOpenAI } from '@langchain/openai';\nimport { getModel } from '../openrouter.js';\n\nexport function createModel(): ChatOpenAI {\n  return new ChatOpenAI({\n    model: getModel(),\n    apiKey: process.env['OPENROUTER_API_KEY'] || 'sk-or-v1-missing',\n    configuration: {\n      baseURL: 'https://openrouter.ai/api/v1',\n      defaultHeaders: {\n        'HTTP-Referer': 'https://github.com/anomalyco/bballgenius',\n        'X-Title': 'BBallGenius Chatbot',\n      },\n    },\n    temperature: 0.3,\n    timeout: 120_000,\n    modelKwargs: { parallel_tool_calls: true },\n  });\n}",
+              "truncated": false,
+              "loaded": []
+            },
+            "title": "src\\chatbot\\agent\\model.ts",
+            "time": {
+              "start": 1779414168210,
+              "end": 1779414168238
+            }
+          },
+          "id": "prt_e4d5971cb00116QDeZgPIUFEE3",
+          "sessionID": "ses_1b2a69cdeffelkb4mAul2PvDb8",
+          "messageID": "msg_e4d59651f001er7g5X2qJPZbGP"
+        },
+        {
+          "type": "tool",
+          "tool": "read",
+          "callID": "call_05_pctwuqwj6kkYR3HQ5Em92270",
+          "state": {
+            "status": "completed",
+            "input": {
+              "filePath": "C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\utils\\retry.ts"
+            },
+            "output": "<path>C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\utils\\retry.ts</path>\n<type>file</type>\n<content>\n1: export interface RetryOptions {\n2:   maxAttempts?: number;\n3:   baseDelayMs?: number;\n4:   maxDelayMs?: number;\n5: }\n6: \n7: export type ErrorCategory = 'transient' | 'schema' | 'syntax' | 'permanent';\n8: \n9: const DEFAULT_OPTIONS: Required<RetryOptions> = {\n10:   maxAttempts: 3,\n11:   baseDelayMs: 1000,\n12:   maxDelayMs: 10000,\n13: };\n14: \n15: export const ERROR_PREFIX = {\n16:   SQL_ERROR: 'SQL Error:' as const,\n17:   SCHEMA_ERROR: 'Schema error:' as const,\n18:   SYNTAX_ERROR: 'SQL syntax error:' as const,\n19:   TRANSIENT_ERROR: 'Transient error:' as const,\n20:   SCHEMA_VALIDATION_FAILED: 'Schema validation failed:' as const,\n21: };\n22: \n23: const TRANSIENT_KEYWORDS = ['timeout', 'connection', 'lock', 'conflict', 'busy'];\n24: const SCHEMA_KEYWORDS = [\n25:   'does not exist',\n26:   'no such table',\n27:   'no such column',\n28:   'not found in schema',\n29:   'ambiguous column',\n30: ];\n31: const SYNTAX_KEYWORDS = ['syntax error', 'parse error', 'parser error'];\n32: \n33: export function categorizeDbError(err: unknown): ErrorCategory {\n34:   if (!(err instanceof Error)) return 'permanent';\n35:   const msg = err.message.toLowerCase();\n36: \n37:   if (msg.includes('rate') && msg.includes('limit')) return 'transient';\n38:   if (TRANSIENT_KEYWORDS.some((k) => msg.includes(k))) return 'transient';\n39:   if (SCHEMA_KEYWORDS.some((k) => msg.includes(k))) return 'schema';\n40:   if (SYNTAX_KEYWORDS.some((k) => msg.includes(k))) return 'syntax';\n41: \n42:   return 'permanent';\n43: }\n44: \n45: export function isRetryableError(err: unknown): boolean {\n46:   if (err instanceof Error) {\n47:     const msg = err.message.toLowerCase();\n48:     if (msg.includes('rate') && msg.includes('limit')) return true;\n49:     if (msg.includes('timeout')) return true;\n50:     if (msg.includes('econnrefused')) return true;\n51:     if (msg.includes('econnreset')) return true;\n52:     if (msg.includes('network')) return true;\n53:   }\n54:   return false;\n55: }\n56: \n57: export function formatErrorForUser(err: unknown): string {\n58:   if (!(err instanceof Error)) return String(err);\n59:   const msg = err.message.toLowerCase();\n60:   if (msg.includes('rate') && msg.includes('limit')) {\n61:     return 'Rate limited. Please wait and try again.';\n62:   }\n63:   if (msg.includes('timeout')) {\n64:     return 'Request timed out. Try a simpler question.';\n65:   }\n66:   if (msg.includes('econnrefused') || msg.includes('network') || msg.includes('fetch')) {\n67:     return 'Network error. Check your connection.';\n68:   }\n69:   return err.message;\n70: }\n71: \n72: export function formatErrorForLLM(err: unknown): string {\n73:   if (!(err instanceof Error)) return String(err);\n74:   const category = categorizeDbError(err);\n75: \n76:   switch (category) {\n77:     case 'schema':\n78:       return `${ERROR_PREFIX.SCHEMA_ERROR} ${err.message}. Check table/column names and try a corrected query.`;\n79:     case 'syntax':\n80:       return `${ERROR_PREFIX.SYNTAX_ERROR} ${err.message}. Fix the SQL syntax and try again.`;\n81:     case 'transient':\n82:       return `${ERROR_PREFIX.TRANSIENT_ERROR} ${err.message}. The query may succeed on retry.`;\n83:     default:\n84:       return `${ERROR_PREFIX.SQL_ERROR} ${err.message}`;\n85:   }\n86: }\n87: \n88: export async function withRetry<T>(fn: () => Promise<T>, options?: RetryOptions): Promise<T> {\n89:   const opts = { ...DEFAULT_OPTIONS, ...options };\n90:   let lastError: unknown;\n91: \n92:   for (let attempt = 1; attempt <= opts.maxAttempts; attempt++) {\n93:     try {\n94:       return await fn();\n95:     } catch (err) {\n96:       lastError = err;\n97:       if (attempt < opts.maxAttempts && isRetryableError(err)) {\n98:         const delay = Math.min(opts.baseDelayMs * 2 ** (attempt - 1), opts.maxDelayMs);\n99:         await new Promise((resolve) => setTimeout(resolve, delay));\n100:       } else {\n101:         throw err;\n102:       }\n103:     }\n104:   }\n105: \n106:   throw lastError;\n107: }\n\n(End of file - total 107 lines)\n</content>",
+            "metadata": {
+              "preview": "export interface RetryOptions {\n  maxAttempts?: number;\n  baseDelayMs?: number;\n  maxDelayMs?: number;\n}\n\nexport type ErrorCategory = 'transient' | 'schema' | 'syntax' | 'permanent';\n\nconst DEFAULT_OPTIONS: Required<RetryOptions> = {\n  maxAttempts: 3,\n  baseDelayMs: 1000,\n  maxDelayMs: 10000,\n};\n\nexport const ERROR_PREFIX = {\n  SQL_ERROR: 'SQL Error:' as const,\n  SCHEMA_ERROR: 'Schema error:' as const,\n  SYNTAX_ERROR: 'SQL syntax error:' as const,\n  TRANSIENT_ERROR: 'Transient error:' as const,\n  SCHEMA_VALIDATION_FAILED: 'Schema validation failed:' as const,",
+              "truncated": false,
+              "loaded": []
+            },
+            "title": "src\\chatbot\\utils\\retry.ts",
+            "time": {
+              "start": 1779414168454,
+              "end": 1779414168467
+            }
+          },
+          "id": "prt_e4d5972bb001vqK70bZNnQfOEM",
+          "sessionID": "ses_1b2a69cdeffelkb4mAul2PvDb8",
+          "messageID": "msg_e4d59651f001er7g5X2qJPZbGP"
+        },
+        {
+          "type": "tool",
+          "tool": "read",
+          "callID": "call_06_dxig4XNCUb0S2gnNWMNR4834",
+          "state": {
+            "status": "completed",
+            "input": {
+              "filePath": "C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\utils\\sql.ts"
+            },
+            "output": "<path>C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\utils\\sql.ts</path>\n<type>file</type>\n<content>\n1: import { getTables, query } from '../db.js';\n2: import { ERROR_PREFIX, formatErrorForLLM, withRetry } from './retry.js';\n3: \n4: const BLOCKED_SQL_PATTERNS = [\n5:   /\\b(insert|update|delete|merge|create|drop|alter|truncate|attach|detach)\\b/i,\n6:   /\\b(copy|load|install|set|call|pragma|vacuum|checkpoint|export|import)\\b/i,\n7:   /\\b(read_csv|read_json|read_parquet|read_text|glob|httpfs)\\s*\\(/i,\n8: ];\n9: \n10: function stripSqlComments(sql: string): string {\n11:   return sql\n12:     .replace(/--.*$/gm, '')\n13:     .replace(/\\/\\*[\\s\\S]*?\\*\\//g, '')\n14:     .trim();\n15: }\n16: \n17: export function validateReadOnlySql(sql: string): string | null {\n18:   const stripped = stripSqlComments(sql).replace(/;\\s*$/, '').trim();\n19:   if (!stripped) {\n20:     return 'SQL is empty.';\n21:   }\n22:   if (stripped.includes(';')) {\n23:     return 'Only one SQL statement is allowed.';\n24:   }\n25:   if (!/^(select|with|describe)\\b/i.test(stripped)) {\n26:     return 'Only read-only SELECT, WITH, or DESCRIBE statements are allowed.';\n27:   }\n28:   for (const pattern of BLOCKED_SQL_PATTERNS) {\n29:     if (pattern.test(stripped)) {\n30:       return 'SQL contains a blocked statement or external-access function.';\n31:     }\n32:   }\n33:   return null;\n34: }\n35: \n36: export function extractSql(text: string): string | null {\n37:   const match = text.match(/```sql\\n([\\s\\S]*?)```/);\n38:   if (match) {\n39:     return (match[1] ?? '').trim();\n40:   }\n41: \n42:   const cleaned = text\n43:     .replace(/<\\|(?:channel|message|start|end|call)\\|>/g, '\\n')\n44:     .replace(/to=(?:container\\.exec|repo_browser|duckdb|[^\\s]+)/g, ' ');\n45:   const fallback = cleaned.match(/\\b(select|with|describe)\\b[\\s\\S]*?(?:;|\\n\\s*\\n|$)/i);\n46:   if (!fallback) {\n47:     return null;\n48:   }\n49: \n50:   return fallback[0].replace(/;\\s*$/, '').trim();\n51: }\n52: \n53: export function extractSqlFromMarkdown(text: string): string[] {\n54:   const regex = /```sql\\n([\\s\\S]*?)```/g;\n55:   const blocks: string[] = [];\n56:   let match: RegExpExecArray | null;\n57:   while ((match = regex.exec(text)) !== null) {\n58:     blocks.push((match[1] ?? '').trim());\n59:   }\n60:   return blocks;\n61: }\n62: \n63: function extractTableRefs(sql: string): string[] {\n64:   const refs = new Set<string>();\n65:   const fromRegex = /\\bFROM\\s+([a-z_][a-z0-9_]*(?:\\s*\\.\\s*[a-z_][a-z0-9_]*)?)/gi;\n66:   const joinRegex = /\\bJOIN\\s+([a-z_][a-z0-9_]*(?:\\s*\\.\\s*[a-z_][a-z0-9_]*)?)/gi;\n67: \n68:   for (const regex of [fromRegex, joinRegex]) {\n69:     let match: RegExpExecArray | null;\n70:     while ((match = regex.exec(sql)) !== null) {\n71:       const ref = match[1];\n72:       if (ref) {\n73:         refs.add(ref.toLowerCase().replace(/\\s+/g, ''));\n74:       }\n75:     }\n76:   }\n77:   return [...refs];\n78: }\n79: \n80: export interface SchemaValidationError {\n81:   type: 'missing_table' | 'missing_column';\n82:   message: string;\n83: }\n84: \n85: const SCHEMA_VALIDATION_TABLE_LIMIT = 5;\n86: \n87: export async function validateSchemaReferences(sql: string): Promise<SchemaValidationError[]> {\n88:   const errors: SchemaValidationError[] = [];\n89:   const tableRefs = extractTableRefs(sql);\n90: \n91:   if (tableRefs.length === 0) return errors;\n92:   if (tableRefs.length > SCHEMA_VALIDATION_TABLE_LIMIT) return errors;\n93: \n94:   const existingTables = new Set((await getTables()).map((t) => t.toLowerCase()));\n95: \n96:   for (const ref of tableRefs) {\n97:     if (!existingTables.has(ref) && !existingTables.has(`main.${ref}`)) {\n98:       errors.push({\n99:         type: 'missing_table',\n100:         message: `Table \"${ref}\" does not exist in the database.`,\n101:       });\n102:     }\n103:   }\n104: \n105:   return errors;\n106: }\n107: \n108: function formatSchemaErrors(errors: SchemaValidationError[]): string {\n109:   const lines = errors.map((e) => `- ${e.message}`);\n110:   return `${ERROR_PREFIX.SCHEMA_VALIDATION_FAILED}\\n${lines.join('\\n')}\\nPlease check table names and try again.`;\n111: }\n112: \n113: export async function checkSql(sql: string): Promise<string> {\n114:   const validationError = validateReadOnlySql(sql);\n115:   if (validationError) {\n116:     return `${ERROR_PREFIX.SQL_ERROR} ${validationError}`;\n117:   }\n118: \n119:   const schemaErrors = await validateSchemaReferences(sql);\n120:   if (schemaErrors.length > 0) {\n121:     return formatSchemaErrors(schemaErrors);\n122:   }\n123: \n124:   return 'OK: SQL passed read-only safety and schema checks.';\n125: }\n126: \n127: export async function executeSql(sql: string): Promise<string> {\n128:   const checkResult = await checkSql(sql);\n129:   if (containsErrorPrefix(checkResult)) {\n130:     return checkResult;\n131:   }\n132: \n133:   try {\n134:     const results = await withRetry(() => query(sql), {\n135:       maxAttempts: 2,\n136:       baseDelayMs: 500,\n137:       maxDelayMs: 2000,\n138:     });\n139:     if (results.length === 0) {\n140:       return 'Query returned no results.';\n141:     }\n142:     return formatResultsPretty(results);\n143:   } catch (err) {\n144:     return formatErrorForLLM(err);\n145:   }\n146: }\n147: \n148: function containsErrorPrefix(content: string): boolean {\n149:   return Object.values(ERROR_PREFIX).some((prefix) => content.startsWith(prefix));\n150: }\n151: \n152: export function formatResultsPretty(results: Record<string, unknown>[]): string {\n153:   if (results.length === 0) {\n154:     return 'Query returned no results.';\n155:   }\n156:   const headers = Object.keys(results[0]!);\n157:   const maxRows = 20;\n158:   const showing =\n159:     results.length > maxRows ? `Rows: ${results.length} (showing first ${maxRows})\\n` : '';\n160:   const lines: string[] = [];\n161:   lines.push(headers.join(' | '));\n162:   lines.push(headers.map(() => '---').join(' | '));\n163:   const rows = results.slice(0, maxRows);\n164:   for (const row of rows) {\n165:     const vals = headers.map((h) => {\n166:       const v = row[h];\n167:       return v === null || v === undefined ? '' : String(v);\n168:     });\n169:     lines.push(vals.join(' | '));\n170:   }\n171:   const body = lines.join('\\n');\n172:   return showing ? showing + body : body;\n173: }\n\n(End of file - total 173 lines)\n</content>",
+            "metadata": {
+              "preview": "import { getTables, query } from '../db.js';\nimport { ERROR_PREFIX, formatErrorForLLM, withRetry } from './retry.js';\n\nconst BLOCKED_SQL_PATTERNS = [\n  /\\b(insert|update|delete|merge|create|drop|alter|truncate|attach|detach)\\b/i,\n  /\\b(copy|load|install|set|call|pragma|vacuum|checkpoint|export|import)\\b/i,\n  /\\b(read_csv|read_json|read_parquet|read_text|glob|httpfs)\\s*\\(/i,\n];\n\nfunction stripSqlComments(sql: string): string {\n  return sql\n    .replace(/--.*$/gm, '')\n    .replace(/\\/\\*[\\s\\S]*?\\*\\//g, '')\n    .trim();\n}\n\nexport function validateReadOnlySql(sql: string): string | null {\n  const stripped = stripSqlComments(sql).replace(/;\\s*$/, '').trim();\n  if (!stripped) {\n    return 'SQL is empty.';",
+              "truncated": false,
+              "loaded": []
+            },
+            "title": "src\\chatbot\\utils\\sql.ts",
+            "time": {
+              "start": 1779414168718,
+              "end": 1779414168738
+            }
+          },
+          "id": "prt_e4d5973c8001G7otWitQcHqjpS",
+          "sessionID": "ses_1b2a69cdeffelkb4mAul2PvDb8",
+          "messageID": "msg_e4d59651f001er7g5X2qJPZbGP"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "dd4d6a133575de101809d9815deaa483b32dd862",
+          "type": "step-finish",
+          "tokens": {
+            "total": 27127,
+            "input": 26684,
+            "output": 417,
+            "reasoning": 26,
+            "cache": {
+              "write": 0,
+              "read": 0
+            }
+          },
+          "cost": 0.0038598,
+          "id": "prt_e4d597570001Uo1q4itGvDlvyB",
+          "sessionID": "ses_1b2a69cdeffelkb4mAul2PvDb8",
+          "messageID": "msg_e4d59651f001er7g5X2qJPZbGP"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_e4d5963320016IICnYN6cOpxLt",
+        "role": "assistant",
+        "mode": "scout",
+        "agent": "scout",
+        "path": {
+          "cwd": "C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius",
+          "root": "C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius"
+        },
+        "cost": 0.0022291024,
+        "tokens": {
+          "total": 42129,
+          "input": 14860,
+          "output": 240,
+          "reasoning": 21,
+          "cache": {
+            "write": 0,
+            "read": 27008
+          }
+        },
+        "modelID": "deepseek-v4-flash",
+        "providerID": "opencode-go",
+        "time": {
+          "created": 1779414169078,
+          "completed": 1779414172503
+        },
+        "finish": "tool-calls",
+        "id": "msg_e4d5975f600123JmPlmblZNwBW",
+        "sessionID": "ses_1b2a69cdeffelkb4mAul2PvDb8"
+      },
+      "parts": [
+        {
+          "snapshot": "dd4d6a133575de101809d9815deaa483b32dd862",
+          "type": "step-start",
+          "id": "prt_e4d597a4e001yPcqURWEuBDnEs",
+          "sessionID": "ses_1b2a69cdeffelkb4mAul2PvDb8",
+          "messageID": "msg_e4d5975f600123JmPlmblZNwBW"
+        },
+        {
+          "type": "reasoning",
+          "text": "Now let me read the remaining files: streaming.ts, db.ts, and the toolNames.ts file.",
+          "time": {
+            "start": 1779414170788,
+            "end": 1779414171000
+          },
+          "id": "prt_e4d597ca400130V2v94nk7Jgl2",
+          "sessionID": "ses_1b2a69cdeffelkb4mAul2PvDb8",
+          "messageID": "msg_e4d5975f600123JmPlmblZNwBW"
+        },
+        {
+          "type": "text",
+          "text": "Now let me read the remaining files:",
+          "time": {
+            "start": 1779414171003,
+            "end": 1779414172266
+          },
+          "id": "prt_e4d597d7b001EynwFwviEOhTo0",
+          "sessionID": "ses_1b2a69cdeffelkb4mAul2PvDb8",
+          "messageID": "msg_e4d5975f600123JmPlmblZNwBW"
+        },
+        {
+          "type": "tool",
+          "tool": "read",
+          "callID": "call_00_jOgXfwvtITC7Dwi23Fgh3350",
+          "state": {
+            "status": "completed",
+            "input": {
+              "filePath": "C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\agent\\streaming.ts"
+            },
+            "output": "<path>C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\agent\\streaming.ts</path>\n<type>file</type>\n<content>\n1: import type { BaseMessage } from '@langchain/core/messages';\n2: import { getModel } from '../openrouter.js';\n3: import { getChatbotGraph } from './graph.js';\n4: import type { ChatbotStateType } from './state.js';\n5: \n6: export interface TokenUsage {\n7:   inputTokens: number;\n8:   outputTokens: number;\n9: }\n10: \n11: export type ChainStageName = 'classify_intent' | 'llm' | 'tools' | 'sql_critic';\n12: \n13: export type StreamEvent =\n14:   | { type: 'token'; content: string }\n15:   | { type: 'tool_start'; name: string; input: Record<string, unknown>; runId: string }\n16:   | { type: 'tool_end'; name: string; output: string; runId: string }\n17:   | { type: 'tool_error'; name: string; error: string }\n18:   | { type: 'chain_stage'; stage: ChainStageName }\n19:   | { type: 'usage'; usage: TokenUsage }\n20:   | { type: 'done'; messages: BaseMessage[] }\n21:   | { type: 'error'; message: string };\n22: \n23: export async function* streamQuery(\n24:   input: BaseMessage[],\n25:   threadId: string,\n26: ): AsyncGenerator<StreamEvent, void, undefined> {\n27:   const graph = getChatbotGraph();\n28:   const config = {\n29:     configurable: { thread_id: threadId },\n30:     metadata: { app: 'bballgenius-chatbot', model: getModel() },\n31:   };\n32: \n33:   try {\n34:     const stream = await graph.streamEvents(\n35:       { messages: input },\n36:       { version: 'v2', configurable: { thread_id: threadId }, metadata: config.metadata, recursionLimit: 50 },\n37:     );\n38: \n39:     const activeTools = new Map<string, string>();\n40: \n41:     const GRAPH_NODE_NAMES = new Set<string>(['classify_intent', 'llm', 'tools', 'sql_critic']);\n42: \n43:     for await (const event of stream) {\n44:       if (event.event === 'on_chain_start' && GRAPH_NODE_NAMES.has(event.name)) {\n45:         yield { type: 'chain_stage', stage: event.name as ChainStageName };\n46:       }\n47: \n48:       if (event.event === 'on_chat_model_stream') {\n49:         const chunk = event.data?.chunk;\n50:         if (chunk?.content) {\n51:           const content =\n52:             typeof chunk.content === 'string'\n53:               ? chunk.content\n54:               : Array.isArray(chunk.content)\n55:                 ? chunk.content.map((c: { text?: string }) => c.text || '').join('')\n56:                 : '';\n57:           if (content) {\n58:             yield { type: 'token', content };\n59:           }\n60:         }\n61:       }\n62: \n63:       if (event.event === 'on_tool_start') {\n64:         const toolName = event.name || 'unknown';\n65:         activeTools.set(event.run_id, toolName);\n66:         yield {\n67:           type: 'tool_start',\n68:           name: toolName,\n69:           input: (event.data?.input || {}) as Record<string, unknown>,\n70:           runId: event.run_id,\n71:         };\n72:       }\n73: \n74:       if (event.event === 'on_tool_end') {\n75:         const toolName = activeTools.get(event.run_id) || event.name || 'unknown';\n76:         activeTools.delete(event.run_id);\n77:         const output =\n78:           typeof event.data?.output === 'string'\n79:             ? event.data.output\n80:             : JSON.stringify(event.data?.output || '');\n81:         yield { type: 'tool_end', name: toolName, output, runId: event.run_id };\n82:       }\n83: \n84:       if (event.event === 'on_tool_error') {\n85:         yield {\n86:           type: 'tool_error',\n87:           name: event.name || 'unknown',\n88:           error: String(event.data?.error || 'Unknown tool error'),\n89:         };\n90:       }\n91: \n92:       if (event.event === 'on_chat_model_end') {\n93:         const output = event.data?.output;\n94:         const usageMeta = (output as Record<string, unknown>)?.['usage_metadata'] as\n95:           | { input_tokens: number; output_tokens: number }\n96:           | undefined;\n97:         if (usageMeta) {\n98:           yield {\n99:             type: 'usage',\n100:             usage: {\n101:               inputTokens: usageMeta.input_tokens,\n102:               outputTokens: usageMeta.output_tokens,\n103:             },\n104:           };\n105:         }\n106:       }\n107:     }\n108: \n109:     const state = await graph.getState(config);\n110:     const messages = (state.values as ChatbotStateType)?.messages ?? [];\n111:     yield { type: 'done', messages };\n112:   } catch (err) {\n113:     yield {\n114:       type: 'error',\n115:       message: err instanceof Error ? err.message : String(err),\n116:     };\n117:   }\n118: }\n\n(End of file - total 118 lines)\n</content>",
+            "metadata": {
+              "preview": "import type { BaseMessage } from '@langchain/core/messages';\nimport { getModel } from '../openrouter.js';\nimport { getChatbotGraph } from './graph.js';\nimport type { ChatbotStateType } from './state.js';\n\nexport interface TokenUsage {\n  inputTokens: number;\n  outputTokens: number;\n}\n\nexport type ChainStageName = 'classify_intent' | 'llm' | 'tools' | 'sql_critic';\n\nexport type StreamEvent =\n  | { type: 'token'; content: string }\n  | { type: 'tool_start'; name: string; input: Record<string, unknown>; runId: string }\n  | { type: 'tool_end'; name: string; output: string; runId: string }\n  | { type: 'tool_error'; name: string; error: string }\n  | { type: 'chain_stage'; stage: ChainStageName }\n  | { type: 'usage'; usage: TokenUsage }\n  | { type: 'done'; messages: BaseMessage[] }",
+              "truncated": false,
+              "loaded": []
+            },
+            "title": "src\\chatbot\\agent\\streaming.ts",
+            "time": {
+              "start": 1779414171319,
+              "end": 1779414171335
+            }
+          },
+          "id": "prt_e4d597dcb00186UXSFvuRi7EnU",
+          "sessionID": "ses_1b2a69cdeffelkb4mAul2PvDb8",
+          "messageID": "msg_e4d5975f600123JmPlmblZNwBW"
+        },
+        {
+          "type": "tool",
+          "tool": "read",
+          "callID": "call_01_ruZ0jqL0JkAPYNQQJSov9016",
+          "state": {
+            "status": "completed",
+            "input": {
+              "filePath": "C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\db.ts"
+            },
+            "output": "<path>C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\db.ts</path>\n<type>file</type>\n<content>\n1: import type { DuckDBConnection, DuckDBValue } from '@duckdb/node-api';\n2: import { DuckDBInstance } from '@duckdb/node-api';\n3: \n4: import { resolveDbPath } from '../shared/dbPath.js';\n5: \n6: export { resolveDbPath };\n7: \n8: export type DbRow = Record<string, unknown>;\n9: export type SqlParam = DuckDBValue;\n10: \n11: let instance: DuckDBInstance | null = null;\n12: let connection: DuckDBConnection | null = null;\n13: \n14: export async function initDb(): Promise<DuckDBConnection> {\n15:   if (!connection) {\n16:     const dbPath = resolveDbPath();\n17:     instance = await DuckDBInstance.fromCache(dbPath);\n18:     connection = await instance.connect();\n19:   }\n20:   return connection;\n21: }\n22: \n23: export async function query<T = DbRow>(sql: string, params?: SqlParam[]): Promise<T[]> {\n24:   const conn = await initDb();\n25:   if (params && params.length > 0) {\n26:     const reader = await conn.runAndReadAll(sql, params);\n27:     return reader.getRowObjectsJson() as T[];\n28:   }\n29:   const reader = await conn.runAndReadAll(sql);\n30:   return reader.getRowObjectsJson() as T[];\n31: }\n32: \n33: interface TableNameRow {\n34:   table_schema: string;\n35:   table_name: string;\n36:   table_type: string;\n37: }\n38: \n39: interface ColumnMetaRow {\n40:   column_name: string;\n41:   data_type: string;\n42: }\n43: \n44: export interface TableRef {\n45:   schema: string;\n46:   name: string;\n47:   type: string;\n48:   qualifiedName: string;\n49: }\n50: \n51: const SYSTEM_SCHEMAS = new Set(['information_schema', 'pg_catalog']);\n52: \n53: function qualifyTableName(schema: string, table: string): string {\n54:   return schema === 'main' ? table : `${schema}.${table}`;\n55: }\n56: \n57: export async function getTables(): Promise<string[]> {\n58:   const tables = await getTableRefs();\n59:   return tables.map((table) => table.qualifiedName);\n60: }\n61: \n62: export async function getTableRefs(): Promise<TableRef[]> {\n63:   const rows = await query<TableNameRow>(\n64:     `SELECT table_schema, table_name, table_type\n65:      FROM information_schema.tables\n66:      WHERE table_schema NOT IN ('information_schema', 'pg_catalog')\n67:      ORDER BY table_schema, table_name`,\n68:   );\n69:   return rows\n70:     .filter((r) => !SYSTEM_SCHEMAS.has(r.table_schema))\n71:     .map((r) => ({\n72:       schema: r.table_schema,\n73:       name: r.table_name,\n74:       type: r.table_type,\n75:       qualifiedName: qualifyTableName(r.table_schema, r.table_name),\n76:     }));\n77: }\n78: \n79: export async function getColumns(table: string): Promise<{ name: string; type: string }[]> {\n80:   const parts = table.includes('.') ? table.split('.', 2) : ['main', table];\n81:   const schemaName = parts[0] ?? 'main';\n82:   const tableName = parts[1] ?? table;\n83:   const rows = await query<ColumnMetaRow>(\n84:     'SELECT column_name, data_type FROM information_schema.columns WHERE table_schema = $1 AND table_name = $2 ORDER BY ordinal_position',\n85:     [schemaName, tableName],\n86:   );\n87:   return rows.map((r) => ({\n88:     name: r.column_name,\n89:     type: r.data_type,\n90:   }));\n91: }\n92: \n93: export async function closeDb() {\n94:   if (connection) {\n95:     connection.disconnectSync();\n96:     connection = null;\n97:   }\n98:   instance = null;\n99: }\n\n(End of file - total 99 lines)\n</content>",
+            "metadata": {
+              "preview": "import type { DuckDBConnection, DuckDBValue } from '@duckdb/node-api';\nimport { DuckDBInstance } from '@duckdb/node-api';\n\nimport { resolveDbPath } from '../shared/dbPath.js';\n\nexport { resolveDbPath };\n\nexport type DbRow = Record<string, unknown>;\nexport type SqlParam = DuckDBValue;\n\nlet instance: DuckDBInstance | null = null;\nlet connection: DuckDBConnection | null = null;\n\nexport async function initDb(): Promise<DuckDBConnection> {\n  if (!connection) {\n    const dbPath = resolveDbPath();\n    instance = await DuckDBInstance.fromCache(dbPath);\n    connection = await instance.connect();\n  }\n  return connection;",
+              "truncated": false,
+              "loaded": []
+            },
+            "title": "src\\chatbot\\db.ts",
+            "time": {
+              "start": 1779414171579,
+              "end": 1779414171594
+            }
+          },
+          "id": "prt_e4d597eec001t95BFpd6stqqXA",
+          "sessionID": "ses_1b2a69cdeffelkb4mAul2PvDb8",
+          "messageID": "msg_e4d5975f600123JmPlmblZNwBW"
+        },
+        {
+          "type": "tool",
+          "tool": "read",
+          "callID": "call_02_kwypdZlTScIokEysCqTb8154",
+          "state": {
+            "status": "completed",
+            "input": {
+              "filePath": "C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\agent\\toolNames.ts"
+            },
+            "output": "<path>C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\agent\\toolNames.ts</path>\n<type>file</type>\n<content>\n1: export const TOOL_QUERY_NBA_DB = 'query_nba_db';\n2: export const TOOL_CHECK_NBA_SQL = 'check_nba_sql';\n3: export const TOOL_GET_SCHEMA_INFO = 'get_schema_info';\n4: export const TOOL_LIST_NBA_TABLES = 'list_nba_tables';\n\n(End of file - total 4 lines)\n</content>",
+            "metadata": {
+              "preview": "export const TOOL_QUERY_NBA_DB = 'query_nba_db';\nexport const TOOL_CHECK_NBA_SQL = 'check_nba_sql';\nexport const TOOL_GET_SCHEMA_INFO = 'get_schema_info';\nexport const TOOL_LIST_NBA_TABLES = 'list_nba_tables';",
+              "truncated": false,
+              "loaded": []
+            },
+            "title": "src\\chatbot\\agent\\toolNames.ts",
+            "time": {
+              "start": 1779414171971,
+              "end": 1779414171992
+            }
+          },
+          "id": "prt_e4d598002001bqsxunrLmfQBda",
+          "sessionID": "ses_1b2a69cdeffelkb4mAul2PvDb8",
+          "messageID": "msg_e4d5975f600123JmPlmblZNwBW"
+        },
+        {
+          "type": "tool",
+          "tool": "read",
+          "callID": "call_03_bf7odOBAdIpINlLwDofa4974",
+          "state": {
+            "status": "completed",
+            "input": {
+              "filePath": "C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\openrouter.ts"
+            },
+            "output": "<path>C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\openrouter.ts</path>\n<type>file</type>\n<content>\n1: export interface ModelInfo {\n2:   id: string;\n3:   name: string;\n4: }\n5: \n6: let currentModel = process.env['MODEL'] || 'openai/gpt-oss-120b';\n7: \n8: export function getModel(): string {\n9:   return currentModel;\n10: }\n11: \n12: export function setModel(id: string): void {\n13:   currentModel = id;\n14: }\n15: \n16: export async function fetchModels(): Promise<ModelInfo[]> {\n17:   const apiKey = process.env['OPENROUTER_API_KEY'];\n18:   if (!apiKey) return [];\n19:   const res = await fetch('https://openrouter.ai/api/v1/models', {\n20:     headers: { Authorization: `Bearer ${apiKey}` },\n21:   });\n22:   if (!res.ok) return [];\n23:   const data = (await res.json()) as { data?: { id: string; name: string }[] };\n24:   return (data.data || [])\n25:     .map((m) => ({ id: m.id, name: m.name || m.id }))\n26:     .sort((a, b) => a.id.localeCompare(b.id));\n27: }\n\n(End of file - total 27 lines)\n</content>",
+            "metadata": {
+              "preview": "export interface ModelInfo {\n  id: string;\n  name: string;\n}\n\nlet currentModel = process.env['MODEL'] || 'openai/gpt-oss-120b';\n\nexport function getModel(): string {\n  return currentModel;\n}\n\nexport function setModel(id: string): void {\n  currentModel = id;\n}\n\nexport async function fetchModels(): Promise<ModelInfo[]> {\n  const apiKey = process.env['OPENROUTER_API_KEY'];\n  if (!apiKey) return [];\n  const res = await fetch('https://openrouter.ai/api/v1/models', {\n    headers: { Authorization: `Bearer ${apiKey}` },",
+              "truncated": false,
+              "loaded": []
+            },
+            "title": "src\\chatbot\\openrouter.ts",
+            "time": {
+              "start": 1779414172223,
+              "end": 1779414172237
+            }
+          },
+          "id": "prt_e4d5981460010OpUX38YLqGUll",
+          "sessionID": "ses_1b2a69cdeffelkb4mAul2PvDb8",
+          "messageID": "msg_e4d5975f600123JmPlmblZNwBW"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "dd4d6a133575de101809d9815deaa483b32dd862",
+          "type": "step-finish",
+          "tokens": {
+            "total": 42129,
+            "input": 14860,
+            "output": 240,
+            "reasoning": 21,
+            "cache": {
+              "write": 0,
+              "read": 27008
+            }
+          },
+          "cost": 0.0022291024,
+          "id": "prt_e4d5982eb001cC5CrV4X44NP2s",
+          "sessionID": "ses_1b2a69cdeffelkb4mAul2PvDb8",
+          "messageID": "msg_e4d5975f600123JmPlmblZNwBW"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_e4d5963320016IICnYN6cOpxLt",
+        "role": "assistant",
+        "mode": "scout",
+        "agent": "scout",
+        "path": {
+          "cwd": "C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius",
+          "root": "C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius"
+        },
+        "cost": 0.0005619936,
+        "tokens": {
+          "total": 45087,
+          "input": 2778,
+          "output": 156,
+          "reasoning": 41,
+          "cache": {
+            "write": 0,
+            "read": 42112
+          }
+        },
+        "modelID": "deepseek-v4-flash",
+        "providerID": "opencode-go",
+        "time": {
+          "created": 1779414172509,
+          "completed": 1779414175971
+        },
+        "finish": "tool-calls",
+        "id": "msg_e4d59835d001DsavYQyABljbf6",
+        "sessionID": "ses_1b2a69cdeffelkb4mAul2PvDb8"
+      },
+      "parts": [
+        {
+          "snapshot": "dd4d6a133575de101809d9815deaa483b32dd862",
+          "type": "step-start",
+          "id": "prt_e4d598863001lxDYcTLkUBYiUZ",
+          "sessionID": "ses_1b2a69cdeffelkb4mAul2PvDb8",
+          "messageID": "msg_e4d59835d001DsavYQyABljbf6"
+        },
+        {
+          "type": "reasoning",
+          "text": "Now I have a complete picture of the chatbot architecture. Let me also quickly look at the chatApp.ts to understand how streaming events are handled and how state is managed, and the tests for further understanding.",
+          "time": {
+            "start": 1779414174365,
+            "end": 1779414174818
+          },
+          "id": "prt_e4d598a9d001LXDsqctPfam0kt",
+          "sessionID": "ses_1b2a69cdeffelkb4mAul2PvDb8",
+          "messageID": "msg_e4d59835d001DsavYQyABljbf6"
+        },
+        {
+          "type": "text",
+          "text": "Let me also check the chat app and tests to understand how state flows through the UI:",
+          "time": {
+            "start": 1779414174820,
+            "end": 1779414175732
+          },
+          "id": "prt_e4d598c64001FToTSvFKu1dRdx",
+          "sessionID": "ses_1b2a69cdeffelkb4mAul2PvDb8",
+          "messageID": "msg_e4d59835d001DsavYQyABljbf6"
+        },
+        {
+          "type": "tool",
+          "tool": "read",
+          "callID": "call_00_uttrvl5WE8bBwLQT9HYF6098",
+          "state": {
+            "status": "completed",
+            "input": {
+              "filePath": "C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\chatApp.ts"
+            },
+            "output": "<path>C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\chatApp.ts</path>\n<type>file</type>\n<content>\n1: import { HumanMessage, SystemMessage } from '@langchain/core/messages';\n2: import {\n3:   BoxRenderable,\n4:   type CliRenderer,\n5:   InputRenderable,\n6:   type KeyEvent,\n7:   ScrollBoxRenderable,\n8:   TextRenderable,\n9: } from '@opentui/core';\n10: import { resetGraph } from './agent/graph.js';\n11: import { streamQuery } from './agent/streaming.js';\n12: import { TOOL_GET_SCHEMA_INFO, TOOL_QUERY_NBA_DB } from './agent/toolNames.js';\n13: import { ModelSelector } from './features/modelSelector.js';\n14: import { getModel } from './openrouter.js';\n15: import { ansiToStyledText } from './utils/ansi.js';\n16: import {\n17:   flushMetrics,\n18:   recordChainStage,\n19:   recordError,\n20:   recordToken,\n21:   recordToolCall,\n22:   recordToolEnd,\n23:   recordUsage,\n24:   startMetrics,\n25: } from './utils/metrics.js';\n26: import { formatErrorForUser } from './utils/retry.js';\n27: import { aiLabel, dimOrPlain, errorLabel, sqlLabel, Theme, youLabel } from './utils/theme.js';\n28: \n29: const DEBUG = process.env['CHATBOT_DEBUG'] === 'true';\n30: \n31: function debugLog(label: string, data: unknown): void {\n32:   if (!DEBUG) return;\n33:   const timestamp = new Date().toISOString();\n34:   console.error(\n35:     `[${timestamp}] [DEBUG] ${label}:`,\n36:     typeof data === 'object' ? JSON.stringify(data, null, 2) : data,\n37:   );\n38: }\n39: \n40: const FOOTER_INPUT_FOCUSED =\n41:   '[Input] Tab \\u2192 scroll \\u2022 Enter send \\u2022 @ models \\u2022 Ctrl+C quit';\n42: const FOOTER_SCROLL_FOCUSED = '[Chat History] Tab \\u2192 input \\u2022 @ models \\u2022 Ctrl+C quit';\n43: const FOOTER_PROCESSING =\n44:   '[Processing...] Esc cancel \\u2022 Tab \\u2192 scroll \\u2022 @ models \\u2022 Ctrl+C quit';\n45: \n46: export class ChatApp {\n47:   readonly rootBox: BoxRenderable;\n48:   readonly chatScroll: ScrollBoxRenderable;\n49:   readonly promptInput: InputRenderable;\n50: \n51:   private displayLines: string[] = [\n52:     `${dimOrPlain('Welcome to BBallGenius Chat!')}\\n${dimOrPlain('Ask me anything about NBA stats.')}`,\n53:   ];\n54:   private renderer: CliRenderer;\n55:   private chatText: TextRenderable;\n56:   private footerText: TextRenderable;\n57:   private systemPrompt: string;\n58:   private headerText: TextRenderable;\n59:   private modelSelector: ModelSelector;\n60:   private isProcessing = false;\n61:   private processingCancelled = false;\n62:   private sessionId = crypto.randomUUID();\n63: \n64:   constructor(renderer: CliRenderer, systemPrompt: string) {\n65:     this.renderer = renderer;\n66:     this.systemPrompt = systemPrompt;\n67: \n68:     this.rootBox = new BoxRenderable(renderer, {\n69:       width: '100%',\n70:       height: '100%',\n71:       flexDirection: 'column',\n72:       backgroundColor: Theme.background,\n73:     });\n74: \n75:     const headerBox = new BoxRenderable(renderer, {\n76:       width: '100%',\n77:       height: 3,\n78:       justifyContent: 'center',\n79:       alignItems: 'center',\n80:       backgroundColor: '#16161e',\n81:       border: ['bottom'],\n82:       borderColor: Theme.borderFocused,\n83:     });\n84: \n85:     this.headerText = new TextRenderable(renderer, {\n86:       content: `BBallGenius Chat | ${getModel()}`,\n87:     });\n88: \n89:     headerBox.add(this.headerText);\n90: \n91:     this.chatScroll = new ScrollBoxRenderable(renderer, {\n92:       width: '100%',\n93:       flexGrow: 1,\n94:       stickyScroll: true,\n95:     });\n96: \n97:     this.chatText = new TextRenderable(renderer, {\n98:       content: ansiToStyledText(this.displayLines.join('\\n\\n')),\n99:       wrapMode: 'word',\n100:     });\n101: \n102:     this.chatScroll.add(this.chatText);\n103: \n104:     this.inputBox = new BoxRenderable(renderer, {\n105:       width: '100%',\n106:       height: 3,\n107:       border: ['top'],\n108:       borderColor: Theme.borderFocused,\n109:       backgroundColor: '#222530',\n110:       paddingX: 1,\n111:     });\n112: \n113:     this.promptInput = new InputRenderable(renderer, {\n114:       width: '100%',\n115:       placeholder: 'Ask about NBA stats...',\n116:       backgroundColor: '#222530',\n117:     });\n118: \n119:     this.inputBox.add(this.promptInput);\n120: \n121:     const footerBox = new BoxRenderable(renderer, {\n122:       width: '100%',\n123:       height: 1,\n124:       backgroundColor: '#16161e',\n125:     });\n126: \n127:     this.footerText = new TextRenderable(renderer, {\n128:       content: FOOTER_INPUT_FOCUSED,\n129:     });\n130: \n131:     footerBox.add(this.footerText);\n132: \n133:     this.rootBox.add(headerBox);\n134:     this.rootBox.add(this.chatScroll);\n135:     this.rootBox.add(this.inputBox);\n136:     this.rootBox.add(footerBox);\n137: \n138:     renderer.root.add(this.rootBox);\n139: \n140:     this.modelSelector = new ModelSelector(renderer);\n141:     this.modelSelector.setCallbacks(\n142:       () => {\n143:         resetGraph();\n144:         this.headerText.content = `BBallGenius Chat | ${getModel()}`;\n145:         this.renderer.requestRender();\n146:       },\n147:       () => {\n148:         this.focus();\n149:       },\n150:     );\n151:     renderer.root.add(this.modelSelector.overlay);\n152: \n153:     this.promptInput.on('enter', () => this.handleSubmit());\n154:   }\n155: \n156:   private inputBox: BoxRenderable;\n157: \n158:   private updateFooter(): void {\n159:     if (this.isProcessing) {\n160:       this.footerText.content = FOOTER_PROCESSING;\n161:     } else if (this.chatScroll.focused) {\n162:       this.footerText.content = FOOTER_SCROLL_FOCUSED;\n163:     } else {\n164:       this.footerText.content = FOOTER_INPUT_FOCUSED;\n165:     }\n166:   }\n167: \n168:   focus(): void {\n169:     this.promptInput.focus();\n170:     this.updateFooter();\n171:   }\n172: \n173:   handleKeyPress(event: KeyEvent): boolean {\n174:     if (this.modelSelector.overlay.visible) {\n175:       return this.modelSelector.handleKeyPress(event);\n176:     }\n177: \n178:     if (event.name === '@' || (event.ctrl && event.name === 'p')) {\n179:       this.modelSelector.show();\n180:       return true;\n181:     }\n182: \n183:     if (event.name === 'escape' && this.isProcessing) {\n184:       this.processingCancelled = true;\n185:       return true;\n186:     }\n187: \n188:     if (event.name === 'tab') {\n189:       if (event.shift) {\n190:         if (this.chatScroll.focused) {\n191:           this.promptInput.focus();\n192:         } else {\n193:           this.chatScroll.focus();\n194:         }\n195:       } else {\n196:         if (this.promptInput.focused) {\n197:           this.chatScroll.focus();\n198:         } else {\n199:           this.promptInput.focus();\n200:         }\n201:       }\n202:       this.updateFooter();\n203:       return true;\n204:     }\n205:     return false;\n206:   }\n207: \n208:   private async handleSubmit(): Promise<void> {\n209:     if (this.isProcessing) return;\n210:     this.isProcessing = true;\n211:     this.processingCancelled = false;\n212:     this.updateFooter();\n213: \n214:     const text = this.promptInput.value.trim();\n215:     if (!text) {\n216:       this.isProcessing = false;\n217:       this.updateFooter();\n218:       return;\n219:     }\n220:     this.promptInput.value = '';\n221: \n222:     this.displayLines.push(`${youLabel()} ${text}`);\n223:     this.renderDisplay();\n224: \n225:     startMetrics(this.sessionId, text, getModel());\n226:     debugLog('Graph State Transition', {\n227:       stage: 'start',\n228:       threadId: this.sessionId,\n229:       question: text,\n230:       model: getModel(),\n231:     });\n232: \n233:     const inputMessages = [new SystemMessage(this.systemPrompt), new HumanMessage(text)];\n234: \n235:     this.displayLines.push(`${aiLabel()} ${dimOrPlain('thinking...')}`);\n236:     let responseStartIdx = this.displayLines.length - 1;\n237:     let fullResponse = '';\n238:     let activeToolCount = 0;\n239: \n240:     try {\n241:       for await (const event of streamQuery(inputMessages, this.sessionId)) {\n242:         if (this.processingCancelled) {\n243:           if (fullResponse) {\n244:             fullResponse += `\\n\\n${dimOrPlain('(Cancelled)')}`;\n245:             this.displayLines[responseStartIdx] = `${aiLabel()} ${fullResponse}`;\n246:           } else {\n247:             this.displayLines[this.displayLines.length - 1] =\n248:               `${aiLabel()} ${dimOrPlain('(Cancelled)')}`;\n249:           }\n250:           this.renderDisplay();\n251:           break;\n252:         }\n253: \n254:         debugLog('Stream Event', {\n255:           type: event.type,\n256:           name: 'name' in event ? event.name : undefined,\n257:         });\n258: \n259:         if (event.type === 'token') {\n260:           recordToken();\n261:           if (activeToolCount > 0) {\n262:             activeToolCount = 0;\n263:             this.displayLines.push(`${aiLabel()} `);\n264:             responseStartIdx = this.displayLines.length - 1;\n265:           }\n266:           fullResponse += event.content;\n267:           this.displayLines[responseStartIdx] = `${aiLabel()} ${fullResponse}`;\n268:           this.renderDisplay();\n269:         } else if (event.type === 'tool_start') {\n270:           recordToolCall(event.name, event.input, event.runId);\n271:           if (event.name === TOOL_QUERY_NBA_DB && event.input?.['sql']) {\n272:             const sql = String(event.input['sql']);\n273:             debugLog('SQL Query', { sql, timestamp: new Date().toISOString() });\n274:             this.displayLines.push(`${sqlLabel()} ${sql}`);\n275:             this.displayLines.push(`${sqlLabel()} ${dimOrPlain('Running query...')}`);\n276:             activeToolCount++;\n277:           } else if (event.name === TOOL_GET_SCHEMA_INFO) {\n278:             this.displayLines.push(`${sqlLabel()} ${dimOrPlain('Looking up schema...')}`);\n279:             activeToolCount++;\n280:           } else {\n281:             this.displayLines.push(`${dimOrPlain(`[Tool] Running ${event.name}...`)}`);\n282:             activeToolCount++;\n283:           }\n284:         } else if (event.type === 'tool_end') {\n285:           recordToolEnd(event.runId);\n286:         } else if (event.type === 'chain_stage') {\n287:           recordChainStage(event.stage);\n288:           debugLog('Chain Stage', { stage: event.stage });\n289:         } else if (event.type === 'error') {\n290:           recordError(event.message);\n291:           debugLog('Graph Error', { message: event.message });\n292:           if (fullResponse) {\n293:             fullResponse += `\\n\\n${dimOrPlain(`(Response interrupted: ${event.message})`)}`;\n294:             this.displayLines[responseStartIdx] = `${aiLabel()} ${fullResponse}`;\n295:           } else {\n296:             this.displayLines[this.displayLines.length - 1] =\n297:               `${errorLabel()} ${formatErrorForUser(new Error(event.message))}`;\n298:           }\n299:           this.renderDisplay();\n300:         } else if (event.type === 'usage') {\n301:           recordUsage(event.usage);\n302:           debugLog('Token Usage', event.usage);\n303:         }\n304:       }\n305:       debugLog('Graph State Transition', { stage: 'complete', threadId: this.sessionId });\n306:     } catch (err) {\n307:       const msg = err instanceof Error ? err.message : String(err);\n308:       recordError(msg);\n309:       debugLog('Graph Exception', { message: msg });\n310:       if (fullResponse) {\n311:         fullResponse += `\\n\\n${dimOrPlain('(Response interrupted)')}`;\n312:         this.displayLines[responseStartIdx] = `${aiLabel()} ${fullResponse}`;\n313:       } else {\n314:         this.displayLines[this.displayLines.length - 1] =\n315:           `${errorLabel()} ${formatErrorForUser(err instanceof Error ? err : new Error(msg))}`;\n316:       }\n317:       this.renderDisplay();\n318:     }\n319: \n320:     this.isProcessing = false;\n321:     this.processingCancelled = false;\n322:     this.updateFooter();\n323:     flushMetrics();\n324:   }\n325: \n326:   private renderDisplay(): void {\n327:     this.chatText.content = ansiToStyledText(this.displayLines.join('\\n\\n'));\n328:     this.chatScroll.scrollTop = this.chatScroll.scrollHeight;\n329:     this.renderer.requestRender();\n330:   }\n331: }\n332: \n333: export function createChatApp(renderer: CliRenderer, systemPrompt: string): ChatApp {\n334:   return new ChatApp(renderer, systemPrompt);\n335: }\n\n(End of file - total 335 lines)\n</content>",
+            "metadata": {
+              "preview": "import { HumanMessage, SystemMessage } from '@langchain/core/messages';\nimport {\n  BoxRenderable,\n  type CliRenderer,\n  InputRenderable,\n  type KeyEvent,\n  ScrollBoxRenderable,\n  TextRenderable,\n} from '@opentui/core';\nimport { resetGraph } from './agent/graph.js';\nimport { streamQuery } from './agent/streaming.js';\nimport { TOOL_GET_SCHEMA_INFO, TOOL_QUERY_NBA_DB } from './agent/toolNames.js';\nimport { ModelSelector } from './features/modelSelector.js';\nimport { getModel } from './openrouter.js';\nimport { ansiToStyledText } from './utils/ansi.js';\nimport {\n  flushMetrics,\n  recordChainStage,\n  recordError,\n  recordToken,",
+              "truncated": false,
+              "loaded": []
+            },
+            "title": "src\\chatbot\\chatApp.ts",
+            "time": {
+              "start": 1779414175281,
+              "end": 1779414175294
+            }
+          },
+          "id": "prt_e4d598d47001Fji10YTxwEWHeN",
+          "sessionID": "ses_1b2a69cdeffelkb4mAul2PvDb8",
+          "messageID": "msg_e4d59835d001DsavYQyABljbf6"
+        },
+        {
+          "type": "tool",
+          "tool": "glob",
+          "callID": "call_01_ayt5BOirlWXOhTiwHlbO0989",
+          "state": {
+            "status": "completed",
+            "input": {
+              "pattern": "src/chatbot/__tests__/*.test.ts",
+              "path": "C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius"
+            },
+            "output": "C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\__tests__\\metrics.test.ts\nC:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\__tests__\\theme.test.ts\nC:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\__tests__\\retry.test.ts\nC:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\__tests__\\processQuestion.test.ts\nC:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\__tests__\\formatResults.test.ts\nC:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\__tests__\\executeSql.test.ts\nC:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\__tests__\\systemPrompt.test.ts\nC:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\__tests__\\sqlExtraction.test.ts\nC:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\__tests__\\intentClassification.test.ts\nC:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\__tests__\\streaming.test.ts\nC:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\__tests__\\ansi.test.ts",
+            "metadata": {
+              "count": 11,
+              "truncated": false
+            },
+            "title": "",
+            "time": {
+              "start": 1779414175655,
+              "end": 1779414175689
+            }
+          },
+          "id": "prt_e4d598e4e001VlSXfO0LW9Ix8f",
+          "sessionID": "ses_1b2a69cdeffelkb4mAul2PvDb8",
+          "messageID": "msg_e4d59835d001DsavYQyABljbf6"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "dd4d6a133575de101809d9815deaa483b32dd862",
+          "type": "step-finish",
+          "tokens": {
+            "total": 45087,
+            "input": 2778,
+            "output": 156,
+            "reasoning": 41,
+            "cache": {
+              "write": 0,
+              "read": 42112
+            }
+          },
+          "cost": 0.0005619936,
+          "id": "prt_e4d59906a001Ik0cfk2OS2n4Y0",
+          "sessionID": "ses_1b2a69cdeffelkb4mAul2PvDb8",
+          "messageID": "msg_e4d59835d001DsavYQyABljbf6"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_e4d5963320016IICnYN6cOpxLt",
+        "role": "assistant",
+        "mode": "scout",
+        "agent": "scout",
+        "path": {
+          "cwd": "C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius",
+          "root": "C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius"
+        },
+        "cost": 0.0007197568,
+        "tokens": {
+          "total": 49074,
+          "input": 3796,
+          "output": 196,
+          "reasoning": 26,
+          "cache": {
+            "write": 0,
+            "read": 45056
+          }
+        },
+        "modelID": "deepseek-v4-flash",
+        "providerID": "opencode-go",
+        "time": {
+          "created": 1779414175977,
+          "completed": 1779414179119
+        },
+        "finish": "tool-calls",
+        "id": "msg_e4d5990e9001xkrD5o9OVwH908",
+        "sessionID": "ses_1b2a69cdeffelkb4mAul2PvDb8"
+      },
+      "parts": [
+        {
+          "snapshot": "dd4d6a133575de101809d9815deaa483b32dd862",
+          "type": "step-start",
+          "id": "prt_e4d5995a7001hk3xLFdFeKlA98",
+          "sessionID": "ses_1b2a69cdeffelkb4mAul2PvDb8",
+          "messageID": "msg_e4d5990e9001xkrD5o9OVwH908"
+        },
+        {
+          "type": "reasoning",
+          "text": "Let me also read the intent classification test to understand how it's tested, and look at the metrics file to understand that module.",
+          "time": {
+            "start": 1779414177512,
+            "end": 1779414177845
+          },
+          "id": "prt_e4d5996e8001Movi8A6xUSt2eQ",
+          "sessionID": "ses_1b2a69cdeffelkb4mAul2PvDb8",
+          "messageID": "msg_e4d5990e9001xkrD5o9OVwH908"
+        },
+        {
+          "type": "text",
+          "text": "Let me also check the intent classification test and the index.ts entrypoint:",
+          "time": {
+            "start": 1779414177847,
+            "end": 1779414178922
+          },
+          "id": "prt_e4d599837001FJIrYll2AHod1L",
+          "sessionID": "ses_1b2a69cdeffelkb4mAul2PvDb8",
+          "messageID": "msg_e4d5990e9001xkrD5o9OVwH908"
+        },
+        {
+          "type": "tool",
+          "tool": "read",
+          "callID": "call_00_c4kPQyjsXZIu47nmRB7O4367",
+          "state": {
+            "status": "completed",
+            "input": {
+              "filePath": "C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\__tests__\\intentClassification.test.ts"
+            },
+            "output": "<path>C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\__tests__\\intentClassification.test.ts</path>\n<type>file</type>\n<content>\n1: import { describe, expect, test } from 'bun:test';\n2: import { classifyQuestion } from '../agent/graph.js';\n3: \n4: describe('classifyQuestion', () => {\n5:   test('classifies career leader questions', () => {\n6:     expect(classifyQuestion('Who are the top 5 NBA regular season career points leaders?')).toBe(\n7:       'career_leaders',\n8:     );\n9:     expect(classifyQuestion('What are LeBron James career points?')).toBe('career_leaders');\n10:     expect(classifyQuestion('How many regular season triple-doubles does Jokic have?')).toBe(\n11:       'career_leaders',\n12:     );\n13:     expect(classifyQuestion('Which players have the most 50-point games?')).toBe('career_leaders');\n14:   });\n15: \n16:   test('classifies season leader questions', () => {\n17:     expect(classifyQuestion('Who led the NBA in points per game in 2015-16?')).toBe(\n18:       'season_leaders',\n19:     );\n20:     expect(classifyQuestion('What was Stephen Curry 2015-16 points per game?')).toBe(\n21:       'season_leaders',\n22:     );\n23:     expect(classifyQuestion('Which players averaged at least 30 points per game?')).toBe(\n24:       'season_leaders',\n25:     );\n26:   });\n27: \n28:   test('classifies award questions', () => {\n29:     expect(classifyQuestion('Who won NBA MVP in the 2023-24 season?')).toBe('awards');\n30:     expect(classifyQuestion('Who won NBA Rookie of the Year?')).toBe('awards');\n31:     expect(classifyQuestion('Which players were All-NBA First Team?')).toBe('awards');\n32:   });\n33: \n34:   test('classifies team season questions', () => {\n35:     expect(\n36:       classifyQuestion('What was the 2015-16 Golden State Warriors regular season record?'),\n37:     ).toBe('team_seasons');\n38:     expect(classifyQuestion('What was the Celtics record and SRS?')).toBe('team_seasons');\n39:   });\n40: \n41:   test('classifies game questions', () => {\n42:     expect(classifyQuestion('What was the final score of 2016 NBA Finals Game 7?')).toBe('games');\n43:     expect(classifyQuestion('What was LeBron James stat line in game_id 0041500407?')).toBe(\n44:       'games',\n45:     );\n46:   });\n47: \n48:   test('classifies shot chart questions', () => {\n49:     expect(classifyQuestion('How many three pointer did Curry make in shot chart data?')).toBe(\n50:       'shot_charts',\n51:     );\n52:     expect(classifyQuestion('What was LeBron James shot distribution by zone?')).toBe(\n53:       'shot_charts',\n54:     );\n55:   });\n56: \n57:   test('classifies play-by-play questions', () => {\n58:     expect(classifyQuestion('How many turnovers are in the play-by-play data?')).toBe(\n59:       'play_by_play',\n60:     );\n61:     expect(classifyQuestion('How many made shots are in play-by-play?')).toBe('play_by_play');\n62:   });\n63: \n64:   test('classifies identity questions', () => {\n65:     expect(classifyQuestion('What Basketball-Reference ID is linked to LeBron James?')).toBe(\n66:       'identity',\n67:     );\n68:     expect(classifyQuestion('What NBA API person_id is linked to Michael Jordan?')).toBe(\n69:       'identity',\n70:     );\n71:     expect(classifyQuestion('Which players are unresolved in the identity bridge?')).toBe(\n72:       'identity',\n73:     );\n74:   });\n75: \n76:   test('classifies draft questions', () => {\n77:     expect(classifyQuestion('Who was selected first overall in the 2003 NBA draft?')).toBe('draft');\n78:     expect(classifyQuestion('Compare draft pick via BRef and NBA API tables.')).toBe('draft');\n79:   });\n80: \n81:   test('classifies data quality questions', () => {\n82:     expect(classifyQuestion('What data quality issues are in audit.dq_results?')).toBe(\n83:       'data_quality',\n84:     );\n85:   });\n86: \n87:   test('classifies cross-schema questions', () => {\n88:     expect(\n89:       classifyQuestion('Cross-check 2016 Finals Game 7 score between main and unified_star.'),\n90:     ).toBe('cross_schema');\n91:   });\n92: \n93:   test('classifies general/unmatched questions', () => {\n94:     expect(classifyQuestion('Tell me about basketball')).toBe('general');\n95:     expect(classifyQuestion('What is the NBA?')).toBe('general');\n96:   });\n97: \n98:   test('classifies via context-rich questions', () => {\n99:     expect(classifyQuestion('Using the api schema, show LeBron James recent game log rows.')).toBe(\n100:       'general',\n101:     );\n102:   });\n103: });\n\n(End of file - total 103 lines)\n</content>",
+            "metadata": {
+              "preview": "import { describe, expect, test } from 'bun:test';\nimport { classifyQuestion } from '../agent/graph.js';\n\ndescribe('classifyQuestion', () => {\n  test('classifies career leader questions', () => {\n    expect(classifyQuestion('Who are the top 5 NBA regular season career points leaders?')).toBe(\n      'career_leaders',\n    );\n    expect(classifyQuestion('What are LeBron James career points?')).toBe('career_leaders');\n    expect(classifyQuestion('How many regular season triple-doubles does Jokic have?')).toBe(\n      'career_leaders',\n    );\n    expect(classifyQuestion('Which players have the most 50-point games?')).toBe('career_leaders');\n  });\n\n  test('classifies season leader questions', () => {\n    expect(classifyQuestion('Who led the NBA in points per game in 2015-16?')).toBe(\n      'season_leaders',\n    );\n    expect(classifyQuestion('What was Stephen Curry 2015-16 points per game?')).toBe(",
+              "truncated": false,
+              "loaded": []
+            },
+            "title": "src\\chatbot\\__tests__\\intentClassification.test.ts",
+            "time": {
+              "start": 1779414178272,
+              "end": 1779414178287
+            }
+          },
+          "id": "prt_e4d5998fa001w2XuziBSMd83y9",
+          "sessionID": "ses_1b2a69cdeffelkb4mAul2PvDb8",
+          "messageID": "msg_e4d5990e9001xkrD5o9OVwH908"
+        },
+        {
+          "type": "tool",
+          "tool": "read",
+          "callID": "call_01_bfzOLLmwG0RIfclf9Tcj7696",
+          "state": {
+            "status": "completed",
+            "input": {
+              "filePath": "C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\index.ts"
+            },
+            "output": "<path>C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\index.ts</path>\n<type>file</type>\n<content>\n1: import { createCliRenderer } from '@opentui/core';\n2: import { createChatApp } from './chatApp.js';\n3: import { closeDb, initDb } from './db.js';\n4: import { buildSystemPrompt } from './systemPrompt.js';\n5: \n6: async function main() {\n7:   try {\n8:     await initDb();\n9:   } catch (e: unknown) {\n10:     console.error(\n11:       'CRITICAL: Failed to initialize DuckDB connection:',\n12:       e instanceof Error ? e.message : String(e),\n13:     );\n14:     process.exit(1);\n15:   }\n16: \n17:   const renderer = await createCliRenderer({\n18:     exitOnCtrlC: true,\n19:     targetFps: 30,\n20:     clearOnShutdown: true,\n21:   });\n22: \n23:   renderer.start();\n24: \n25:   const systemPrompt = await buildSystemPrompt();\n26: \n27:   const chatApp = createChatApp(renderer, systemPrompt);\n28: \n29:   const shutdown = async () => {\n30:     try {\n31:       await closeDb();\n32:     } catch (_e) {}\n33:     renderer.destroy();\n34:     process.exit(0);\n35:   };\n36: \n37:   renderer.keyInput.on('keypress', (event) => {\n38:     const handled = chatApp.handleKeyPress(event);\n39:     if (handled) {\n40:       event.stopPropagation();\n41:       event.preventDefault();\n42:       renderer.requestRender();\n43:       return;\n44:     }\n45:     if (event.name === 'escape' && !event.ctrl) {\n46:       shutdown();\n47:       return;\n48:     }\n49:     if (event.ctrl && event.name === 'c') {\n50:       shutdown();\n51:     }\n52:   });\n53: \n54:   chatApp.focus();\n55:   renderer.requestRender();\n56: }\n57: \n58: main().catch((err) => {\n59:   console.error('Fatal Chatbot Error:', err);\n60:   process.exit(1);\n61: });\n\n(End of file - total 61 lines)\n</content>",
+            "metadata": {
+              "preview": "import { createCliRenderer } from '@opentui/core';\nimport { createChatApp } from './chatApp.js';\nimport { closeDb, initDb } from './db.js';\nimport { buildSystemPrompt } from './systemPrompt.js';\n\nasync function main() {\n  try {\n    await initDb();\n  } catch (e: unknown) {\n    console.error(\n      'CRITICAL: Failed to initialize DuckDB connection:',\n      e instanceof Error ? e.message : String(e),\n    );\n    process.exit(1);\n  }\n\n  const renderer = await createCliRenderer({\n    exitOnCtrlC: true,\n    targetFps: 30,\n    clearOnShutdown: true,",
+              "truncated": false,
+              "loaded": []
+            },
+            "title": "src\\chatbot\\index.ts",
+            "time": {
+              "start": 1779414178555,
+              "end": 1779414178564
+            }
+          },
+          "id": "prt_e4d599a160019ysgz2qq3R3UrX",
+          "sessionID": "ses_1b2a69cdeffelkb4mAul2PvDb8",
+          "messageID": "msg_e4d5990e9001xkrD5o9OVwH908"
+        },
+        {
+          "type": "tool",
+          "tool": "read",
+          "callID": "call_02_YrvHEasNE32uESlI5XlJ7833",
+          "state": {
+            "status": "completed",
+            "input": {
+              "filePath": "C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\utils\\metrics.ts"
+            },
+            "output": "<path>C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\utils\\metrics.ts</path>\n<type>file</type>\n<content>\n1: import { appendFileSync, mkdirSync, readFileSync } from 'node:fs';\n2: import { join } from 'node:path';\n3: \n4: interface ToolCallMetrics {\n5:   name: string;\n6:   startTime: number;\n7:   endTime?: number;\n8:   latencyMs?: number;\n9: }\n10: \n11: interface SqlComplexity {\n12:   tableCount: number;\n13:   joinCount: number;\n14: }\n15: \n16: export interface MetricsEntry {\n17:   timestamp: string;\n18:   threadId: string;\n19:   question: string;\n20:   model: string;\n21:   durationMs: number;\n22:   toolCalls: number;\n23:   toolCallLatencies: Record<string, number>;\n24:   tokensGenerated: number;\n25:   inputTokens: number;\n26:   outputTokens: number;\n27:   sqlExecuted: string[];\n28:   sqlComplexity: SqlComplexity[];\n29:   chainStages: string[];\n30:   success: boolean;\n31:   error?: string;\n32: }\n33: \n34: interface TokenUsage {\n35:   inputTokens: number;\n36:   outputTokens: number;\n37: }\n38: \n39: export interface MetricsSummary {\n40:   totalQueries: number;\n41:   totalToolCalls: number;\n42:   averageDurationMs: number;\n43:   totalInputTokens: number;\n44:   totalOutputTokens: number;\n45:   successRate: number;\n46:   averageSqlTableCount: number;\n47:   averageSqlJoinCount: number;\n48:   modelBreakdown: Record<string, number>;\n49: }\n50: \n51: function getMetricsDir(): string {\n52:   return process.env['CHATBOT_METRICS_DIR'] || 'data';\n53: }\n54: const METRICS_FILE = 'chatbot-metrics.ndjson';\n55: \n56: function calculateSqlComplexity(sql: string): SqlComplexity {\n57:   const stripped = sql.replace(/\\/\\*[\\s\\S]*?\\*\\//g, '').replace(/--.*$/gm, '');\n58:   const fromMatches = stripped.match(/\\bFROM\\s+(\\w+(?:\\.\\w+)?)/gi) || [];\n59:   const joinMatches = stripped.match(/\\bJOIN\\s+(\\w+(?:\\.\\w+)?)/gi) || [];\n60:   const tables = new Set(\n61:     [...fromMatches, ...joinMatches].map((m) => m.replace(/\\b(FROM|JOIN)\\s+/i, '').toLowerCase()),\n62:   );\n63:   return {\n64:     tableCount: tables.size,\n65:     joinCount: joinMatches.length,\n66:   };\n67: }\n68: \n69: export class MetricsSession {\n70:   private entry: Partial<MetricsEntry> = {};\n71:   private model = '';\n72:   private tokenCount = 0;\n73:   private startTime = 0;\n74:   private sqlQueries: string[] = [];\n75:   private toolCallCount = 0;\n76:   private inputTokenTotal = 0;\n77:   private outputTokenTotal = 0;\n78:   private activeToolCalls = new Map<string, ToolCallMetrics>();\n79:   private completedToolCalls: ToolCallMetrics[] = [];\n80:   private sqlComplexityEntries: SqlComplexity[] = [];\n81:   private chainStagesList: string[] = [];\n82: \n83:   start(threadId: string, question: string, model: string): void {\n84:     this.entry = {\n85:       timestamp: new Date().toISOString(),\n86:       threadId,\n87:       question: question.slice(0, 200),\n88:     };\n89:     this.model = model;\n90:     this.tokenCount = 0;\n91:     this.toolCallCount = 0;\n92:     this.sqlQueries = [];\n93:     this.inputTokenTotal = 0;\n94:     this.outputTokenTotal = 0;\n95:     this.activeToolCalls = new Map();\n96:     this.completedToolCalls = [];\n97:     this.sqlComplexityEntries = [];\n98:     this.chainStagesList = [];\n99:     this.startTime = Date.now();\n100:   }\n101: \n102:   recordToken(): void {\n103:     this.tokenCount++;\n104:   }\n105: \n106:   recordToolCall(name: string, input: Record<string, unknown>, runId?: string): void {\n107:     this.toolCallCount++;\n108:     if (name === 'query_nba_db' && input?.['sql']) {\n109:       const sql = String(input['sql']);\n110:       this.sqlQueries.push(sql.slice(0, 500));\n111:       this.sqlComplexityEntries.push(calculateSqlComplexity(sql));\n112:     }\n113:     if (runId) {\n114:       this.activeToolCalls.set(runId, { name, startTime: Date.now() });\n115:     }\n116:   }\n117: \n118:   recordToolEnd(runId: string): void {\n119:     const toolCall = this.activeToolCalls.get(runId);\n120:     if (toolCall) {\n121:       toolCall.endTime = Date.now();\n122:       toolCall.latencyMs = toolCall.endTime - toolCall.startTime;\n123:       this.completedToolCalls.push(toolCall);\n124:       this.activeToolCalls.delete(runId);\n125:     }\n126:   }\n127: \n128:   recordError(error: string): void {\n129:     this.entry.error = error;\n130:   }\n131: \n132:   recordUsage(usage: TokenUsage): void {\n133:     this.inputTokenTotal += usage.inputTokens;\n134:     this.outputTokenTotal += usage.outputTokens;\n135:   }\n136: \n137:   recordChainStage(stage: string): void {\n138:     this.chainStagesList.push(stage);\n139:   }\n140: \n141:   flush(): void {\n142:     if (!this.startTime) return;\n143: \n144:     mkdirSync(getMetricsDir(), { recursive: true });\n145: \n146:     const toolCallLatencies: Record<string, number> = {};\n147:     for (const tc of this.completedToolCalls) {\n148:       if (tc.latencyMs !== undefined) {\n149:         const key = tc.name;\n150:         const existing = toolCallLatencies[key];\n151:         toolCallLatencies[key] = existing ? Math.max(existing, tc.latencyMs) : tc.latencyMs;\n152:       }\n153:     }\n154: \n155:     const entry: MetricsEntry = {\n156:       timestamp: this.entry.timestamp || new Date().toISOString(),\n157:       threadId: this.entry.threadId || 'unknown',\n158:       question: this.entry.question || '',\n159:       model: this.model,\n160:       durationMs: Date.now() - this.startTime,\n161:       toolCalls: this.toolCallCount,\n162:       toolCallLatencies,\n163:       tokensGenerated: this.tokenCount,\n164:       inputTokens: this.inputTokenTotal,\n165:       outputTokens: this.outputTokenTotal,\n166:       sqlExecuted: this.sqlQueries,\n167:       sqlComplexity: this.sqlComplexityEntries,\n168:       chainStages: this.chainStagesList,\n169:       success: !this.entry.error,\n170:     };\n171:     if (this.entry.error) {\n172:       entry.error = this.entry.error;\n173:     }\n174: \n175:     try {\n176:       appendFileSync(join(getMetricsDir(), METRICS_FILE), `${JSON.stringify(entry)}\\n`);\n177:     } catch {\n178:       // Metrics logging is best-effort\n179:     }\n180: \n181:     this.entry = {};\n182:     this.model = '';\n183:     this.tokenCount = 0;\n184:     this.startTime = 0;\n185:     this.sqlQueries = [];\n186:     this.toolCallCount = 0;\n187:     this.inputTokenTotal = 0;\n188:     this.outputTokenTotal = 0;\n189:     this.activeToolCalls = new Map();\n190:     this.completedToolCalls = [];\n191:     this.sqlComplexityEntries = [];\n192:     this.chainStagesList = [];\n193:   }\n194: }\n195: \n196: const defaultSession = new MetricsSession();\n197: \n198: export function startMetrics(threadId: string, question: string, model: string): void {\n199:   defaultSession.start(threadId, question, model);\n200: }\n201: \n202: export function recordToken(): void {\n203:   defaultSession.recordToken();\n204: }\n205: \n206: export function recordToolCall(name: string, input: Record<string, unknown>, runId?: string): void {\n207:   defaultSession.recordToolCall(name, input, runId);\n208: }\n209: \n210: export function recordToolEnd(runId: string): void {\n211:   defaultSession.recordToolEnd(runId);\n212: }\n213: \n214: export function recordError(error: string): void {\n215:   defaultSession.recordError(error);\n216: }\n217: \n218: export function recordUsage(usage: TokenUsage): void {\n219:   defaultSession.recordUsage(usage);\n220: }\n221: \n222: export function recordChainStage(stage: string): void {\n223:   defaultSession.recordChainStage(stage);\n224: }\n225: \n226: export function flushMetrics(): void {\n227:   defaultSession.flush();\n228: }\n229: \n230: export function getMetricsSession(): MetricsSession {\n231:   return defaultSession;\n232: }\n233: \n234: export function getMetricsSummary(metricsFile?: string): MetricsSummary {\n235:   const filePath = metricsFile || join(getMetricsDir(), METRICS_FILE);\n236:   let entries: MetricsEntry[] = [];\n237: \n238:   try {\n239:     const data = readFileSync(filePath, 'utf-8');\n240:     entries = data\n241:       .split('\\n')\n242:       .filter((line) => line.trim())\n243:       .map((line) => JSON.parse(line));\n244:   } catch {\n245:     return {\n246:       totalQueries: 0,\n247:       totalToolCalls: 0,\n248:       averageDurationMs: 0,\n249:       totalInputTokens: 0,\n250:       totalOutputTokens: 0,\n251:       successRate: 0,\n252:       averageSqlTableCount: 0,\n253:       averageSqlJoinCount: 0,\n254:       modelBreakdown: {},\n255:     };\n256:   }\n257: \n258:   if (entries.length === 0) {\n259:     return {\n260:       totalQueries: 0,\n261:       totalToolCalls: 0,\n262:       averageDurationMs: 0,\n263:       totalInputTokens: 0,\n264:       totalOutputTokens: 0,\n265:       successRate: 0,\n266:       averageSqlTableCount: 0,\n267:       averageSqlJoinCount: 0,\n268:       modelBreakdown: {},\n269:     };\n270:   }\n271: \n272:   const totalQueries = entries.length;\n273:   const totalToolCalls = entries.reduce((sum, e) => sum + e.toolCalls, 0);\n274:   const totalDuration = entries.reduce((sum, e) => sum + e.durationMs, 0);\n275:   const totalInputTokens = entries.reduce((sum, e) => sum + e.inputTokens, 0);\n276:   const totalOutputTokens = entries.reduce((sum, e) => sum + e.outputTokens, 0);\n277:   const successfulQueries = entries.filter((e) => e.success).length;\n278: \n279:   const allSqlComplexity = entries.flatMap((e) => e.sqlComplexity);\n280:   const totalTableCount = allSqlComplexity.reduce((sum, c) => sum + c.tableCount, 0);\n281:   const totalJoinCount = allSqlComplexity.reduce((sum, c) => sum + c.joinCount, 0);\n282: \n283:   const modelBreakdown: Record<string, number> = {};\n284:   for (const entry of entries) {\n285:     modelBreakdown[entry.model] = (modelBreakdown[entry.model] || 0) + 1;\n286:   }\n287: \n288:   return {\n289:     totalQueries,\n290:     totalToolCalls,\n291:     averageDurationMs: Math.round(totalDuration / totalQueries),\n292:     totalInputTokens,\n293:     totalOutputTokens,\n294:     successRate: Math.round((successfulQueries / totalQueries) * 100),\n295:     averageSqlTableCount:\n296:       allSqlComplexity.length > 0\n297:         ? Math.round((totalTableCount / allSqlComplexity.length) * 10) / 10\n298:         : 0,\n299:     averageSqlJoinCount:\n300:       allSqlComplexity.length > 0\n301:         ? Math.round((totalJoinCount / allSqlComplexity.length) * 10) / 10\n302:         : 0,\n303:     modelBreakdown,\n304:   };\n305: }\n\n(End of file - total 305 lines)\n</content>",
+            "metadata": {
+              "preview": "import { appendFileSync, mkdirSync, readFileSync } from 'node:fs';\nimport { join } from 'node:path';\n\ninterface ToolCallMetrics {\n  name: string;\n  startTime: number;\n  endTime?: number;\n  latencyMs?: number;\n}\n\ninterface SqlComplexity {\n  tableCount: number;\n  joinCount: number;\n}\n\nexport interface MetricsEntry {\n  timestamp: string;\n  threadId: string;\n  question: string;\n  model: string;",
+              "truncated": false,
+              "loaded": []
+            },
+            "title": "src\\chatbot\\utils\\metrics.ts",
+            "time": {
+              "start": 1779414178809,
+              "end": 1779414178830
+            }
+          },
+          "id": "prt_e4d599b810013HkS2IWRKyIOJf",
+          "sessionID": "ses_1b2a69cdeffelkb4mAul2PvDb8",
+          "messageID": "msg_e4d5990e9001xkrD5o9OVwH908"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "dd4d6a133575de101809d9815deaa483b32dd862",
+          "type": "step-finish",
+          "tokens": {
+            "total": 49074,
+            "input": 3796,
+            "output": 196,
+            "reasoning": 26,
+            "cache": {
+              "write": 0,
+              "read": 45056
+            }
+          },
+          "cost": 0.0007197568,
+          "id": "prt_e4d599ccb0017vp9tE6OGMag3S",
+          "sessionID": "ses_1b2a69cdeffelkb4mAul2PvDb8",
+          "messageID": "msg_e4d5990e9001xkrD5o9OVwH908"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_e4d5963320016IICnYN6cOpxLt",
+        "role": "assistant",
+        "mode": "scout",
+        "agent": "scout",
+        "path": {
+          "cwd": "C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius",
+          "root": "C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius"
+        },
+        "cost": 0.0029421672,
+        "tokens": {
+          "total": 61483,
+          "input": 4883,
+          "output": 7552,
+          "reasoning": 24,
+          "cache": {
+            "write": 0,
+            "read": 49024
+          }
+        },
+        "modelID": "deepseek-v4-flash",
+        "providerID": "opencode-go",
+        "time": {
+          "created": 1779414179125,
+          "completed": 1779414236900
+        },
+        "finish": "stop",
+        "id": "msg_e4d599d35001m8VxRGFKcFyZxs",
+        "sessionID": "ses_1b2a69cdeffelkb4mAul2PvDb8"
+      },
+      "parts": [
+        {
+          "snapshot": "dd4d6a133575de101809d9815deaa483b32dd862",
+          "type": "step-start",
+          "id": "prt_e4d59a4e1001wdzaRo1jKqV7UM",
+          "sessionID": "ses_1b2a69cdeffelkb4mAul2PvDb8",
+          "messageID": "msg_e4d599d35001m8VxRGFKcFyZxs"
+        },
+        {
+          "type": "reasoning",
+          "text": "Now I have a comprehensive understanding of the entire chatbot codebase. Let me compile all the findings in a structured format.",
+          "time": {
+            "start": 1779414181676,
+            "end": 1779414181943
+          },
+          "id": "prt_e4d59a72c001428SMak5YO2ReV",
+          "sessionID": "ses_1b2a69cdeffelkb4mAul2PvDb8",
+          "messageID": "msg_e4d599d35001m8VxRGFKcFyZxs"
+        },
+        {
+          "type": "text",
+          "text": "Here is a comprehensive structured analysis of the complete chatbot codebase.\n\n---\n\n## ARCHITECTURAL FINDINGS: `src/chatbot/`\n\n---\n\n### 1. GRAPH DEFINITION (`agent/graph.ts`)\n\n**File:** `C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\agent\\graph.ts` (245 lines)\n\n#### Graph Structure (5 nodes)\n\n```\nSTART → classify_intent → llm → toolsCondition ? \n  → tools → sql_critic → (llm | finalize | END)\n  → END\n  → finalize → END\n```\n\n| Node            | Function         | File Lines | Purpose                                                         |\n| --------------- | ---------------- | ---------- | --------------------------------------------------------------- |\n| `classify_intent` | `classifyIntent()` | 192–202    | Deterministic keyword-based classification (NO LLM call)        |\n| `llm`             | `callModel()`      | 119–122    | Calls OpenRouter model with bound tools                         |\n| `tools`           | `ToolNode`         | 204        | Executes tool calls (parallel when multiple tool_calls emitted) |\n| `sql_critic`      | `sqlCritic()`      | 124–189    | Validates tool output, routes back to `llm` or to `finalize`/`END`    |\n| `finalize`        | `finalize()`       | 207–215    | Synthesizes final answer from accumulated tool results          |\n\n#### Key Constants (lines 9–10)\n```typescript\nconst MAX_SQL_RETRIES = 3;\nconst MAX_TOTAL_TOOL_CALLS = 20;\n```\n\n#### `classifyIntent()` node (lines 192–202)\n- Scans messages **from the end** looking for the last `human` message\n- Calls `classifyQuestion(text)` — a pure function that does regex matching\n- Returns `{ intentCategory: category }` where category is one of 12 values\n- **IMPORTANT:** The `intentCategory` is stored in state but **NEVER READ** by any other node, edge, or routing logic. It is classified but entirely unused downstream. The system prompt does not use it. The `llm` node does not use it. No conditional edge branches on it.\n\n#### `sqlCritic()` node (lines 124–189)\nFull logic flow:\n1. **Get trailing tool messages** (`getTrailingToolMessages`, lines 84–94): collects contiguous `ToolMessage` instances from the end of `state.messages`\n2. **If no tool messages:** resets `sqlRetryCount` to 0 and routes back to `llm` (meaning the LLM didn't call any tools)\n3. **Track tool calls** (lines 131–137): reads `state.toolCallHistory` and `state.totalToolCalls`, appends new tool calls with `{ toolName, args (truncated to 200 chars), timestamp }`\n4. **MAX_TOTAL_TOOL_CALLS check** (lines 141–146): if cumulative `totalToolCalls > 20`, routes to `finalize`\n5. **Looping detection** (lines 149–161): looks at last 6 calls in history; if the same tool+args signature appears 3+ times (i.e., 2 additional occurrences beyond the first), routes to `finalize`. Uses:\n   ```typescript\n   const isLooping = callSignatures.some((sig, i) => {\n     const occurrences = callSignatures.slice(i + 1).filter(s => s === sig).length;\n     return occurrences >= 2;\n   });\n   ```\n6. **Error check** (lines 163–167): looks for content starting with any `ERROR_PREFIX` in trailing tool messages\n7. **MAX_SQL_RETRIES check** (lines 168–177): if error found and `currentRetry >= 3`, sends `SystemMessage` with final failure and routes to `END`\n8. **Retry path** (lines 179–186): increments `sqlRetryCount`, sends `SystemMessage` with error details, routes to `llm`\n9. **Success path** (line 189): resets `sqlRetryCount` to 0, routes to `llm`\n\n#### `finalize()` node (lines 207–215)\n- Creates a separate `createModel()` (no tools bound) — a fresh ChatOpenAI instance\n- Prepends a `SystemMessage` instructing synthesis: \"Do not mention tools, SQL, or the database\"\n- Passes the last 10 messages from state\n- Returns synthesized answer as an appended message\n- ALWAYS routes to `END`\n\n#### Edge routing (lines 217–231)\n- `START → classify_intent` (fixed)\n- `classify_intent → llm` (fixed — no conditional)\n- `llm → tools or END` via `toolsCondition` (LangGraph prebuilt — routes to `tools` if tool_calls present, `END` if not)\n- `tools → sql_critic` (fixed)\n- `sql_critic` has configured ends: `['llm', 'finalize', END]` — uses `Command({ goto })` to choose\n- `finalize → END` (fixed)\n\n#### Checkpointer (lines 105–114)\n- Default: `MemorySaver`\n- If `process.env['CHATBOT_PERSIST_DIR']` is set: `SqliteSaver` from `@langchain/langgraph-checkpoint-sqlite`\n\n#### Graph singleton (lines 234–244)\n- `getChatbotGraph()`: cached singleton, builds on first call\n- `resetGraph()`: sets cache to `undefined` (called on model change in `chatApp.ts`)\n\n#### `trimMessagesForModel()` (lines 96–103)\n- Keeps at most 5 system messages (first + last 4)\n- Keeps at most 40 non-system messages\n\n---\n\n### 2. STATE DEFINITION (`agent/state.ts`)\n\n**File:** `C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\agent\\state.ts` (31 lines)\n\n```typescript\nexport type IntentCategory =\n  | 'career_leaders' | 'season_leaders' | 'awards' | 'team_seasons'\n  | 'games' | 'shot_charts' | 'play_by_play' | 'identity'\n  | 'draft' | 'data_quality' | 'cross_schema' | 'general';\n\nexport const ChatbotState = new StateSchema({\n  messages: MessagesValue,              // LangGraph required message history\n  sqlRetryCount: z.number().optional(), // SQL error retry counter (0-3)\n  intentCategory: z.string().optional(), // Classified intent (set but never consumed)\n  toolCallHistory: z.array(z.object({   // Array of tool call records\n    toolName: z.string(),\n    args: z.string(),                   // Truncated to 200 chars\n    timestamp: z.number()\n  })).optional(),\n  totalToolCalls: z.number().optional(), // Cumulative tool call counter\n});\n```\n\n**`IntentCategory` export type:** Defined and exported but only used as a type annotation; no node actually imports it for type narrowing. The `classifyQuestion()` function returns `string`, not `IntentCategory`.\n\n---\n\n### 3. TOOL DEFINITIONS (`agent/tools.ts`)\n\n**File:** `C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\agent\\tools.ts` (154 lines)\n\n#### 4 tools, all using `tool()` from `@langchain/core/tools` with Zod schemas:\n\n| Tool          | Name                                     | Description                         | Implementation                                |\n| ------------- | ---------------------------------------- | ----------------------------------- | --------------------------------------------- |\n| `queryNbaDb`    | `TOOL_QUERY_NBA_DB` = `'query_nba_db'`       | Execute read-only DuckDB SQL        | Calls `executeSql(sql)` from `utils/sql.ts`       |\n| `checkNbaSql`   | `TOOL_CHECK_NBA_SQL` = `'check_nba_sql'`     | Validate SQL without executing      | Calls `checkSql(sql)` from `utils/sql.ts`         |\n| `getSchemaInfo` | `TOOL_GET_SCHEMA_INFO` = `'get_schema_info'` | Discover schema for a table         | Uses `getTableRefs()` + `getColumns()` from `db.ts` |\n| `listNbaTables` | `TOOL_LIST_NBA_TABLES` = `'list_nba_tables'` | List all tables, filtered by search | Uses `getTableRefs()` from `db.ts`                |\n\n#### Tool binding (in `graph.ts` line 117):\n```typescript\nconst model = createModel().bindTools([...nbaTools]);\n```\nAll 4 tools are bound to the `llm` node's model and added to the `ToolNode`.\n\n#### Tool names are centralized in `toolNames.ts`:\n```typescript\nexport const TOOL_QUERY_NBA_DB = 'query_nba_db';\nexport const TOOL_CHECK_NBA_SQL = 'check_nba_sql';\nexport const TOOL_GET_SCHEMA_INFO = 'get_schema_info';\nexport const TOOL_LIST_NBA_TABLES = 'list_nba_tables';\n```\n\n---\n\n### 4. SYSTEM PROMPT BUILDER (`systemPrompt.ts`)\n\n**File:** `C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\systemPrompt.ts` (225 lines)\n\n#### Architecture\n- `buildSystemPrompt()` is an **async function** called once at startup in `src/chatbot/index.ts` (line 25)\n- It queries the live DuckDB schema via `getTableRefs()` and `getColumns()`\n- The prompt is assembled at **application start**, not per-query\n- It is passed as a `SystemMessage` prepended to every user query in `chatApp.ts` (line 233)\n\n#### Prompt structure (sections):\n1. **Role & identity** (lines 103): \"You are BBallGenius Chat, an NBA analytics assistant\"\n2. **Critical rules** (lines 105–112): 7 rules about no raw SQL output, max 3 tool calls, anti-hallucination, accuracy\n3. **Available tools** (lines 114–120): Describes the 4 tools\n4. **Parallel tool calls guidance** (lines 122–133): Instructions for multi-player/team comparisons\n5. **Chain stages** (lines 135–144): 5-stage workflow (Understand → Locate → Validate → Execute → Synthesize)\n6. **When to use each tool by stage** (lines 146–152)\n7. **High-priority output rules** (lines 154–178): Canonical DB guidance including schema priority, column info, identity bridge, game structure\n8. **SQL cookbook** (lines 181–198): Patterns for career leaders, single-season records, awards, triple-doubles\n9. **Available schemas and tables** (lines 200–202): Dynamically generated list of all schemas with all table names\n10. **Core table columns** (lines 204–206): Dynamically generated column details for up to `DETAILED_COLUMN_LIMIT=24` columns per core table\n11. **Example queries** (lines 208–213): 5 hardcoded example SQL patterns\n12. **SQL guidelines** (lines 215–223): Best practices\n\n#### Schema injection mechanism:\n```typescript\n// Tables by schema (all schemas, all tables listed)\nconst schemaSections = Object.entries(tablesBySchema).map(...)\n// Core tables with detailed columns\nconst tableSections = await Promise.all(\n  coreTables.map(async (tableName) => {\n    const columns = await getColumns(tableName);\n    // ... up to 24 columns per table\n  })\n);\n```\n\n#### Source priority (constant, lines 5–12):\n1. `unified_star` and `main` (semantic/curated)\n2. `stg_bref` and `raw_bref` (Basketball-Reference)\n3. `nbadb`, `api`, `stg_nba_api_sqlite` (NBA API)\n4. `raw_csv`, `raw_json`, `raw_parquet`, `raw_sqlite` (provenance)\n5. `audit` (data quality)\n\n#### Core table patterns list (lines 14–43):\n```\ndim_player, dim_bref_player, bridge_player_source_id,\nfact_game, fact_player_game_stats, fact_team_game_stats,\nfact_play_by_play, fact_bref_player_season_totals,\nfact_bref_player_season_per_game, fact_bref_player_season_advanced,\nfact_bref_team_season_summary, fact_player_award_vote,\nfact_player_honor, v_player_honors_full, v_team_current,\nplayer_totals, player_per_game, advanced, player_shooting,\nteam_summaries, team_totals, player_award_shares,\ndraft_pick_history, fact_shot_chart, fact_player_game_log,\nv_shot_chart, player_identity_bridge, dq_results\n```\n\n#### Core schema priority (line 45):\n```typescript\n['main', 'stg_bref', 'unified_star', 'nbadb', 'api', 'audit']\n```\n\n#### `discoverCoreTables()` (lines 51–73):\nCross-references the `CORE_TABLE_PATTERNS` list against live tables across all `CORE_SCHEMA_PRIORITY` schemas. Tables are found in priority order (first schema wins). Also checks `main.*` as a fallback.\n\n#### Notable: `intentCategory` is NOT used in the system prompt\nThe system prompt is always the same regardless of intent category. There is no conditional logic that tailors the prompt based on classified intent.\n\n---\n\n### 5. MODEL CREATION (`agent/model.ts`)\n\n**File:** `C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\agent\\model.ts` (19 lines)\n\n```typescript\nexport function createModel(): ChatOpenAI {\n  return new ChatOpenAI({\n    model: getModel(),                    // From openrouter.ts — defaults to 'openai/gpt-oss-120b'\n    apiKey: process.env['OPENROUTER_API_KEY'] || 'sk-or-v1-missing',\n    configuration: {\n      baseURL: 'https://openrouter.ai/api/v1',\n      defaultHeaders: {\n        'HTTP-Referer': 'https://github.com/anomalyco/bballgenius',\n        'X-Title': 'BBallGenius Chatbot',\n      },\n    },\n    temperature: 0.3,\n    timeout: 120_000,                     // 2 minute timeout\n    modelKwargs: { parallel_tool_calls: true },\n  });\n}\n```\n\n**Two instances created:**\n1. In `buildGraph()` line 117: `createModel().bindTools([...nbaTools])` — used by the `llm` node (tool-calling)\n2. In `buildGraph()` line 207: `createModel()` — used by the `finalize` node (no tools, just synthesis)\n\n**Model selection:** `getModel()` in `openrouter.ts` reads `MODEL` env var, defaults to `'openai/gpt-oss-120b'`. Can be changed at runtime via model selector UI, which calls `setModel()` and `resetGraph()`.\n\n---\n\n### 6. ERROR CLASSIFICATION & RETRY (`utils/retry.ts`)\n\n**File:** `C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\utils\\retry.ts` (107 lines)\n\n#### Error categories:\n```typescript\nexport type ErrorCategory = 'transient' | 'schema' | 'syntax' | 'permanent';\n```\n\n#### Error prefixes (centralized constants used across `graph.ts` and `sql.ts`):\n```typescript\nexport const ERROR_PREFIX = {\n  SQL_ERROR: 'SQL Error:' as const,\n  SCHEMA_ERROR: 'Schema error:' as const,\n  SYNTAX_ERROR: 'SQL syntax error:' as const,\n  TRANSIENT_ERROR: 'Transient error:' as const,\n  SCHEMA_VALIDATION_FAILED: 'Schema validation failed:' as const,\n};\n```\n\n#### Keyword-based categorization (`categorizeDbError`, lines 33–43):\n- **transient**: `timeout`, `connection`, `lock`, `conflict`, `busy`, `rate limit`\n- **schema**: `does not exist`, `no such table`, `no such column`, `not found in schema`, `ambiguous column`\n- **syntax**: `syntax error`, `parse error`, `parser error`\n- **permanent**: everything else\n\n#### `isRetryableError()` (lines 45–55):\nOnly returns `true` for rate limits, timeouts, and network errors (ECONNREFUSED, ECONNRESET). Used by `withRetry()` for the **DuckDB execution retry** (not the graph-level SQL critic loop).\n\n#### `formatErrorForLLM()` (lines 72–86):\nPrepends the appropriate `ERROR_PREFIX` based on category. This is what creates the prefix strings that `containsSqlError()` in `graph.ts` detects.\n\n#### `withRetry()` (lines 88–107):\nGeneric retry wrapper with exponential backoff. Used by `executeSql()` in `sql.ts` with `maxAttempts=2`. This is for DuckDB execution retries, separate from the graph-level `sql_critic` retry.\n\n---\n\n### 7. SQL UTILITIES (`utils/sql.ts`)\n\n**File:** `C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\utils\\sql.ts` (173 lines)\n\n#### Key functions:\n\n| Function                      | Lines   | Purpose                                                                                                                                                               |\n| ----------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |\n| `validateReadOnlySql(sql)`      | 17–34   | Blocked patterns: INSERT, UPDATE, DELETE, CREATE, DROP, ALTER, COPY, LOAD, etc. + external access functions. Only allows SELECT/WITH/DESCRIBE. Single statement only. |\n| `extractSql(text)`              | 36–51   | Extracts SQL from LLM output: first tries ```sql blocks, then fallback regex for bare SELECT/WITH/DESCRIBE                                                              |\n| `extractSqlFromMarkdown(text)`  | 53–61   | Extracts ALL ```sql blocks as an array                                                                                                                                  |\n| `validateSchemaReferences(sql)` | 87–106  | Parses FROM/JOIN table refs, checks against `getTables()` from `db.ts`. Limits to 5 table refs max.                                                                       |\n| `checkSql(sql)`                 | 113–125 | Combined check: validates read-only + schema references. Returns `'OK: ...'` or error-prefixed string.                                                                  |\n| `executeSql(sql)`               | 127–146 | Calls `checkSql()` first, then `query()` with `withRetry()`, then `formatResultsPretty()`.                                                                                    |\n| `formatResultsPretty(results)`  | 152–173 | Formats query results as a pipe-separated table (headers + values). Truncates to 20 rows.                                                                             |\n\n#### Blocked SQL patterns (lines 4–8):\n```typescript\nconst BLOCKED_SQL_PATTERNS = [\n  /\\b(insert|update|delete|merge|create|drop|alter|truncate|attach|detach)\\b/i,\n  /\\b(copy|load|install|set|call|pragma|vacuum|checkpoint|export|import)\\b/i,\n  /\\b(read_csv|read_json|read_parquet|read_text|glob|httpfs)\\s*\\(/i,\n];\n```\n\n#### Execution flow:\n```\nexecuteSql(sql)\n  → checkSql(sql)\n    → validateReadOnlySql(sql) — checks blocked patterns\n    → validateSchemaReferences(sql) — checks table existence\n  → withRetry(() => query(sql), maxAttempts=2) — DuckDB exec\n  → formatResultsPretty(results) — table formatting\n```\n\n---\n\n### 8. INTENT CLASSIFICATION (`agent/graph.ts` — `classifyQuestion`)\n\n**File:** `C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\agent\\graph.ts` (lines 12–69)\n\n#### Purpose:\n- **Deterministic regex matching** — no LLM call\n- Always returns a string; fallback is `'general'`\n\n#### 12 intent categories with their regex patterns:\n\n| Category       | Patterns                                                                                                                | Lines |\n| -------------- | ----------------------------------------------------------------------------------------------------------------------- | ----- |\n| `career_leaders` | triple.doubles?, quadruple.doubles?, 50.point, career points/rebounds/assists/etc., all.time, most points/rebounds/etc. | 14–22 |\n| `season_leaders` | season leader, points per game, assists per game, led the nba                                                           | 25–27 |\n| `awards`         | mvp, roy, rookie of the year, dpoy, all.nba, all.defensive, all.star, all.rookie, award, honor, winner, vote            | 29–33 |\n| `team_seasons`   | team record/season/rating/srs/pace/offensive/defensive, specific team names                                             | 36–38 |\n| `cross_schema`   | cross.check, cross schema, between main/unified/bref/nbadb                                                              | 40–42 |\n| `games`          | finals game, final score, box score, stat line, game_id                                                                 | 44–46 |\n| `shot_charts`    | shot chart, three pointer, corner three, mid.range, at the rim, shot distribution                                       | 48–51 |\n| `play_by_play`   | play.by.play, turnover, made shot                                                                                       | 52    |\n| `identity`       | basketball.reference id, nba api person_id/id, identity bridge, unresolved, ambiguous                                   | 54–57 |\n| `draft`          | draft pick, draft, first overall                                                                                        | 58    |\n| `data_quality`   | data quality, dq_results, row count, audit                                                                              | 59    |\n| `general`        | (fallback — no match)                                                                                                   | 66    |\n\n#### How `classifyQuestion` works:\n```typescript\nfunction classifyQuestion(text: string): string {\n  for (const { pattern, category } of INTENT_PATTERNS) {\n    if (pattern.test(text)) return category;\n  }\n  return 'general';\n}\n```\n- Iterates patterns in order (first match wins)\n- Case-insensitive via `/i` flag on all patterns\n\n#### Test coverage (`intentClassification.test.ts`):\n- 103 lines, 11 test cases covering all 12 categories\n- Each category has 2–4 example questions\n- Edge cases: context-rich questions (e.g., \"Using the api schema...\") correctly fall to `'general'`\n\n---\n\n### 9. STREAMING (`agent/streaming.ts`)\n\n**File:** `C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\agent\\streaming.ts` (118 lines)\n\n#### StreamEvent union type:\n```typescript\nexport type StreamEvent =\n  | { type: 'token'; content: string }\n  | { type: 'tool_start'; name: string; input: Record<string, unknown>; runId: string }\n  | { type: 'tool_end'; name: string; output: string; runId: string }\n  | { type: 'tool_error'; name: string; error: string }\n  | { type: 'chain_stage'; stage: ChainStageName }          // 'classify_intent' | 'llm' | 'tools' | 'sql_critic'\n  | { type: 'usage'; usage: TokenUsage }                     // { inputTokens, outputTokens }\n  | { type: 'done'; messages: BaseMessage[] }\n  | { type: 'error'; message: string };\n```\n\n#### `streamQuery()` async generator:\n- Accepts `input: BaseMessage[]` and `threadId: string`\n- Calls `graph.streamEvents(...)` with `recursionLimit: 50`\n- Uses `streamEvents` v2 API\n- Maps LangGraph events to custom `StreamEvent` types:\n  - `on_chain_start` for named nodes → `chain_stage` events\n  - `on_chat_model_stream` → `token` events\n  - `on_tool_start` → `tool_start` events (tracks active tools in `activeTools` Map)\n  - `on_tool_end` → `tool_end` events\n  - `on_tool_error` → `tool_error` events\n  - `on_chat_model_end` → `usage` events (reads `usage_metadata`)\n- After stream completes: calls `graph.getState(config)` to read final messages → emits `done`\n- Error handling: catches all errors and emits `error` event\n\n#### Handling in `chatApp.ts` (lines 241–304):\n- `token`: accumulates `fullResponse`, updates display line\n- `tool_start`: shows SQL or schema lookups in the chat display, increments `activeToolCount`\n- `tool_end`: records metric\n- `chain_stage`: records metric\n- `error`: displays error, handles partial response\n- `usage`: records token metrics\n- No `done` handler — after the for-await loop completes, processing state is cleared\n\n---\n\n### 10. DUCKDB ACCESS (`db.ts`)\n\n**File:** `C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\db.ts` (99 lines)\n\n#### Architecture:\n- **Singleton pattern:** `instance` (DuckDBInstance) + `connection` (DuckDBConnection)\n- **Lazy init:** `initDb()` creates connection on first call\n- **Path resolution:** Uses `resolveDbPath()` from `src/shared/dbPath.ts`\n\n#### Key exports:\n\n| Export                 | Type                                       | Lines | Purpose                                          |\n| ---------------------- | ------------------------------------------ | ----- | ------------------------------------------------ |\n| `initDb()`               | `() => Promise<DuckDBConnection>`            | 14–21 | Initialize singleton connection                  |\n| `query<T>(sql, params?)` | `async`                                      | 23–31 | Execute SQL, return typed rows as JSON           |\n| `getTables()`            | `() => Promise<string[]>`                    | 57–60 | Returns `['table_name', 'schema.table_name', ...]` |\n| `getTableRefs()`         | `() => Promise<TableRef[]>`                  | 62–77 | Returns `[{ schema, name, type, qualifiedName }]`  |\n| `getColumns(table)`      | `(table: string) => Promise<{name, type}[]>` | 79–91 | Returns columns for a given qualified table name |\n| `closeDb()`              | `() => Promise<void>`                        | 93–98 | Cleanup                                          |\n\n#### `TableRef` interface:\n```typescript\nexport interface TableRef {\n  schema: string;\n  name: string;\n  type: string;           // 'BASE TABLE' or 'VIEW'\n  qualifiedName: string;  // 'schema.name' or just 'name' for main\n}\n```\n\n#### Schema filtering:\n- Excludes `information_schema` and `pg_catalog` system schemas\n- `qualifyTableName()`: if schema is `'main'`, returns bare table name; otherwise `schema.table`\n\n#### Query execution:\n```typescript\nconst reader = await conn.runAndReadAll(sql);\nreturn reader.getRowObjectsJson() as T[];\n```\nParameterized queries supported via `$1`, `$2`, etc. syntax.\n\n---\n\n### 11. CHAT APP UI (`chatApp.ts`)\n\n**File:** `C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\chatApp.ts` (335 lines)\n\n#### Key architectural details:\n\n- **System prompt injection:** Built once at startup in `index.ts`, passed to constructor, then used in `handleSubmit()`:\n  ```typescript\n  const inputMessages = [new SystemMessage(this.systemPrompt), new HumanMessage(text)];\n  ```\n\n- **Session management:** Each question gets a new `threadId` (`crypto.randomUUID()` at constructor) but **shared across all queries** — the same thread_id is reused for all questions in a session, enabling multi-turn checkpointing\n\n- **Processing state:** `isProcessing` flag prevents concurrent submits; `processingCancelled` flag for Escape key cancellation\n\n- **Model change flow:** When user opens model selector and changes model:\n  1. `resetGraph()` is called (invalidates graph singleton)\n  2. Header text updates to show new model name\n  3. Next `handleSubmit()` will build a fresh graph with the new model\n\n- **Display line management:** Accumulates `displayLines[]` joined with double newlines for chat bubble spacing\n\n---\n\n### 12. SUMMARY OF KEY ARCHITECTURAL PATTERNS\n\n#### How `intentCategory` flows (or doesn't):\n1. **Set** at `classify_intent` node → stored in `state.intentCategory`\n2. **Never read** by any other node, edge routing, system prompt builder, or UI\n3. The `IntentCategory` type is exported but not used for type narrowing\n4. **No conditional prompt tailoring** based on intent\n5. **No conditional edge routing** based on intent\n\n#### How the SQL critic loop works:\n```\nsql_critic entry\n  → getTrailingToolMessages (contiguous ToolMessages from end)\n  → if empty: reset retries, goto llm\n  → track toolCallHistory + totalToolCalls\n  → if totalToolCalls > MAX_TOTAL_TOOL_CALLS (20): goto finalize\n  → detect loops (same sig 3+/6): goto finalize\n  → check error prefixes in content\n  → if error AND sqlRetryCount >= MAX_SQL_RETRIES (3): SystemMessage + END\n  → if error AND retries < 3: increment, SystemMessage + goto llm\n  → if no error: reset retries, goto llm\n```\n\n#### How the finalize node works:\n- **Separate model** (no tools bound)\n- **System prompt:** \"Synthesize final answer, don't mention tools/SQL/DB\"\n- **Input:** Last 10 messages from state\n- **Output:** Appended AI message\n- **Always routes to END**\n\n#### Schema injection lifecycle:\n1. `index.ts` calls `buildSystemPrompt()` at startup\n2. `buildSystemPrompt()` queries DuckDB `information_schema` for all tables + columns\n3. Builds a static prompt string with all schemas, core table columns, rules, examples\n4. Prompt is reused for ALL queries in the session\n5. **Not regenerated per query** — schema is a snapshot from app start\n\n#### Tool call tracking:\n- `toolCallHistory`: Array of `{ toolName, args (truncated 200 chars), timestamp }`\n- `totalToolCalls`: Cumulative counter\n- Both are updated in `sql_critic` node only\n- `MAX_TOTAL_TOOL_CALLS = 20`: hard cap → routes to `finalize`\n- Looping detection: same tool+args signature 3+ times in last 6 calls → routes to `finalize`\n- `recursionLimit: 50` in `streamQuery()` (LangGraph recursion limit)\n\n#### What is NOT present:\n- No `intentCategory`-based edge routing\n- No `intentCategory`-based prompt selection\n- No per-query system prompt regeneration\n- No HITL (human-in-the-loop) wiring\n- No `SqliteSaver` in production (only when `CHATBOT_PERSIST_DIR` set)\n- No `classify_intent` node output in streaming events (it's a fast sync function, not a LLM call)\n- No `finalize` node's events in streaming (it's a regular chain node, not tracked separately in `GRAPH_NODE_NAMES`)\n\n---\n\n### 13. FILE REFERENCE INDEX\n\n| File                         | Path                                                                                             |\n| ---------------------------- | ------------------------------------------------------------------------------------------------ |\n| Graph definition             | `C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\agent\\graph.ts`                         |\n| State schema                 | `C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\agent\\state.ts`                         |\n| Tool definitions             | `C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\agent\\tools.ts`                         |\n| Tool name constants          | `C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\agent\\toolNames.ts`                     |\n| Model creation               | `C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\agent\\model.ts`                         |\n| Streaming                    | `C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\agent\\streaming.ts`                     |\n| System prompt builder        | `C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\systemPrompt.ts`                        |\n| SQL utilities                | `C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\utils\\sql.ts`                           |\n| Error classification & retry | `C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\utils\\retry.ts`                         |\n| Metrics logger               | `C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\utils\\metrics.ts`                       |\n| DuckDB access                | `C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\db.ts`                                  |\n| OpenRouter model selection   | `C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\openrouter.ts`                          |\n| Chat UI controller           | `C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\chatApp.ts`                             |\n| TUI entry point              | `C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\index.ts`                               |\n| Intent classification tests  | `C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\__tests__\\intentClassification.test.ts` |\n| Shared DB path resolver      | `C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\shared\\dbPath.ts`                               |",
+          "time": {
+            "start": 1779414181944,
+            "end": 1779414236703
+          },
+          "id": "prt_e4d59a838002D2ZUY8LzuNHH12",
+          "sessionID": "ses_1b2a69cdeffelkb4mAul2PvDb8",
+          "messageID": "msg_e4d599d35001m8VxRGFKcFyZxs"
+        },
+        {
+          "reason": "stop",
+          "snapshot": "dd4d6a133575de101809d9815deaa483b32dd862",
+          "type": "step-finish",
+          "tokens": {
+            "total": 61483,
+            "input": 4883,
+            "output": 7552,
+            "reasoning": 24,
+            "cache": {
+              "write": 0,
+              "read": 49024
+            }
+          },
+          "cost": 0.0029421672,
+          "id": "prt_e4d5a7e830019EFR6zWwShASKc",
+          "sessionID": "ses_1b2a69cdeffelkb4mAul2PvDb8",
+          "messageID": "msg_e4d599d35001m8VxRGFKcFyZxs"
+        }
+      ]
+    }
+  ]
+}

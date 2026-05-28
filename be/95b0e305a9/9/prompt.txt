@@ -1,0 +1,84 @@
+## CRITICAL: File Boundaries
+
+Create ONLY these 2 files. Do NOT edit, read-then-modify, or touch any other file.
+- `src/chatbot/utils/markdown.ts`
+- `src/chatbot/__tests__/markdown.test.ts`
+
+## Task: Markdown-to-ANSI Renderer
+
+Create `markdownToAnsi(text: string): string` that converts markdown to ANSI-escaped text compatible with the chatbot's `ansiToStyledText()` parser.
+
+### Supported Subset
+
+| Markdown | ANSI Output | Notes |
+|----------|-------------|-------|
+| `**bold**` | `\x1b[1mbold\x1b[0m` | Bold |
+| `*italic*` | `\x1b[3mitalic\x1b[0m` | Italic |
+| `` `code` `` | `\x1b[36mcode\x1b[0m` | Cyan inline code |
+| ` ``` ` blocks | `\x1b[36m...\x1b[0m` | Cyan code block (preserve newlines) |
+| `# Header` | `\x1b[1mHeader\x1b[0m` | Bold headers |
+| `- item` / `* item` | `• item` | Bullet lists |
+| `> quote` | `\x1b[2m│ quote\x1b[0m` | Dim blockquote with bar |
+
+### ANSI Codes Supported by Parser (DO NOT use others)
+
+The downstream parser (`ansiToStyledText` in `src/chatbot/utils/ansi.ts`) handles: `0` (reset), `1` (bold), `2` (dim), `22` (normal), `31` (red), `32` (green), `34` (blue), `36` (cyan), `37` (white), `90` (brightBlack). It does NOT handle `3` (italic), `4` (underline), 24-bit RGB, or 256-color.
+
+**IMPORTANT**: Since the parser doesn't support italic (`\x1b[3m`), use dim (`\x1b[2m`) for italic rendering instead. This gives a visual distinction without breaking the parser.
+
+### NO_COLOR Support
+
+Read `src/chatbot/utils/theme.ts` to see the `isNoColor()` pattern. Import and use `isNoColor` from `./theme.js`. When NO_COLOR is set, return text without any ANSI codes.
+
+### Implementation Notes
+
+- Process code blocks FIRST (to prevent inner markdown from being parsed)
+- Then process inline elements
+- Preserve plain text as-is
+- Handle edge cases: empty string, no markdown, nested bold/italic
+
+## TDD Workflow (MANDATORY)
+
+For each test:
+1. Write ONE failing test
+2. Run: `bun test src/chatbot/__tests__/markdown.test.ts --concurrency=1`
+3. Confirm it FAILS for the expected reason
+4. Write minimal code in `markdown.ts` to pass
+5. Run test again, confirm PASSES
+6. Move to next test
+
+### Required Tests
+
+1. Bold: `**hello**` → contains `\x1b[1m` and `hello`
+2. Italic: `*world*` → contains `\x1b[2m` (dim, since italic unsupported)
+3. Inline code: `` `SELECT` `` → contains `\x1b[36m` and `SELECT`
+4. Code block: ` ```sql\nSELECT 1\n``` ` → contains `\x1b[36m` and `SELECT 1`
+5. Headers: `# Title` → contains `\x1b[1m` and `Title`
+6. Bullet lists: `- item` → contains `• item`
+7. Blockquotes: `> text` → contains `\x1b[2m` and `│ text`
+8. Plain text passthrough (no markdown → unchanged)
+9. Empty string returns empty string
+10. Mixed formatting: `**bold** and *italic*` → both present
+11. NO_COLOR env: when set, no ANSI codes in output
+
+## Code Conventions
+
+- Indent: 2 spaces
+- Quotes: single
+- Semicolons: yes
+- Import extensions: `.js` (e.g., `import { isNoColor } from './theme.js'`)
+- No comments
+- No `any` type
+- Use `export type` for type-only exports
+- Use bracket syntax for env vars: `process.env['NO_COLOR']`
+- Max line length: 100 chars
+
+## Verification
+
+After all tests pass, run:
+```
+bunx tsc --noEmit src/chatbot/utils/markdown.ts
+bunx biome check --write src/chatbot/utils/markdown.ts src/chatbot/__tests__/markdown.test.ts
+```
+
+Report back: list of tests, pass/fail status, any issues encountered.

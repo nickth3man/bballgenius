@@ -1,0 +1,25 @@
+Research the chatbot codebase at C:\Users\nicolas\Documents\GitHub\bballgenius\src\chatbot\ to understand the current architecture for implementing 4 planned changes. Read these files thoroughly and return detailed findings:
+
+1. `src/chatbot/agent/graph.ts` - The LangGraph state graph definition (nodes, edges, routing)
+2. `src/chatbot/agent/state.ts` - ChatbotState type definition  
+3. `src/chatbot/agent/tools.ts` - Tool definitions (query_nba_db, get_schema_info, etc.)
+4. `src/chatbot/systemPrompt.ts` - System prompt builder (how schemas are injected)
+5. `src/chatbot/agent/model.ts` - Model creation and binding
+6. `src/chatbot/utils/retry.ts` - Error classification and retry logic (sql_critic)
+7. `src/chatbot/utils/sql.ts` - SQL utilities (extractSql, validateReadOnlySql, etc.)
+
+For each file, return:
+- Full content or key excerpts showing the structure
+- How `intentCategory` is used (or not used) after classification
+- How schemas are currently injected into the system prompt
+- The sql_critic node's logic (looping detection, retry counting, error routing)
+- The `finalize` node if it exists
+- How tool calls are tracked (toolCallHistory, MAX_TOTAL_TOOL_CALLS, recursionLimit)
+- The complete list of tables and schemas used in the system prompt
+- How `classify_intent` works and what intent categories exist
+
+Also check:
+- `src/chatbot/agent/streaming.ts` - streaming event types
+- `src/chatbot/db.ts` - DuckDB access patterns
+
+Return all findings in a structured format so I can plan the implementation.

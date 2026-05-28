@@ -1,0 +1,10 @@
+Critical rules: Audit only src/chatbot/ and directly used shared utilities. Treat accessibility as terminal UI accessibility, not web DOM. Do not edit files. Return findings with severity, file/line refs, WCAG 2.1 mapping where applicable, and minimal remediation ideas.
+
+Context: BBallGenius chatbot is an OpenTUI terminal app. User requested keyboard/focus/shortcuts/discoverability, screen reader terminal compatibility, readable text/status/streaming behavior, ANSI/color/non-color indicators, prompt/error/model selector states, and dynamic content announcements.
+
+Task: Independently review the chatbot TUI code for accessibility risks. Focus on chatApp.ts, index.ts, features/modelSelector.ts, utils/ansi.ts, utils/theme.ts, agent/streaming.ts, and tests. You may read/search files and run no modifying commands.
+
+Return exactly:
+1. Findings ordered by severity, each with file:line, impact, WCAG principle/guideline, and suggested fix.
+2. Test ideas for practical remediation.
+3. Residual TUI accessibility risks that cannot be fully automated.

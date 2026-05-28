@@ -1,0 +1,53 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "be95b0e305a9",
+  "session_id": "2b1352e3-42c8-45db-9d58-101272b20a2c",
+  "strategy": "manual-commit",
+  "created_at": "2026-05-28T20:21:04.7438043Z",
+  "branch": "fix/hub-unified-star-schema",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".env.example",
+    "package.json",
+    "src/chatbot/__tests__/retry.test.ts",
+    "src/chatbot/agent/graph.ts",
+    "src/chatbot/agent/model.ts",
+    "src/chatbot/agent/state.ts",
+    "src/chatbot/agent/streaming.ts",
+    "src/chatbot/agent/tools.ts",
+    "src/chatbot/eval/bbr-truth.json",
+    "src/chatbot/eval/bbrTruth.ts",
+    "src/chatbot/eval/dbTruth.ts",
+    "src/chatbot/eval/matrixHarness.ts",
+    "src/chatbot/features/modelSelector.ts",
+    "src/chatbot/scripts/iterate_loop.ts",
+    "src/chatbot/systemPrompt.ts",
+    "src/chatbot/utils/metrics.ts",
+    "src/chatbot/utils/retry.ts"
+  ],
+  "agent": "Claude Code",
+  "model": "",
+  "turn_id": "bd383b4a4def",
+  "token_usage": {
+    "input_tokens": 37178,
+    "cache_creation_tokens": 350810,
+    "cache_read_tokens": 22367321,
+    "output_tokens": 117907,
+    "api_call_count": 124
+  },
+  "session_metrics": {
+    "turn_count": 2
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-05-28T20:21:04.719137Z",
+    "agent_lines": 3074,
+    "agent_removed": 212,
+    "human_added": 1385,
+    "human_modified": 1978,
+    "human_removed": 0,
+    "total_committed": 6437,
+    "total_lines_changed": 6733,
+    "agent_percentage": 48.804396257240455,
+    "metric_version": 2
+  }
+}

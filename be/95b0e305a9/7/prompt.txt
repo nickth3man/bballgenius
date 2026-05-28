@@ -1,0 +1,71 @@
+## CRITICAL: File Boundaries
+
+Create ONLY these 2 files. Do NOT edit, read-then-modify, or touch any other file.
+- `src/chatbot/utils/spinner.ts`
+- `src/chatbot/__tests__/spinner.test.ts`
+
+## Task: Spinner Animation Utility
+
+Create a spinner utility for the chatbot TUI that provides animated frame sequences for "thinking..." and "running query..." states.
+
+### API Design
+
+```typescript
+export const SPINNER_FRAMES: readonly string[];
+
+export function getSpinnerFrame(tick: number, text?: string): string;
+```
+
+### Behavior
+
+- `SPINNER_FRAMES`: Array of braille spinner frames: `['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']`
+- `getSpinnerFrame(tick, text?)`: Returns `SPINNER_FRAMES[tick % SPINNER_FRAMES.length]` optionally followed by ` ${text}` if text is provided
+- Pure functions, no timers, no side effects — the caller drives animation via tick counter
+
+### Why Pure Functions?
+
+The chatbot's `chatApp.ts` already has a render loop. The spinner just needs to provide frames. The caller increments tick on each render cycle. No setInterval/setTimeout needed.
+
+## TDD Workflow (MANDATORY)
+
+For each test:
+1. Write ONE failing test
+2. Run: `bun test src/chatbot/__tests__/spinner.test.ts --concurrency=1`
+3. Confirm it FAILS for the expected reason
+4. Write minimal code to pass
+5. Run test again, confirm PASSES
+6. Move to next test
+
+### Required Tests
+
+1. `SPINNER_FRAMES` is a non-empty readonly array of strings
+2. `SPINNER_FRAMES` contains exactly 10 braille characters
+3. `getSpinnerFrame(0)` returns first frame (`'⠋'`)
+4. `getSpinnerFrame(1)` returns second frame (`'⠙'`)
+5. `getSpinnerFrame(10)` wraps around to first frame (same as tick 0)
+6. `getSpinnerFrame(0, 'thinking...')` returns `'⠋ thinking...'`
+7. `getSpinnerFrame(5)` without text returns just the frame character
+8. Large tick values wrap correctly: `getSpinnerFrame(100)` === `getSpinnerFrame(0)`
+9. `getSpinnerFrame(0, '')` returns just the frame (empty text treated as no text)
+
+## Code Conventions
+
+- Indent: 2 spaces
+- Quotes: single
+- Semicolons: yes
+- Import extensions: `.js`
+- No external dependencies
+- No comments
+- No `any` type
+- Use `export type` for type-only exports
+- Max line length: 100 chars
+
+## Verification
+
+After all tests pass, run:
+```
+bunx tsc --noEmit src/chatbot/utils/spinner.ts
+bunx biome check --write src/chatbot/utils/spinner.ts src/chatbot/__tests__/spinner.test.ts
+```
+
+Report back: list of tests, pass/fail status, any issues.
