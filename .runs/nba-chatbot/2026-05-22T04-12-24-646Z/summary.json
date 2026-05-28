@@ -1,0 +1,24 @@
+{
+  "startedAt": "2026-05-22T04:12:24.646Z",
+  "endedAt": "2026-05-22T04:17:24.661Z",
+  "elapsedSec": 300,
+  "model": "nvidia/nemotron-nano-9b-v2",
+  "totalPassed": 17,
+  "totalAttempted": 18,
+  "totalExpected": 18,
+  "allPassed": false,
+  "runDir": ".runs\\nba-chatbot\\2026-05-22T04-12-24-646Z",
+  "failures": [
+    {
+      "runId": "specific-001-r3-1779423421457",
+      "questionId": "specific-001",
+      "question": "What was Michael Jordan PER in the 1995 playoffs?",
+      "expected": "24.8",
+      "actual": "",
+      "category": "timeout",
+      "reason": "Run timed out.",
+      "tools": 3,
+      "stopReason": "timeout"
+    }
+  ]
+}

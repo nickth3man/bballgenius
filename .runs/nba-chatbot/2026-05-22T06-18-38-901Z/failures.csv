@@ -1,0 +1,4 @@
+run_id,question_id,question,expected,actual,category,reason,tools,stop_reason
+"leaders-003-r1-1779430785264","leaders-003","Who is second on the all-time NBA regular season scoring list?","Kareem Abdul-Jabbar","The second all-time NBA regular season scoring leader is **Karl Malone** with **36,928 points**. This is based on regular season statistics only, excluding playoff games.","wrong_answer","Expected answer token ""Kareem Abdul-Jabbar"" not found.","2","done_event"
+"leaders-003-r2-1779430798808","leaders-003","Who is second on the all-time NBA regular season scoring list?","Kareem Abdul-Jabbar","Karl Malone is second on the all-time NBA regular season scoring list with 36,928 points.","wrong_answer","Expected answer token ""Kareem Abdul-Jabbar"" not found.","2","done_event"
+"leaders-009-r1-1779431018217","leaders-009","Who is the all-time NBA regular season steals leader?","John Stockton","","timeout","Run timed out.","0","timeout"

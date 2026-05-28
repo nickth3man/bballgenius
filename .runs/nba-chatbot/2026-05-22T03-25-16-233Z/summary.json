@@ -1,0 +1,57 @@
+{
+  "startedAt": "2026-05-22T03:25:16.233Z",
+  "endedAt": "2026-05-22T03:28:16.240Z",
+  "elapsedSec": 180,
+  "model": "nvidia/nemotron-nano-9b-v2",
+  "totalPassed": 0,
+  "totalAttempted": 4,
+  "totalExpected": 6,
+  "allPassed": false,
+  "runDir": ".runs\\nba-chatbot\\2026-05-22T03-25-16-233Z",
+  "failures": [
+    {
+      "runId": "simple-001-r1-1779420317005",
+      "questionId": "simple-001",
+      "question": "Who is the all-time NBA regular season scoring leader?",
+      "expected": "LeBron James",
+      "actual": "The all-time NBA regular season scoring leader is **LeBron James** with **48,712 points**. This total is calculated from regular season games only (playoff games excluded) using the formula: (field goals made × 2) + (three-pointers made × 3) + (free throws made). The all-time NBA regular season scoring leader is **LeBron James** with **48,712 points**. This total is calculated from regular season games only (playoff games excluded) using the formula: (field goals made × 2) + (three-pointers mad…",
+      "category": "timeout",
+      "reason": "Run timed out.",
+      "tools": 4,
+      "stopReason": "timeout"
+    },
+    {
+      "runId": "simple-002-r1-1779420377033",
+      "questionId": "simple-002",
+      "question": "How many career points does LeBron James have?",
+      "expected": "43440",
+      "actual": "LeBron James has a career total of **43,440 points** according to the data in the `stg_bref.player_totals` table. This reflects his cumulative points across all games in the database. LeBron James has a career total of **43,440 points** based on the data retrieved from the database.",
+      "category": "timeout",
+      "reason": "Run timed out.",
+      "tools": 7,
+      "stopReason": "timeout"
+    },
+    {
+      "runId": "simple-003-r1-1779420437038",
+      "questionId": "simple-003",
+      "question": "Who won the NBA MVP award in the 2023-24 season?",
+      "expected": "Nikola",
+      "actual": "",
+      "category": "timeout",
+      "reason": "Run timed out.",
+      "tools": 7,
+      "stopReason": "timeout"
+    },
+    {
+      "runId": "multi-001-r1-1779420496231",
+      "questionId": "multi-001",
+      "question": "Who has more career points: Michael Jordan or Kobe Bryant?",
+      "expected": "Kobe",
+      "actual": "",
+      "category": "timeout",
+      "reason": "Run timed out.",
+      "tools": 0,
+      "stopReason": "timeout"
+    }
+  ]
+}
