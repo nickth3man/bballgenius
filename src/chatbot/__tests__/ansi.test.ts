@@ -47,6 +47,20 @@ describe('ansiToStyledText', () => {
     expect(styled.chunks[0].fg).toBeDefined();
   });
 
+  test('parses cyan foreground from \\x1b[36m code', () => {
+    const styled = ansiToStyledText('\x1b[36mSQL label\x1b[0m');
+    expect(styled.chunks.length).toBe(1);
+    expect(styled.chunks[0].text).toBe('SQL label');
+    expect(styled.chunks[0].fg).toBeDefined();
+  });
+
+  test('parses red foreground from \\x1b[1;31m code', () => {
+    const styled = ansiToStyledText('\x1b[1;31mError label\x1b[0m');
+    expect(styled.chunks.length).toBe(1);
+    expect(styled.chunks[0].text).toBe('Error label');
+    expect(styled.chunks[0].fg).toBeDefined();
+  });
+
   test('splits text into multiple chunks for mixed ANSI codes', () => {
     const styled = ansiToStyledText('A \x1b[1mB\x1b[0m C \x1b[2mD\x1b[0m E');
     expect(styled.chunks.length).toBe(5);

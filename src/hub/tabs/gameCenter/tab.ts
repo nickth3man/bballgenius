@@ -62,7 +62,7 @@ export class GameCenterTab {
     // Left Panel: Game Directory
     this.leftPanel = new BoxRenderable(renderer, {
       id: 'game-directory-panel',
-      width: '20%',
+      width: '22%',
       height: '100%',
       border: true,
       borderStyle: Theme.borderStyle,
@@ -71,6 +71,7 @@ export class GameCenterTab {
       focusedBorderColor: Theme.borderFocused,
       title: 'Games',
       titleAlignment: Theme.titleAlignment,
+      paddingX: 1,
     });
 
     this.gameListScroll = new ScrollBoxRenderable(renderer, {
@@ -92,7 +93,7 @@ export class GameCenterTab {
     // Middle Panel: Box Score Details
     this.middlePanel = new BoxRenderable(renderer, {
       id: 'box-score-panel',
-      width: '48%',
+      width: '42%',
       height: '100%',
       border: true,
       borderStyle: Theme.borderStyle,
@@ -101,6 +102,7 @@ export class GameCenterTab {
       focusedBorderColor: Theme.borderFocused,
       title: 'Box Score',
       titleAlignment: Theme.titleAlignment,
+      paddingX: 1,
     });
 
     this.boxScoreScroll = new ScrollBoxRenderable(renderer, {
@@ -122,7 +124,7 @@ export class GameCenterTab {
     // Right Panel: Shot Chart Visualisation
     this.rightPanel = new BoxRenderable(renderer, {
       id: 'shot-chart-panel',
-      width: '32%',
+      width: '36%',
       height: '100%',
       border: true,
       borderStyle: Theme.borderStyle,
@@ -131,6 +133,7 @@ export class GameCenterTab {
       focusedBorderColor: Theme.borderFocused,
       title: 'Shot Chart',
       titleAlignment: Theme.titleAlignment,
+      paddingX: 1,
     });
 
     this.shotChartText = new TextRenderable(renderer, {
@@ -406,13 +409,13 @@ export class GameCenterTab {
     const isAllSelected = this.selectedPlayerIdx === -1;
     const allRow = {
       full_name: isAllSelected ? '▶ All Players' : '  All Players',
-      team_abbrev: '---',
-      min: '---',
-      points: '---',
-      assists: '---',
-      reb: '---',
-      steals: '---',
-      blocks: '---',
+      team_abbrev: '·',
+      min: '·',
+      points: '·',
+      assists: '·',
+      reb: '·',
+      steals: '·',
+      blocks: '·',
     };
 
     const tableLines = formatTable(headers, [allRow, ...mappedRows], { colKeys: keys });

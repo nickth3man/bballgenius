@@ -1,0 +1,122 @@
+{
+  "_meta": {
+    "source": "basketball-reference.com",
+    "league_scope": "NBA-only (ABA excluded; uses the #all_nba tables on BBR leader pages)",
+    "asOf": "2026-05-28",
+    "note": "Authoritative truth for the chatbot eval harness. Values are scraped live from basketball-reference.com. Any DB value that disagrees with a verified entry here is a DATA QUALITY issue, not an agent bug. Entries with verified:false were NOT confirmed by scrape yet and MUST NOT be treated as fact — the harness skips the DB-vs-BBR check for them.",
+    "regenerate": "Re-run the BBR scrapes (see eval/bbrTruth.ts SOURCE_URLS) and overwrite this file with a fresh asOf date. Active-player career totals drift every game night."
+  },
+  "career_points_leaders": {
+    "verified": true,
+    "source": "https://www.basketball-reference.com/leaders/pts_career.html#all_nba",
+    "scrapedAt": "2026-05-28",
+    "rows": [
+      {"rank": 1, "player": "LeBron James", "value": 43440},
+      {"rank": 2, "player": "Kareem Abdul-Jabbar", "value": 38387},
+      {"rank": 3, "player": "Karl Malone", "value": 36928},
+      {"rank": 4, "player": "Kobe Bryant", "value": 33643},
+      {"rank": 5, "player": "Kevin Durant", "value": 32597},
+      {"rank": 6, "player": "Michael Jordan", "value": 32292},
+      {"rank": 7, "player": "Dirk Nowitzki", "value": 31560},
+      {"rank": 8, "player": "Wilt Chamberlain", "value": 31419},
+      {"rank": 9, "player": "James Harden", "value": 29339},
+      {"rank": 10, "player": "Shaquille O'Neal", "value": 28596}
+    ]
+  },
+  "career_assists_leaders": {
+    "verified": true,
+    "source": "https://www.basketball-reference.com/leaders/ast_career.html#all_nba",
+    "scrapedAt": "2026-05-28",
+    "rows": [
+      {"rank": 1, "player": "John Stockton", "value": 15806},
+      {"rank": 2, "player": "Chris Paul", "value": 12552},
+      {"rank": 3, "player": "Jason Kidd", "value": 12091},
+      {"rank": 4, "player": "LeBron James", "value": 12016},
+      {"rank": 5, "player": "Russell Westbrook", "value": 10351}
+    ]
+  },
+  "mvp_winners": {
+    "verified": true,
+    "source": "https://www.basketball-reference.com/awards/mvp.html",
+    "scrapedAt": "2026-05-28",
+    "rows": [
+      {"season": "2023-24", "player": "Nikola Jokić"},
+      {"season": "2022-23", "player": "Joel Embiid"},
+      {"season": "2021-22", "player": "Nikola Jokić"},
+      {"season": "2020-21", "player": "Nikola Jokić"},
+      {"season": "2019-20", "player": "Giannis Antetokounmpo"},
+      {"season": "2018-19", "player": "Giannis Antetokounmpo"},
+      {"season": "2017-18", "player": "James Harden"},
+      {"season": "2016-17", "player": "Russell Westbrook"},
+      {"season": "2015-16", "player": "Stephen Curry"},
+      {"season": "2014-15", "player": "Stephen Curry"}
+    ]
+  },
+  "single_games": {
+    "2016_finals_game7": {
+      "verified": true,
+      "source": "https://www.basketball-reference.com/boxscores/201606190GSW.html",
+      "scrapedAt": "2026-05-28",
+      "away_team": "Cleveland Cavaliers",
+      "away_score": 93,
+      "home_team": "Golden State Warriors",
+      "home_score": 89,
+      "leading_scorers": [
+        {"player": "LeBron James", "points": 27, "team": "Cleveland Cavaliers"},
+        {"player": "Draymond Green", "points": 32, "team": "Golden State Warriors"}
+      ]
+    }
+  },
+  "player_career_totals": {
+    "_via": "Player-page totals_stats table (regular-season 'N Yrs' career row), parsed by eval/bbrPlayerParser.ts. NBA-only career line.",
+    "LeBron_James": {
+      "source": "https://www.basketball-reference.com/players/j/jamesle01.html",
+      "scrapedAt": "2026-05-28",
+      "points": {"value": 43440, "verified": true},
+      "assists": {"value": 12016, "verified": true},
+      "rebounds": {"value": 12095, "verified": true},
+      "steals": {"value": 2417, "verified": true},
+      "blocks": {"value": 1185, "verified": true},
+      "games": {"value": 1622, "verified": true}
+    },
+    "Michael_Jordan": {
+      "source": "https://www.basketball-reference.com/players/j/jordami01.html",
+      "scrapedAt": "2026-05-28",
+      "points": {"value": 32292, "verified": true},
+      "assists": {"value": 5633, "verified": true},
+      "rebounds": {"value": 6672, "verified": true},
+      "steals": {"value": 2514, "verified": true},
+      "blocks": {"value": 893, "verified": true},
+      "games": {"value": 1072, "verified": true}
+    }
+  },
+  "season_leaders_2024": {
+    "points_per_game": {
+      "verified": true,
+      "source": "https://www.basketball-reference.com/leagues/NBA_2024_leaders.html",
+      "scrapedAt": "2026-05-28",
+      "leader": {"player": "Luka Dončić", "value": 33.9},
+      "note": "BBR's QUALIFIED PPG leader is Luka Dončić (33.9). Joel Embiid averaged a higher raw 34.7 but did not meet the games-played qualifier (39 GP), so he is NOT the official leader. ground-truth.json and matrix simple-005 (expected 'Joel Embiid') are INCORRECT by the BBR standard."
+    },
+    "rebounds_per_game": {
+      "verified": true,
+      "source": "https://www.basketball-reference.com/leagues/NBA_2024_leaders.html",
+      "scrapedAt": "2026-05-28",
+      "leader": {"player": "Domantas Sabonis", "value": 13.7}
+    }
+  },
+  "team_records": {
+    "Boston_Celtics_2024": {
+      "verified": true,
+      "source": "https://www.basketball-reference.com/teams/BOS/2024.html",
+      "scrapedAt": "2026-05-28",
+      "wins": 64, "losses": 18
+    },
+    "Golden_State_Warriors_2016": {
+      "verified": true,
+      "source": "https://www.basketball-reference.com/teams/GSW/2016.html",
+      "scrapedAt": "2026-05-28",
+      "wins": 73, "losses": 9
+    }
+  }
+}

@@ -3,6 +3,7 @@ import {
   categorizeDbError,
   ERROR_PREFIX,
   formatErrorForLLM,
+  formatErrorForUser,
   isRetryableError,
   withRetry,
 } from '../utils/retry.js';
@@ -229,5 +230,39 @@ describe('ERROR_PREFIX', () => {
     for (const value of Object.values(ERROR_PREFIX)) {
       expect(value.endsWith(':')).toBe(true);
     }
+  });
+});
+
+describe('formatErrorForUser', () => {
+  test('returns user-friendly message for rate limit errors', () => {
+    const err = new Error('rate limit exceeded');
+    expect(formatErrorForUser(err)).toBe('Rate limited. Please wait and try again.');
+  });
+
+  test('returns user-friendly message for timeout errors', () => {
+    const err = new Error('request timeout');
+    expect(formatErrorForUser(err)).toBe('Request timed out. Try a simpler question.');
+  });
+
+  test('returns user-friendly message for network errors', () => {
+    expect(formatErrorForUser(new Error('ECONNREFUSED'))).toBe(
+      'Network error. Check your connection.',
+    );
+    expect(formatErrorForUser(new Error('network failure'))).toBe(
+      'Network error. Check your connection.',
+    );
+    expect(formatErrorForUser(new Error('fetch failed'))).toBe(
+      'Network error. Check your connection.',
+    );
+  });
+
+  test('returns original message for unrecognized errors', () => {
+    const err = new Error('something went wrong');
+    expect(formatErrorForUser(err)).toBe('something went wrong');
+  });
+
+  test('returns string for non-Error values', () => {
+    expect(formatErrorForUser('oops')).toBe('oops');
+    expect(formatErrorForUser(42)).toBe('42');
   });
 });

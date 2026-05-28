@@ -92,21 +92,23 @@ export class TimeMachineTab implements TimeMachineHost {
 
     this.leftColumn = new BoxRenderable(renderer, {
       id: 'tm-left-column',
-      width: '45%',
+      width: '42%',
       height: '100%',
       flexDirection: 'column',
+      gap: Theme.gap,
     });
 
     this.searchPanel = new BoxRenderable(renderer, {
       id: 'tm-search-panel',
       width: '100%',
-      height: '45%',
+      height: '38%',
       border: true,
       borderStyle: Theme.borderStyle,
       borderColor: Theme.borderNormal,
       focusedBorderColor: Theme.borderFocused,
-      title: 'Player Search (Press C to switch to Team Compare)',
+      title: 'Player Search  (C → Team Compare)',
       titleAlignment: Theme.titleAlignment,
+      paddingX: 1,
     });
 
     this.searchInput = new InputRenderable(renderer, {
@@ -128,12 +130,14 @@ export class TimeMachineTab implements TimeMachineHost {
     this.dossierPanel = new BoxRenderable(renderer, {
       id: 'tm-dossier-panel',
       width: '100%',
-      height: '55%',
+      flexGrow: 1,
       border: true,
       borderStyle: Theme.borderStyle,
       borderColor: Theme.borderNormal,
+      focusedBorderColor: Theme.borderFocused,
       title: 'Player Dossier',
       titleAlignment: Theme.titleAlignment,
+      paddingX: 1,
     });
 
     this.dossierScroll = new ScrollBoxRenderable(renderer, {
@@ -160,15 +164,16 @@ export class TimeMachineTab implements TimeMachineHost {
       borderStyle: Theme.borderStyle,
       borderColor: Theme.borderNormal,
       focusedBorderColor: Theme.borderFocused,
-      title: 'Team Comparison (Press C to switch to Player Mode)',
+      title: 'Team Comparison  (C → Player Mode)',
       titleAlignment: Theme.titleAlignment,
       flexDirection: 'column',
+      paddingX: 1,
       visible: false,
     });
 
     const teamAHeader = new TextRenderable(renderer, {
       id: 'tm-team-a-header',
-      content: '\n\x1b[1;33mTeam A (e.g. Bulls 1996):\x1b[0m',
+      content: ansiToStyledText('\n\x1b[1;33mTeam A (e.g. Bulls 1996):\x1b[0m'),
     });
 
     this.teamAInput = new InputRenderable(renderer, {
@@ -210,7 +215,7 @@ export class TimeMachineTab implements TimeMachineHost {
 
     this.statsPanel = new BoxRenderable(renderer, {
       id: 'tm-stats-panel',
-      width: '55%',
+      width: '58%',
       height: '100%',
       border: true,
       borderStyle: Theme.borderStyle,
@@ -218,6 +223,7 @@ export class TimeMachineTab implements TimeMachineHost {
       focusedBorderColor: Theme.borderFocused,
       title: 'Career Statistics',
       titleAlignment: Theme.titleAlignment,
+      paddingX: 1,
     });
 
     this.statsScroll = new ScrollBoxRenderable(renderer, {

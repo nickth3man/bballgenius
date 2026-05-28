@@ -19,6 +19,8 @@ export const ChatbotState = new StateSchema({
   messages: MessagesValue,
   sqlRetryCount: z.number().optional(),
   intentCategory: z.string().optional(),
+  totalToolCalls: z.number().optional(),
+  validateAnswerRetries: z.number().optional(),
 });
 
 export type ChatbotStateType = (typeof ChatbotState)['State'];

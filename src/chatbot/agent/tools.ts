@@ -2,6 +2,12 @@ import { tool } from '@langchain/core/tools';
 import { z } from 'zod/v4';
 import { getColumns, getTableRefs } from '../db.js';
 import { checkSql, executeSql } from '../utils/sql.js';
+import {
+  TOOL_CHECK_NBA_SQL,
+  TOOL_GET_SCHEMA_INFO,
+  TOOL_LIST_NBA_TABLES,
+  TOOL_QUERY_NBA_DB,
+} from './toolNames.js';
 
 export const queryNbaDb = tool(
   async ({ sql }: { sql: string }) => {
@@ -9,12 +15,12 @@ export const queryNbaDb = tool(
     return result;
   },
   {
-    name: 'query_nba_db',
+    name: TOOL_QUERY_NBA_DB,
     description:
       'Execute a read-only DuckDB SQL query on the NBA database. ' +
       'Use this for any NBA data lookup: player stats, game data, team info, awards, shot charts. ' +
       'Prefer fully-qualified schema.table names. ' +
-      'For complex queries (3+ JOINs, unfamiliar tables), call check_nba_sql first to validate. ' +
+      `For complex queries (3+ JOINs, unfamiliar tables), call ${TOOL_CHECK_NBA_SQL} first to validate. ` +
       'Only SELECT, WITH...SELECT, or DESCRIBE statements are allowed.',
     schema: z.object({
       sql: z.string().describe('The read-only DuckDB SQL query to execute'),
@@ -27,12 +33,12 @@ export const checkNbaSql = tool(
     return await checkSql(sql);
   },
   {
-    name: 'check_nba_sql',
+    name: TOOL_CHECK_NBA_SQL,
     description:
       'Validate a read-only NBA DuckDB SQL query WITHOUT executing it. ' +
       'Returns OK if the SQL passes safety and schema checks, otherwise returns a ' +
       'correction-oriented error message. ' +
-      'ALWAYS call this BEFORE query_nba_db when the SQL has: ' +
+      `ALWAYS call this BEFORE ${TOOL_QUERY_NBA_DB} when the SQL has: ` +
       '3+ JOIN clauses, unfamiliar table/column names, career-total aggregation patterns, ' +
       'or any query where a syntax/schema error would waste an LLM round-trip. ' +
       'Do NOT call this for simple single-table lookups you are confident about.',
@@ -97,7 +103,7 @@ export const getSchemaInfo = tool(
     return `Found ${simpleMatch.length} tables matching "${tableName}". Be more specific:\n${simpleMatch.map((t) => `  ${t.qualifiedName} (${t.type})`).join('\n')}`;
   },
   {
-    name: 'get_schema_info',
+    name: TOOL_GET_SCHEMA_INFO,
     description:
       'Discover database schema: tables and column definitions. ' +
       'Use this before writing queries to find the right table and column names. ' +
@@ -132,7 +138,7 @@ export const listNbaTables = tool(
     return formatTableList(matchingTables);
   },
   {
-    name: 'list_nba_tables',
+    name: TOOL_LIST_NBA_TABLES,
     description:
       'List available NBA database tables and views, optionally filtered by a search term. ' +
       'Use this before get_schema_info when you are unsure which table contains the needed data.',

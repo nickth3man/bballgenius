@@ -54,6 +54,21 @@ export function isRetryableError(err: unknown): boolean {
   return false;
 }
 
+export function formatErrorForUser(err: unknown): string {
+  if (!(err instanceof Error)) return String(err);
+  const msg = err.message.toLowerCase();
+  if (msg.includes('rate') && msg.includes('limit')) {
+    return 'Rate limited. Please wait and try again.';
+  }
+  if (msg.includes('timeout')) {
+    return 'Request timed out. Try a simpler question.';
+  }
+  if (msg.includes('econnrefused') || msg.includes('network') || msg.includes('fetch')) {
+    return 'Network error. Check your connection.';
+  }
+  return err.message;
+}
+
 export function formatErrorForLLM(err: unknown): string {
   if (!(err instanceof Error)) return String(err);
   const category = categorizeDbError(err);

@@ -107,9 +107,12 @@ export class TeamModeController {
   renderTeamComparison(): void {
     if (this.host.mode !== 'team') return;
 
-    let content = '============================================================\n';
-    content += '              HISTORICAL TEAM COMPARISON\n';
-    content += '============================================================\n';
+    const M = 16; // metric label width
+    const C = 22; // per-team column width
+    const rule = (ch: string) => ch.repeat(M + C + C + 6);
+
+    let content = '\x1b[1;36mHISTORICAL TEAM COMPARISON\x1b[0m\n';
+    content += `${rule('─')}\n`;
 
     const formatTeamHeader = (data: TeamComparisonData | null) => {
       if (!data) return 'No Team Loaded';
@@ -122,11 +125,12 @@ export class TeamModeController {
 
     const pad = (str: string, len: number) => {
       const s = String(str);
+      if (s.length > len) return `${s.slice(0, len - 1)}…`;
       return s + ' '.repeat(Math.max(0, len - s.length));
     };
 
-    content += `${pad('Metric', 18)}│ ${pad(headerA, 28)}│ ${pad(headerB, 28)}\n`;
-    content += `${'─'.repeat(18)}┼${'─'.repeat(29)}┼${'─'.repeat(29)}\n`;
+    content += `${pad('Metric', M)}│ \x1b[1;33m${pad(headerA, C)}\x1b[0m│ \x1b[1;35m${pad(headerB, C)}\x1b[0m\n`;
+    content += `${'─'.repeat(M)}┼${'─'.repeat(C + 1)}┼${'─'.repeat(C + 1)}\n`;
 
     const getVal = (
       data: TeamComparisonData | null,
@@ -139,16 +143,19 @@ export class TeamModeController {
       return isFloat ? Number(val).toFixed(1) : String(val);
     };
 
-    content += `${pad('Games Played', 18)}│ ${pad(getVal(this.host.teamAData, 'gp', false), 28)}│ ${pad(getVal(this.host.teamBData, 'gp', false), 28)}\n`;
-    content += `${pad('Points / Game', 18)}│ ${pad(getVal(this.host.teamAData, 'ppg'), 28)}│ ${pad(getVal(this.host.teamBData, 'ppg'), 28)}\n`;
-    content += `${pad('Assists / Game', 18)}│ ${pad(getVal(this.host.teamAData, 'apg'), 28)}│ ${pad(getVal(this.host.teamBData, 'apg'), 28)}\n`;
-    content += `${pad('Rebounds / Game', 18)}│ ${pad(getVal(this.host.teamAData, 'rpg'), 28)}│ ${pad(getVal(this.host.teamBData, 'rpg'), 28)}\n`;
-    content += `${pad('Steals / Game', 18)}│ ${pad(getVal(this.host.teamAData, 'spg'), 28)}│ ${pad(getVal(this.host.teamBData, 'spg'), 28)}\n`;
-    content += `${pad('Blocks / Game', 18)}│ ${pad(getVal(this.host.teamAData, 'bpg'), 28)}│ ${pad(getVal(this.host.teamBData, 'bpg'), 28)}\n`;
+    const metricRow = (label: string, key: keyof TeamComparisonData, isFloat = true) => {
+      content += `${pad(label, M)}│ ${pad(getVal(this.host.teamAData, key, isFloat), C)}│ ${pad(getVal(this.host.teamBData, key, isFloat), C)}\n`;
+    };
 
-    content += '\n============================================================\n';
-    content += '              ROSTER SIDE-BY-SIDE (PPG / APG / RPG)\n';
-    content += '============================================================\n';
+    metricRow('Games Played', 'gp', false);
+    metricRow('Points / Game', 'ppg');
+    metricRow('Assists / Game', 'apg');
+    metricRow('Rebounds / Game', 'rpg');
+    metricRow('Steals / Game', 'spg');
+    metricRow('Blocks / Game', 'bpg');
+
+    content += '\n\x1b[1;36mROSTER SIDE-BY-SIDE\x1b[0m \x1b[90m(PPG / APG)\x1b[0m\n';
+    content += `${rule('─')}\n`;
 
     const nameA =
       this.host.teamAData && !this.host.teamAData.errorMessage
@@ -159,31 +166,32 @@ export class TeamModeController {
         ? `${this.host.teamBData.team_abbrev} ${this.host.teamBData.year}`
         : 'Team B';
 
-    content += `${pad(`${nameA} Roster`, 30)}│ ${pad(`${nameB} Roster`, 30)}\n`;
-    content += `${'─'.repeat(30)}┼${'─'.repeat(31)}\n`;
+    const R = 32; // roster column width
+    content += `\x1b[1;33m${pad(`${nameA} Roster`, R)}\x1b[0m│ \x1b[1;35m${pad(`${nameB} Roster`, R)}\x1b[0m\n`;
+    content += `${'─'.repeat(R)}┼${'─'.repeat(R + 1)}\n`;
 
     const maxRosterLen = Math.max(this.teamARoster.length, this.teamBRoster.length);
     if (maxRosterLen === 0) {
-      content += ' No roster data available.    │  No roster data available.\n';
+      content += `${pad(' No roster data available.', R)}│  No roster data available.\n`;
     } else {
       const truncate = (str: string, len: number) => {
         if (str.length <= len) return str;
-        return `${str.slice(0, len - 3)}...`;
+        return `${str.slice(0, len - 1)}…`;
       };
 
       for (let i = 0; i < maxRosterLen; i++) {
         const pA = this.teamARoster[i];
         const pB = this.teamBRoster[i];
 
-        const nameA_trunc = pA ? truncate(pA.full_name, 18) : '';
-        const nameB_trunc = pB ? truncate(pB.full_name, 18) : '';
+        const nameA_trunc = pA ? truncate(pA.full_name, 20) : '';
+        const nameB_trunc = pB ? truncate(pB.full_name, 20) : '';
         const statsA = pA ? `(${Number(pA.ppg).toFixed(1)}/${Number(pA.apg).toFixed(1)})` : '';
         const statsB = pB ? `(${Number(pB.ppg).toFixed(1)}/${Number(pB.apg).toFixed(1)})` : '';
 
         const strA = pA ? `${nameA_trunc} ${statsA}` : '';
         const strB = pB ? `${nameB_trunc} ${statsB}` : '';
 
-        content += `${pad(strA, 30)}│ ${pad(strB, 31)}\n`;
+        content += `${pad(strA, R)}│ ${pad(strB, R + 1)}\n`;
       }
     }
 

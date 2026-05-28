@@ -1,4 +1,4 @@
-import { appendFileSync, mkdirSync } from 'node:fs';
+import { appendFileSync, mkdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 interface ToolCallMetrics {
@@ -13,7 +13,7 @@ interface SqlComplexity {
   joinCount: number;
 }
 
-interface MetricsEntry {
+export interface MetricsEntry {
   timestamp: string;
   threadId: string;
   question: string;
@@ -36,21 +36,22 @@ interface TokenUsage {
   outputTokens: number;
 }
 
-const METRICS_DIR = process.env['CHATBOT_METRICS_DIR'] || 'data';
-const METRICS_FILE = 'chatbot-metrics.ndjson';
+export interface MetricsSummary {
+  totalQueries: number;
+  totalToolCalls: number;
+  averageDurationMs: number;
+  totalInputTokens: number;
+  totalOutputTokens: number;
+  successRate: number;
+  averageSqlTableCount: number;
+  averageSqlJoinCount: number;
+  modelBreakdown: Record<string, number>;
+}
 
-let currentEntry: Partial<MetricsEntry> = {};
-let currentModel = '';
-let tokenCount = 0;
-let startTime = 0;
-let sqlQueries: string[] = [];
-let toolCallCount = 0;
-let inputTokenTotal = 0;
-let outputTokenTotal = 0;
-let activeToolCalls = new Map<string, ToolCallMetrics>();
-let completedToolCalls: ToolCallMetrics[] = [];
-let sqlComplexityEntries: SqlComplexity[] = [];
-let chainStagesList: string[] = [];
+function getMetricsDir(): string {
+  return process.env['CHATBOT_METRICS_DIR'] || 'data';
+}
+const METRICS_FILE = 'chatbot-metrics.ndjson';
 
 function calculateSqlComplexity(sql: string): SqlComplexity {
   const stripped = sql.replace(/\/\*[\s\S]*?\*\//g, '').replace(/--.*$/gm, '');
@@ -65,141 +66,181 @@ function calculateSqlComplexity(sql: string): SqlComplexity {
   };
 }
 
-export function startMetrics(threadId: string, question: string, model: string) {
-  currentEntry = {
-    timestamp: new Date().toISOString(),
-    threadId,
-    question: question.slice(0, 200),
-  };
-  currentModel = model;
-  tokenCount = 0;
-  toolCallCount = 0;
-  sqlQueries = [];
-  inputTokenTotal = 0;
-  outputTokenTotal = 0;
-  activeToolCalls = new Map();
-  completedToolCalls = [];
-  sqlComplexityEntries = [];
-  chainStagesList = [];
-  startTime = Date.now();
-}
+export class MetricsSession {
+  private entry: Partial<MetricsEntry> = {};
+  private model = '';
+  private tokenCount = 0;
+  private startTime = 0;
+  private sqlQueries: string[] = [];
+  private toolCallCount = 0;
+  private inputTokenTotal = 0;
+  private outputTokenTotal = 0;
+  private activeToolCalls = new Map<string, ToolCallMetrics>();
+  private completedToolCalls: ToolCallMetrics[] = [];
+  private sqlComplexityEntries: SqlComplexity[] = [];
+  private chainStagesList: string[] = [];
 
-export function recordToken() {
-  tokenCount++;
-}
-
-export function recordToolCall(name: string, input: Record<string, unknown>, runId?: string) {
-  toolCallCount++;
-  if (name === 'query_nba_db' && input?.['sql']) {
-    const sql = String(input['sql']);
-    sqlQueries.push(sql.slice(0, 500));
-    sqlComplexityEntries.push(calculateSqlComplexity(sql));
+  start(threadId: string, question: string, model: string): void {
+    this.entry = {
+      timestamp: new Date().toISOString(),
+      threadId,
+      question: question.slice(0, 200),
+    };
+    this.model = model;
+    this.tokenCount = 0;
+    this.toolCallCount = 0;
+    this.sqlQueries = [];
+    this.inputTokenTotal = 0;
+    this.outputTokenTotal = 0;
+    this.activeToolCalls = new Map();
+    this.completedToolCalls = [];
+    this.sqlComplexityEntries = [];
+    this.chainStagesList = [];
+    this.startTime = Date.now();
   }
-  if (runId) {
-    activeToolCalls.set(runId, { name, startTime: Date.now() });
+
+  recordToken(): void {
+    this.tokenCount++;
   }
-}
 
-export function recordToolEnd(runId: string) {
-  const toolCall = activeToolCalls.get(runId);
-  if (toolCall) {
-    toolCall.endTime = Date.now();
-    toolCall.latencyMs = toolCall.endTime - toolCall.startTime;
-    completedToolCalls.push(toolCall);
-    activeToolCalls.delete(runId);
-  }
-}
-
-export function recordError(error: string) {
-  currentEntry.error = error;
-}
-
-export function recordUsage(usage: TokenUsage) {
-  inputTokenTotal += usage.inputTokens;
-  outputTokenTotal += usage.outputTokens;
-}
-
-export function recordChainStage(stage: string) {
-  chainStagesList.push(stage);
-}
-
-export function flushMetrics() {
-  if (!startTime) return;
-
-  mkdirSync(METRICS_DIR, { recursive: true });
-
-  const toolCallLatencies: Record<string, number> = {};
-  for (const tc of completedToolCalls) {
-    if (tc.latencyMs !== undefined) {
-      const key = tc.name;
-      const existing = toolCallLatencies[key];
-      toolCallLatencies[key] = existing ? Math.max(existing, tc.latencyMs) : tc.latencyMs;
+  recordToolCall(name: string, input: Record<string, unknown>, runId?: string): void {
+    this.toolCallCount++;
+    if (name === 'query_nba_db' && input?.['sql']) {
+      const sql = String(input['sql']);
+      this.sqlQueries.push(sql.slice(0, 500));
+      this.sqlComplexityEntries.push(calculateSqlComplexity(sql));
+    }
+    if (runId) {
+      this.activeToolCalls.set(runId, { name, startTime: Date.now() });
     }
   }
 
-  const entry: MetricsEntry = {
-    timestamp: currentEntry.timestamp || new Date().toISOString(),
-    threadId: currentEntry.threadId || 'unknown',
-    question: currentEntry.question || '',
-    model: currentModel,
-    durationMs: Date.now() - startTime,
-    toolCalls: toolCallCount,
-    toolCallLatencies,
-    tokensGenerated: tokenCount,
-    inputTokens: inputTokenTotal,
-    outputTokens: outputTokenTotal,
-    sqlExecuted: sqlQueries,
-    sqlComplexity: sqlComplexityEntries,
-    chainStages: chainStagesList,
-    success: !currentEntry.error,
-  };
-  if (currentEntry.error) {
-    entry.error = currentEntry.error;
+  recordToolEnd(runId: string): void {
+    const toolCall = this.activeToolCalls.get(runId);
+    if (toolCall) {
+      toolCall.endTime = Date.now();
+      toolCall.latencyMs = toolCall.endTime - toolCall.startTime;
+      this.completedToolCalls.push(toolCall);
+      this.activeToolCalls.delete(runId);
+    }
   }
 
-  try {
-    appendFileSync(join(METRICS_DIR, METRICS_FILE), `${JSON.stringify(entry)}\n`);
-  } catch {
-    // Metrics logging is best-effort
+  recordError(error: string): void {
+    this.entry.error = error;
   }
 
-  currentEntry = {};
-  currentModel = '';
-  tokenCount = 0;
-  startTime = 0;
-  sqlQueries = [];
-  toolCallCount = 0;
-  inputTokenTotal = 0;
-  outputTokenTotal = 0;
-  activeToolCalls = new Map();
-  completedToolCalls = [];
-  sqlComplexityEntries = [];
-  chainStagesList = [];
+  recordUsage(usage: TokenUsage): void {
+    this.inputTokenTotal += usage.inputTokens;
+    this.outputTokenTotal += usage.outputTokens;
+  }
+
+  recordChainStage(stage: string): void {
+    this.chainStagesList.push(stage);
+  }
+
+  flush(): void {
+    if (!this.startTime) return;
+
+    mkdirSync(getMetricsDir(), { recursive: true });
+
+    const toolCallLatencies: Record<string, number> = {};
+    for (const tc of this.completedToolCalls) {
+      if (tc.latencyMs !== undefined) {
+        const key = tc.name;
+        const existing = toolCallLatencies[key];
+        toolCallLatencies[key] = existing ? Math.max(existing, tc.latencyMs) : tc.latencyMs;
+      }
+    }
+
+    const entry: MetricsEntry = {
+      timestamp: this.entry.timestamp || new Date().toISOString(),
+      threadId: this.entry.threadId || 'unknown',
+      question: this.entry.question || '',
+      model: this.model,
+      durationMs: Date.now() - this.startTime,
+      toolCalls: this.toolCallCount,
+      toolCallLatencies,
+      tokensGenerated: this.tokenCount,
+      inputTokens: this.inputTokenTotal,
+      outputTokens: this.outputTokenTotal,
+      sqlExecuted: this.sqlQueries,
+      sqlComplexity: this.sqlComplexityEntries,
+      chainStages: this.chainStagesList,
+      success: !this.entry.error,
+    };
+    if (this.entry.error) {
+      entry.error = this.entry.error;
+    }
+
+    try {
+      appendFileSync(join(getMetricsDir(), METRICS_FILE), `${JSON.stringify(entry)}\n`);
+    } catch {
+      // Metrics logging is best-effort
+    }
+
+    this.entry = {};
+    this.model = '';
+    this.tokenCount = 0;
+    this.startTime = 0;
+    this.sqlQueries = [];
+    this.toolCallCount = 0;
+    this.inputTokenTotal = 0;
+    this.outputTokenTotal = 0;
+    this.activeToolCalls = new Map();
+    this.completedToolCalls = [];
+    this.sqlComplexityEntries = [];
+    this.chainStagesList = [];
+  }
 }
 
-export interface MetricsSummary {
-  totalQueries: number;
-  totalToolCalls: number;
-  averageDurationMs: number;
-  totalInputTokens: number;
-  totalOutputTokens: number;
-  successRate: number;
-  averageSqlTableCount: number;
-  averageSqlJoinCount: number;
-  modelBreakdown: Record<string, number>;
+const defaultSession = new MetricsSession();
+
+export function startMetrics(threadId: string, question: string, model: string): void {
+  defaultSession.start(threadId, question, model);
+}
+
+export function recordToken(): void {
+  defaultSession.recordToken();
+}
+
+export function recordToolCall(name: string, input: Record<string, unknown>, runId?: string): void {
+  defaultSession.recordToolCall(name, input, runId);
+}
+
+export function recordToolEnd(runId: string): void {
+  defaultSession.recordToolEnd(runId);
+}
+
+export function recordError(error: string): void {
+  defaultSession.recordError(error);
+}
+
+export function recordUsage(usage: TokenUsage): void {
+  defaultSession.recordUsage(usage);
+}
+
+export function recordChainStage(stage: string): void {
+  defaultSession.recordChainStage(stage);
+}
+
+export function flushMetrics(): void {
+  defaultSession.flush();
+}
+
+export function getMetricsSession(): MetricsSession {
+  return defaultSession;
 }
 
 export function getMetricsSummary(metricsFile?: string): MetricsSummary {
-  const filePath = metricsFile || join(METRICS_DIR, METRICS_FILE);
+  const filePath = metricsFile || join(getMetricsDir(), METRICS_FILE);
   let entries: MetricsEntry[] = [];
 
   try {
-    const { readFileSync } = require('node:fs');
     const data = readFileSync(filePath, 'utf-8');
     entries = data
       .split('\n')
-      .filter((line: string) => line.trim())
-      .map((line: string) => JSON.parse(line));
+      .filter((line) => line.trim())
+      .map((line) => JSON.parse(line));
   } catch {
     return {
       totalQueries: 0,

@@ -2,13 +2,24 @@ import type { CliRenderer, KeyEvent } from '@opentui/core';
 import { BoxRenderable, InputRenderable, ScrollBoxRenderable, TextRenderable } from '@opentui/core';
 import { fetchModels, getModel, type ModelInfo, setModel } from '../openrouter.js';
 import { ansiToStyledText } from '../utils/ansi.js';
-import { isNoColor, Theme } from '../utils/theme.js';
+import { dimOrPlain, isNoColor, Theme } from '../utils/theme.js';
 
 const PAGE_SIZE = 25;
 
-function dimOrPlain(text: string): string {
-  if (isNoColor()) return text;
-  return `\x1b[2m${text}\x1b[0m`;
+export function formatModelRow(
+  model: ModelInfo,
+  index: number,
+  selectedIdx: number,
+  total: number,
+  currentModel: string,
+): string {
+  const selected = index === selectedIdx;
+  const isActive = model.id === currentModel;
+  const selectedText = selected ? `> selected ${index + 1} of ${total}: ` : '  ';
+  const activeText = isActive ? ' (current model)' : '';
+  const idPart = isActive && !isNoColor() ? `\x1b[1;32m${model.id}\x1b[0m` : model.id;
+  const sep = isNoColor() ? ' -- ' : '  \x1b[90m-\x1b[0m ';
+  return `${selectedText}${idPart}${activeText}${sep}${dimOrPlain(model.name)}`;
 }
 
 export class ModelSelector {
@@ -65,7 +76,7 @@ export class ModelSelector {
 
     this.listText = new TextRenderable(renderer, {
       content: ansiToStyledText(dimOrPlain('Loading models...')),
-      wrapMode: 'none',
+      wrapMode: 'word',
     });
     this.listScroll.add(this.listText);
 
@@ -76,7 +87,8 @@ export class ModelSelector {
     });
 
     this.footerText = new TextRenderable(renderer, {
-      content: '\u2191\u2193/j/k navigate  \u23ce select  Esc cancel',
+      content:
+        'Up/Down or j/k navigate | PgUp/PgDn jump | Home/End first/last | Enter select | Esc cancel',
     });
     footerBox.add(this.footerText);
 
@@ -201,15 +213,9 @@ export class ModelSelector {
       return;
     }
 
-    const lines = this.filtered.map((m, i) => {
-      const selected = i === this.selectedIdx;
-      const prefix = selected ? '\x1b[1;37m\u25b6\x1b[0m ' : '  ';
-      const isActive = m.id === getModel();
-      const activeMarker = isActive ? ' \u2713' : '';
-      const idPart = isActive ? `\x1b[1;32m${m.id}\x1b[0m` : m.id;
-      const sep = isNoColor() ? ' -- ' : '  \x1b[90m\u2014\x1b[0m ';
-      return `${prefix}${idPart}${activeMarker}${sep}${dimOrPlain(m.name)}`;
-    });
+    const lines = this.filtered.map((m, i) =>
+      formatModelRow(m, i, this.selectedIdx, this.filtered.length, getModel()),
+    );
     this.listText.content = ansiToStyledText(lines.join('\n'));
     this.renderer.requestRender();
   }

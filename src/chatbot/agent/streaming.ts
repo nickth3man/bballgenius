@@ -8,7 +8,13 @@ export interface TokenUsage {
   outputTokens: number;
 }
 
-export type ChainStageName = 'classify_intent' | 'llm' | 'tools' | 'sql_critic';
+export type ChainStageName =
+  | 'classify_intent'
+  | 'inject_schema'
+  | 'llm'
+  | 'tools'
+  | 'sql_critic'
+  | 'validate_answer';
 
 export type StreamEvent =
   | { type: 'token'; content: string }
@@ -33,12 +39,24 @@ export async function* streamQuery(
   try {
     const stream = await graph.streamEvents(
       { messages: input },
-      { version: 'v2', configurable: { thread_id: threadId }, metadata: config.metadata },
+      {
+        version: 'v2',
+        configurable: { thread_id: threadId },
+        metadata: config.metadata,
+        recursionLimit: 40,
+      },
     );
 
     const activeTools = new Map<string, string>();
 
-    const GRAPH_NODE_NAMES = new Set<string>(['classify_intent', 'llm', 'tools', 'sql_critic']);
+    const GRAPH_NODE_NAMES = new Set<string>([
+      'classify_intent',
+      'inject_schema',
+      'llm',
+      'tools',
+      'sql_critic',
+      'validate_answer',
+    ]);
 
     for await (const event of stream) {
       if (event.event === 'on_chain_start' && GRAPH_NODE_NAMES.has(event.name)) {

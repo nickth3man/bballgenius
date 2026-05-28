@@ -34,6 +34,12 @@ export function ansiToStyledText(text: string): StyledText {
         currentFg = 'blue';
       } else if (p === '32') {
         currentFg = 'green';
+      } else if (p === '31') {
+        currentFg = 'red';
+      } else if (p === '36') {
+        currentFg = 'cyan';
+      } else if (p === '37') {
+        currentFg = 'white';
       } else if (p === '90') {
         currentFg = 'brightBlack';
       }
