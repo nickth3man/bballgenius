@@ -1,0 +1,39 @@
+Research the following NBA facts on Basketball-Reference (basketball-reference.com) to verify expected test answers. Use Firecrawl to scrape the relevant pages.
+
+Questions to verify:
+
+1. **"Who is the all-time NBA regular season scoring leader?"**
+   - Check: https://www.basketball-reference.com/leaders/pts_career.html
+   - Is it LeBron James? What is his exact regular season career points total?
+
+2. **"How many career points does LeBron James have?"** (expected: 43440)
+   - Check: https://www.basketball-reference.com/players/j/jamesle01.html
+   - What are LeBron's REGULAR SEASON career points? (NOT including playoffs)
+   - What are LeBron's PLAYOFF career points?
+   - BBR distinguishes these clearly
+
+3. **"Who won the NBA MVP award in the 2023-24 season?"** (expected: Nikola)
+   - Check: https://www.basketball-reference.com/awards/mvp.html
+   - Was it Nikola Jokic?
+
+4. **"Who has more career points: Michael Jordan or Kobe Bryant?"** (expected: Kobe)
+   - Check: https://www.basketball-reference.com/leaders/pts_career.html
+   - What are Kobe Bryant's REGULAR SEASON career points?
+   - What are Michael Jordan's REGULAR SEASON career points?
+   - Who has more?
+
+5. **"What was Michael Jordan PER in the 1995 playoffs?"** (expected: NOT_AVAILABLE)
+   - Check: https://www.basketball-reference.com/players/j/jordami01.html
+   - Look at the "Playoffs" section for the 1994-95 season
+   - Does BBR list Jordan's PER for the 1995 playoffs? If so, what is it?
+   - Note: 1994-95 season means the playoffs happened in 1995
+
+6. **"Who scored the most?"** (expected: CLARIFICATION)
+   - This is intentionally vague - no BBR lookup needed.
+
+For each question, report:
+- The EXACT BBR value (with URL evidence)
+- Whether the current expected answer in the test suite is correct
+- What the expected answer should be changed to (if needed)
+
+CRITICAL: Distinguish between regular season, playoffs, and career totals. BBR separates these clearly on player pages.
