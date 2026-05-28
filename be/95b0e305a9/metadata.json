@@ -203,6 +203,12 @@
       "transcript": "/be/95b0e305a9/26/full.jsonl",
       "content_hash": "/be/95b0e305a9/26/content_hash.txt",
       "prompt": "/be/95b0e305a9/26/prompt.txt"
+    },
+    {
+      "metadata": "/be/95b0e305a9/27/metadata.json",
+      "transcript": "/be/95b0e305a9/27/full.jsonl",
+      "content_hash": "/be/95b0e305a9/27/content_hash.txt",
+      "prompt": "/be/95b0e305a9/27/prompt.txt"
     }
   ],
   "token_usage": {
