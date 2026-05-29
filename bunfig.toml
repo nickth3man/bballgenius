@@ -1,0 +1,6 @@
+[test]
+concurrentTestGlob = [
+  '**/__tests__/*.test.ts',
+  '**/tests/formatters.test.ts',
+]
+timeout = 10000

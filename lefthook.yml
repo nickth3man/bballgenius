@@ -1,6 +1,22 @@
 pre-commit:
+  parallel: true
   commands:
     biome:
       glob: '*.{ts,tsx,json}'
       run: bunx biome check --write --no-errors-on-unmatched --files-ignore-unknown=true {staged_files}
       stage_fixed: true
+    guard-only:
+      glob: '*.ts'
+      run: |
+        if rg -n '\.(only|skip)\(' src/tests src/tabs/chatbot/__tests__ >/dev/null 2>&1; then
+          echo '::warning::Focused tests (.only/.skip) found — remove before committing'
+          rg -n '\.(only|skip)\(' src/tests src/tabs/chatbot/__tests__
+          exit 1
+        fi
+
+pre-push:
+  commands:
+    typecheck:
+      run: bun run typecheck
+    test-unit:
+      run: bun run test:unit
