@@ -6,6 +6,7 @@ dist/
 
 # Local full DuckDB dataset (download separately; ~1.5 GB)
 data/nba.duckdb
+data/nba.duckdb.bak*
 data/**/*.wal
 data/chatbot-metrics.ndjson
 data/test-metrics/
@@ -15,12 +16,25 @@ bbr-screenshots/
 .firecrawl/
 .archive/
 
+# Local schema exploration / agent scratch artifacts
+PLAN.md
+NBA_DB_SCHEMA_REFERENCE.md
+bref-column-dictionary.csv
+master-stat-crosswalk.csv
+nba-stats-glossary.csv
+schema-mapping-columns.csv
+schema-mapping-tables.csv
+
 # AI tool config directories
 .claude/
 .codex/
 .cursor/
 .entire/
+.omo/
 .opencode/
+
+# Entire CLI checkpoint shards (repo-root XX/<checkpoint_id>/ trees)
+/[0-9a-f][0-9a-f]/
 
 # Runtime artifacts
 .runs/
