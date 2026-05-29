@@ -1,11 +1,10 @@
-import { existsSync } from 'node:fs';
 import type { DuckDBConnection } from '@duckdb/node-api';
 import { DuckDBInstance } from '@duckdb/node-api';
+import { resolveDbPath } from '../shared/dbPath.js';
 import { closeHonorsDb } from './dbHonors.js';
 import type { DbRow, SqlParam } from './types.js';
 
-const DEFAULT_DB_PATH = 'data/nba.duckdb';
-const CI_FIXTURE_PATH = 'data/fixtures/nba.ci.duckdb';
+export { resolveDbPath };
 
 /**
  * Schema search path for unqualified table names.
@@ -23,38 +22,39 @@ export const BROWSE_SCHEMAS = ['unified_star', 'main'] as const;
 
 let instance: DuckDBInstance | null = null;
 let connection: DuckDBConnection | null = null;
-
-/** Resolves DuckDB path: explicit env, CI fixture when present, else local full database. */
-export function resolveDbPath(): string {
-  if (process.env.NBA_DUCKDB_PATH) {
-    return process.env.NBA_DUCKDB_PATH;
-  }
-  if (
-    (process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true') &&
-    existsSync(CI_FIXTURE_PATH)
-  ) {
-    return CI_FIXTURE_PATH;
-  }
-  return DEFAULT_DB_PATH;
-}
+let connecting: Promise<DuckDBConnection> | null = null;
 
 /**
  * Initializes and returns the cached DuckDB database connection.
  */
 export async function initDb(): Promise<DuckDBConnection> {
-  if (!connection) {
-    const dbPath = resolveDbPath();
-    instance = await DuckDBInstance.fromCache(dbPath);
-    connection = await instance.connect();
-    // Resolve unqualified table names against the canonical star schema first,
-    // falling back to main. Guarded so a fixture without unified_star still works.
-    try {
-      await connection.run(`SET search_path = '${SEARCH_PATH}'`);
-    } catch {
-      // Older fixtures expose only `main`; default search_path already covers it.
-    }
+  if (connection) {
+    return connection;
   }
-  return connection;
+  // Cache the in-flight promise so concurrent callers share a single connection
+  // instead of each racing past the `if (!connection)` guard and leaking one.
+  if (!connecting) {
+    connecting = (async () => {
+      const dbPath = resolveDbPath();
+      instance = await DuckDBInstance.fromCache(dbPath);
+      const conn = await instance.connect();
+      // Resolve unqualified table names against the canonical star schema first,
+      // falling back to main. Guarded so a fixture without unified_star still works.
+      try {
+        await conn.run(`SET search_path = '${SEARCH_PATH}'`);
+      } catch {
+        // Older fixtures expose only `main`; default search_path already covers it.
+      }
+      connection = conn;
+      return conn;
+    })().catch((err) => {
+      // Reset so a failed init can be retried rather than caching a rejection.
+      connecting = null;
+      instance = null;
+      throw err;
+    });
+  }
+  return connecting;
 }
 
 /**
@@ -63,11 +63,10 @@ export async function initDb(): Promise<DuckDBConnection> {
  */
 export async function query<T = DbRow>(sql: string, params?: SqlParam[]): Promise<T[]> {
   const conn = await initDb();
-  if (params && params.length > 0) {
-    const reader = await conn.runAndReadAll(sql, params);
-    return reader.getRowObjectsJson() as T[];
-  }
-  const reader = await conn.runAndReadAll(sql);
+  const reader =
+    params && params.length > 0
+      ? await conn.runAndReadAll(sql, params)
+      : await conn.runAndReadAll(sql);
   return reader.getRowObjectsJson() as T[];
 }
 
@@ -122,5 +121,6 @@ export async function closeDb() {
     connection.disconnectSync();
     connection = null;
   }
+  connecting = null;
   instance = null;
 }

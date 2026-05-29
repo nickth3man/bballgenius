@@ -5,6 +5,7 @@ import type { SqlParam } from './types.js';
 
 let honorsInstance: DuckDBInstance | null = null;
 let honorsConnection: DuckDBConnection | null = null;
+let honorsConnecting: Promise<DuckDBConnection> | null = null;
 
 /**
  * Optional path to a DuckDB file with richer honors (e.g. basketball-data nba.duckdb).
@@ -24,11 +25,23 @@ async function getHonorsConnection(): Promise<DuckDBConnection | null> {
   const path = resolveHonorsDbPath();
   if (!path) return null;
 
-  if (!honorsConnection) {
-    honorsInstance = await DuckDBInstance.fromCache(path);
-    honorsConnection = await honorsInstance.connect();
+  if (honorsConnection) {
+    return honorsConnection;
   }
-  return honorsConnection;
+  // Cache the in-flight promise so concurrent callers share a single connection.
+  if (!honorsConnecting) {
+    honorsConnecting = (async () => {
+      honorsInstance = await DuckDBInstance.fromCache(path);
+      const conn = await honorsInstance.connect();
+      honorsConnection = conn;
+      return conn;
+    })().catch((err) => {
+      honorsConnecting = null;
+      honorsInstance = null;
+      throw err;
+    });
+  }
+  return honorsConnecting;
 }
 
 /** Runs SQL against the optional honors database; returns [] if not configured. */
@@ -36,11 +49,10 @@ export async function queryHonors<T>(sql: string, params?: SqlParam[]): Promise<
   const conn = await getHonorsConnection();
   if (!conn) return [];
 
-  if (params && params.length > 0) {
-    const reader = await conn.runAndReadAll(sql, params);
-    return reader.getRowObjectsJson() as T[];
-  }
-  const reader = await conn.runAndReadAll(sql);
+  const reader =
+    params && params.length > 0
+      ? await conn.runAndReadAll(sql, params)
+      : await conn.runAndReadAll(sql);
   return reader.getRowObjectsJson() as T[];
 }
 
@@ -49,5 +61,6 @@ export async function closeHonorsDb(): Promise<void> {
     honorsConnection.disconnectSync();
     honorsConnection = null;
   }
+  honorsConnecting = null;
   honorsInstance = null;
 }
