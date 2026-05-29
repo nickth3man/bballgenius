@@ -10,12 +10,15 @@ import {
 
 describe('stream formatting', () => {
   test('maps chain stages to safe status text', () => {
+    expect(formatChainStageStatus('prepare_turn')).toBe('Preparing question...');
     expect(formatChainStageStatus('classify_intent')).toBe('Classifying question...');
     expect(formatChainStageStatus('inject_schema')).toBe('Loading relevant schema...');
     expect(formatChainStageStatus('llm')).toBe('Composing answer...');
     expect(formatChainStageStatus('tools')).toBe('Preparing tool calls...');
-    expect(formatChainStageStatus('sql_critic')).toBe('Checking SQL result...');
+    expect(formatChainStageStatus('tool_budget_guard')).toBe('Checking tool budget...');
+    expect(formatChainStageStatus('sql_error_guard')).toBe('Checking SQL result...');
     expect(formatChainStageStatus('validate_answer')).toBe('Validating answer...');
+    expect(formatChainStageStatus('finalize_turn')).toBe('Finalizing answer...');
   });
 
   test('summarizes SQL input without exceeding display limit', () => {

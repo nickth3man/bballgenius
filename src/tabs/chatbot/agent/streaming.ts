@@ -10,12 +10,15 @@ export interface TokenUsage {
 }
 
 export type ChainStageName =
+  | 'prepare_turn'
   | 'classify_intent'
   | 'inject_schema'
   | 'llm'
   | 'tools'
-  | 'sql_critic'
-  | 'validate_answer';
+  | 'tool_budget_guard'
+  | 'sql_error_guard'
+  | 'validate_answer'
+  | 'finalize_turn';
 
 export type StreamEvent =
   | { type: 'token'; content: string }
@@ -35,12 +38,15 @@ export type StreamEvent =
   | { type: 'error'; message: string };
 
 const GRAPH_NODE_NAMES = new Set<string>([
+  'prepare_turn',
   'classify_intent',
   'inject_schema',
   'llm',
   'tools',
-  'sql_critic',
+  'tool_budget_guard',
+  'sql_error_guard',
   'validate_answer',
+  'finalize_turn',
 ]);
 
 interface ActiveTool {

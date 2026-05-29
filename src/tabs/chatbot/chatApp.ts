@@ -142,14 +142,14 @@ export class ChatApp {
       height: 3,
       border: ['top'],
       borderColor: Theme.borderFocused,
-      backgroundColor: '#222530',
+      backgroundColor: Theme.inputBg,
       paddingX: 1,
     });
 
     this.promptInput = new InputRenderable(renderer, {
       width: '100%',
       placeholder: 'Ask about NBA stats...',
-      backgroundColor: '#222530',
+      backgroundColor: Theme.inputBg,
     });
 
     this.inputBox.add(this.promptInput);
@@ -160,7 +160,7 @@ export class ChatApp {
         height: 3,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#16161e',
+        backgroundColor: Theme.surface,
         border: ['bottom'],
         borderColor: Theme.borderFocused,
       });
@@ -173,7 +173,7 @@ export class ChatApp {
       const statusBar = new BoxRenderable(renderer, {
         width: '100%',
         height: 1,
-        backgroundColor: '#16161e',
+        backgroundColor: Theme.surface,
         border: ['top'],
         borderColor: Theme.borderNormal,
       });
@@ -186,7 +186,7 @@ export class ChatApp {
       const footerBox = new BoxRenderable(renderer, {
         width: '100%',
         height: 1,
-        backgroundColor: '#16161e',
+        backgroundColor: Theme.surface,
       });
 
       this.footerText = new TextRenderable(renderer, {

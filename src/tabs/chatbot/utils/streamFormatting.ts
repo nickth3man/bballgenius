@@ -24,6 +24,8 @@ function stringifyInput(input: Record<string, unknown>): string {
 
 export function formatChainStageStatus(stage: ChainStageName): string {
   switch (stage) {
+    case 'prepare_turn':
+      return 'Preparing question...';
     case 'classify_intent':
       return 'Classifying question...';
     case 'inject_schema':
@@ -32,10 +34,14 @@ export function formatChainStageStatus(stage: ChainStageName): string {
       return 'Composing answer...';
     case 'tools':
       return 'Preparing tool calls...';
-    case 'sql_critic':
+    case 'tool_budget_guard':
+      return 'Checking tool budget...';
+    case 'sql_error_guard':
       return 'Checking SQL result...';
     case 'validate_answer':
       return 'Validating answer...';
+    case 'finalize_turn':
+      return 'Finalizing answer...';
   }
 }
 

@@ -166,10 +166,14 @@ function buildGraph() {
     return { messages: [response] };
   }
 
-  async function sqlCritic(state: ChatbotStateType): Promise<Partial<ChatbotStateType> | Command> {
+  function prepareTurn(): Partial<ChatbotStateType> {
+    return { sqlRetryCount: 0, totalToolCalls: 0, validateAnswerRetries: 0 };
+  }
+
+  function toolBudgetGuard(state: ChatbotStateType): Partial<ChatbotStateType> | Command {
     const toolMessages = getTrailingToolMessages(state);
     if (toolMessages.length === 0) {
-      return new Command({ goto: 'llm', update: { sqlRetryCount: 0 } });
+      return { totalToolCalls: state.totalToolCalls ?? 0 };
     }
 
     const totalToolCalls = (state.totalToolCalls ?? 0) + toolMessages.length;
@@ -185,15 +189,25 @@ function buildGraph() {
 
     if (totalToolCalls > MAX_TOTAL_TOOL_CALLS || isLooping) {
       return new Command({
-        goto: END,
+        goto: 'finalize_turn',
         update: { sqlRetryCount: 0, totalToolCalls },
       });
+    }
+
+    return { totalToolCalls };
+  }
+
+  function sqlErrorGuard(state: ChatbotStateType): Partial<ChatbotStateType> | Command {
+    const toolMessages = getTrailingToolMessages(state);
+    if (toolMessages.length === 0) {
+      return new Command({ goto: 'llm', update: { sqlRetryCount: 0 } });
     }
 
     const erroredContent = toolMessages
       .map((message) => String(message.content))
       .find((content) => containsSqlError(content));
     const currentRetry = state.sqlRetryCount ?? 0;
+    const totalToolCalls = state.totalToolCalls ?? 0;
 
     if (erroredContent) {
       if (currentRetry >= MAX_SQL_RETRIES) {
@@ -201,7 +215,7 @@ function buildGraph() {
           `SQL validation failed after ${MAX_SQL_RETRIES} retries. Unable to execute query.`,
         );
         return new Command({
-          goto: END,
+          goto: 'finalize_turn',
           update: { messages: [errorMsg], sqlRetryCount: currentRetry, totalToolCalls },
         });
       }
@@ -217,6 +231,10 @@ function buildGraph() {
     }
 
     return new Command({ goto: 'llm', update: { sqlRetryCount: 0, totalToolCalls } });
+  }
+
+  function finalizeTurn(): Partial<ChatbotStateType> {
+    return { sqlRetryCount: 0, totalToolCalls: 0, validateAnswerRetries: 0 };
   }
 
   async function classifyIntent(state: ChatbotStateType): Promise<Partial<ChatbotStateType>> {
@@ -249,19 +267,19 @@ function buildGraph() {
     const retries = state.validateAnswerRetries ?? 0;
     const lastMessage = state.messages[state.messages.length - 1];
     if (!lastMessage || lastMessage._getType() !== 'ai') {
-      return new Command({ goto: END, update: { validateAnswerRetries: 0 } });
+      return new Command({ goto: 'finalize_turn', update: { validateAnswerRetries: 0 } });
     }
 
     const answerText = typeof lastMessage.content === 'string' ? lastMessage.content : '';
     if (!answerText) {
-      return new Command({ goto: END, update: { validateAnswerRetries: 0 } });
+      return new Command({ goto: 'finalize_turn', update: { validateAnswerRetries: 0 } });
     }
 
     const answerNumbers = extractNumbers(answerText).filter(
       (n) => n >= HALLUCINATION_NUMBER_THRESHOLD && (n < 1900 || n > 2099),
     );
     if (answerNumbers.length === 0) {
-      return new Command({ goto: END, update: { validateAnswerRetries: 0 } });
+      return new Command({ goto: 'finalize_turn', update: { validateAnswerRetries: 0 } });
     }
 
     const dataNumbers = extractNumbersFromToolMessages(state.messages);
@@ -270,7 +288,7 @@ function buildGraph() {
     if (hallucinated.length > 0) {
       if (retries >= MAX_VALIDATE_ANSWER_RETRIES) {
         // Exceeded retry budget — terminate to prevent infinite loop
-        return new Command({ goto: END, update: { validateAnswerRetries: 0 } });
+        return new Command({ goto: 'finalize_turn', update: { validateAnswerRetries: 0 } });
       }
       const correctionMsg = new SystemMessage(
         `HALLUCINATION DETECTED: You reported the number${hallucinated.length > 1 ? 's' : ''} ` +
@@ -283,24 +301,30 @@ function buildGraph() {
       });
     }
 
-    return new Command({ goto: END, update: { validateAnswerRetries: 0 } });
+    return new Command({ goto: 'finalize_turn', update: { validateAnswerRetries: 0 } });
   }
 
   return new StateGraph(ChatbotState)
+    .addNode('prepare_turn', prepareTurn)
     .addNode('classify_intent', classifyIntent)
     .addNode('inject_schema', injectSchema)
     .addNode('llm', callModel)
     .addNode('tools', toolNode)
-    .addNode('sql_critic', sqlCritic, { ends: ['llm', END] })
-    .addNode('validate_answer', validateAnswer, { ends: ['llm', END] })
-    .addEdge(START, 'classify_intent')
+    .addNode('tool_budget_guard', toolBudgetGuard, { ends: ['finalize_turn'] })
+    .addNode('sql_error_guard', sqlErrorGuard, { ends: ['llm', 'finalize_turn'] })
+    .addNode('validate_answer', validateAnswer, { ends: ['llm', 'finalize_turn'] })
+    .addNode('finalize_turn', finalizeTurn)
+    .addEdge(START, 'prepare_turn')
+    .addEdge('prepare_turn', 'classify_intent')
     .addEdge('classify_intent', 'inject_schema')
     .addEdge('inject_schema', 'llm')
     .addConditionalEdges('llm', toolsCondition, {
       tools: 'tools',
       [END]: 'validate_answer',
     })
-    .addEdge('tools', 'sql_critic')
+    .addEdge('tools', 'tool_budget_guard')
+    .addEdge('tool_budget_guard', 'sql_error_guard')
+    .addEdge('finalize_turn', END)
     .compile({ checkpointer: getCheckpointer() });
 }
 

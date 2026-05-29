@@ -1,12 +1,10 @@
-import type { DuckDBConnection, DuckDBValue } from '@duckdb/node-api';
+import type { DuckDBConnection } from '@duckdb/node-api';
 import { DuckDBInstance } from '@duckdb/node-api';
-
+import type { DbRow, SqlParam } from '../../core/types.js';
 import { resolveDbPath } from '../../shared/dbPath.js';
 
+export type { DbRow, SqlParam };
 export { resolveDbPath };
-
-export type DbRow = Record<string, unknown>;
-export type SqlParam = DuckDBValue;
 
 let instance: DuckDBInstance | null = null;
 let connection: DuckDBConnection | null = null;

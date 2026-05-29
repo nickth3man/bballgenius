@@ -1,6 +1,8 @@
-import { describe, expect, mock, test } from 'bun:test';
+import { test as baseTest, describe, expect, mock } from 'bun:test';
 
-describe('buildSystemPrompt', () => {
+const test = baseTest.serial;
+
+describe.serial('buildSystemPrompt', () => {
   test('describes the replaced database canonical schema', async () => {
     mock.module('../db.js', () => ({
       getTableRefs: async () => [
