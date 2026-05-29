@@ -7,7 +7,7 @@
 │ Team A (e.g. Bulls 1996):                      │ │ ────────────────────────────────────────────────────────────────█ │
 │ LAL 2025                                       │ │ Metric          │ LAL 2025 (Lakers)     │ PHI 2025 (76ers)      █ │
 │                                                │ │ ────────────────┼───────────────────────┼───────────────────────█ │
-│ [1;35mTeam B (e.g. Warriors 2017):[          │ │ Games Played    │ 89                    │ 91                      │
+│ Team B (e.g. Warriors 2017):                   │ │ Games Played    │ 89                    │ 91                      │
 │ PHI 2025                                       │ │ Points / Game   │ 115.0                 │ 114.7                   │
 │                                                │ │ Assists / Game  │ 25.7                  │ 24.2                    │
 │ Instructions:                                  │ │ Rebounds / Game │ 41.0                  │ 43.2                    │
@@ -29,4 +29,4 @@
 │                                                │ │ Jaxson Hayes (6.8/0.8)          │ Jared McCain (5.8/1.5)          │
 │                                                │ │ Nick Smith Jr. (4.4/0.7)        │ Trendon Watford (5.1/1.9)       │
 ╰────────────────────────────────────────────────╯ ╰───────────────────────────────────────────────────────────────────╯
-    Search · loaded: LeBron James · type 2+ charsltF1-4aNavuTab↓?pEscu·kEnter select · Tab→dossier · C→Team Compare
+ [Career Time-Machine] Search · loaded: LeBronBJameF1-4tNavuTabc?aEsctoksearch · ↑↓ pick · Enter select · Tab→dossier
