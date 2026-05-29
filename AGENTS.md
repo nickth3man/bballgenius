@@ -91,6 +91,22 @@ bun run chatbot:smoke                                   # Smoke test with fact-c
 bun run chatbot:smoke:100                               # Full 100-query smoke suite
 ```
 
+### Fast-Feedback TDD Loop (Preferred for Daily Work)
+
+```bash
+# Run only tests affected by uncommitted changes (Bun 1.3.13+)
+bun run test:changed
+
+# Watch mode — re-runs affected tests on every file save
+bun run test:changed:watch
+
+# Stop at first failure, only changed tests
+bun run test:quick
+
+# Pre-commit sanity (typecheck + changed tests)
+bun run typecheck && bun run test:quick
+```
+
 ### File-Scoped Commands (Preferred for Fast Feedback)
 
 ```bash
@@ -156,7 +172,7 @@ Key terms:
 - **Flat Peer Overrides:** Third-party peers (e.g. `bun-ffi-structs`) compile against root TypeScript 6.0.3.
 - **Pre-commit Guards:** `scripts/ci-guards.sh` — no `.only`/`.skip` in `src/tests/` or `src/tabs/chatbot/__tests__/`, no sibling tab imports in `src/tabs/`, no `UPDATE_SNAPSHOTS` in Actions, zero Biome warnings.
 - **Lint policy:** Biome runs with `--error-on-warnings`. Unused variables/imports, explicit `any`, untyped `let`, type-only imports/exports, `const` preference, enum initializers, template consistency, and double-equals are enforced.
-- **Pre-commit hooks:** Lefthook runs `bunx biome check --write` on staged TypeScript/JSON files.
+- **Pre-commit hooks:** Lefthook runs `bunx biome check --write` on staged TypeScript/JSON files (parallel), plus a full-suite `.only`/`.skip` guard before commit. Pre-push runs full typecheck + unit tests.
 
 ### API Reference
 
@@ -300,7 +316,8 @@ START → classify_intent → llm → [toolsCondition] → tools → sql_critic 
 ### Do
 
 - Use `resolveDbPath()` for CI-safe DB paths (`src/shared/dbPath.ts`).
-- Pass `--concurrency=1` to `bun test` (DuckDB + snapshot stability).
+- Use `bun run test:changed` for fast TDD feedback (runs only tests affected by uncommitted changes, Bun 1.3.13+).
+- Pass `--concurrency=1` to `bun test` for full test suite runs (DuckDB + snapshot stability).
 - Convert ANSI text with `ansiToStyledText` before `TextRenderable` writes.
 - Put new terminal features in `src/`; new conversational features in `src/tabs/chatbot/`.
 - Use `mock.module()` in chatbot tests to mock `@langchain/openai` and `../db.js`.
@@ -338,12 +355,27 @@ START → classify_intent → llm → [toolsCondition] → tools → sql_critic 
 | Chatbot streaming | `src/tabs/chatbot/__tests__/streaming.test.ts` | `streamQuery()` token/tool/usage/done/error events |
 | Smoke | `scripts/chatbot-smoke.ts` | Real API, fact-checked NBA questions |
 
-- **Full hub suite:** `bun test src/tests --concurrency=1` or `bun run ci:integration` with `NBA_DUCKDB_PATH=data/fixtures/nba.ci.duckdb`.
-- **Full chatbot suite:** `bun test src/tabs/chatbot/__tests__ --concurrency=1`.
-- **Chatbot smoke:** `OPENROUTER_API_KEY=... bun run chatbot:smoke` (facts) or `chatbot:smoke:100` (full suite).
+### Fast-Feedback Workflows
+
+| Goal | Command | Notes |
+|------|---------|-------|
+| Changed-only tests (TDD) | `bun run test:changed` | Only tests touching uncommitted changes |
+| Watch mode | `bun run test:changed:watch` | Re-runs on every save |
+| Quick pre-commit | `bun run test:quick` | `--changed` + `--bail`, stops at first failure |
+| Pre-push sanity | `bun run typecheck && bun run test:quick` | 30-60s typical |
+| Snapshot update | `bun run snapshots:update` | CI fixture path pre-set |
+| Full hub suite | `bun test src/tests --concurrency=1` or `bun run ci:integration` | CI fixture |
+| Full chatbot suite | `bun test src/tabs/chatbot/__tests__ --concurrency=1` | Mocked LLM |
+| Chatbot smoke | `OPENROUTER_API_KEY=... bun run chatbot:smoke` | Real API, fact-checked |
+
 - **Agent smoke:** `NBA_DUCKDB_PATH=data/fixtures/nba.ci.duckdb bash scripts/agent-smoke.sh` (~30s).
 - **Keyboard map:** `src/shared/utils/keyboard-map.json` ← `keyboardHelp.ts`; see `docs/agent-tui.md`.
 - **Honors overlay:** `NBA_HONORS_DUCKDB_PATH` for `v_player_honors_full` while game data stays on `NBA_DUCKDB_PATH`.
+
+### Caveats
+
+- `--changed` requires Bun 1.3.13+. It infers affected tests from git diff; freshly created files may not be detected until staged.
+- `--concurrency=1` is still needed for full suite runs due to DuckDB singleton and snapshot ordering.
 
 ## Chatbot Environment Variables
 
