@@ -1,7 +1,9 @@
-import { describe, expect, mock, test } from 'bun:test';
+import { test as baseTest, describe, expect, mock } from 'bun:test';
 import { AIMessage, HumanMessage, SystemMessage } from '@langchain/core/messages';
 
-describe('streamQuery', () => {
+const test = baseTest.serial;
+
+describe.serial('streamQuery', () => {
   mock.module('../utils/metrics.js', () => ({
     recordToolCall: () => {},
     recordToolEnd: () => {},
@@ -218,6 +220,7 @@ describe('streamQuery', () => {
       getChatbotGraph: () => ({
         streamEvents: async () =>
           (async function* () {
+            yield { event: 'on_chain_start', name: 'prepare_turn', run_id: 'r-start' };
             yield { event: 'on_chain_start', name: 'classify_intent', run_id: 'r0' };
             yield { event: 'on_chain_start', name: 'llm', run_id: 'r1' };
             yield {
@@ -238,7 +241,9 @@ describe('streamQuery', () => {
               data: { output: 'result' },
               run_id: 'r3',
             };
-            yield { event: 'on_chain_start', name: 'sql_critic', run_id: 'r4' };
+            yield { event: 'on_chain_start', name: 'tool_budget_guard', run_id: 'r4' };
+            yield { event: 'on_chain_start', name: 'sql_error_guard', run_id: 'r5' };
+            yield { event: 'on_chain_start', name: 'finalize_turn', run_id: 'r6' };
           })(),
         getState: async () => ({
           values: { messages: [new AIMessage('Done')] },
@@ -253,11 +258,14 @@ describe('streamQuery', () => {
     }
 
     const chainStages = events.filter((e) => e.type === 'chain_stage');
-    expect(chainStages.length).toBe(4);
-    expect(chainStages[0]).toEqual({ type: 'chain_stage', stage: 'classify_intent' });
-    expect(chainStages[1]).toEqual({ type: 'chain_stage', stage: 'llm' });
-    expect(chainStages[2]).toEqual({ type: 'chain_stage', stage: 'tools' });
-    expect(chainStages[3]).toEqual({ type: 'chain_stage', stage: 'sql_critic' });
+    expect(chainStages.length).toBe(7);
+    expect(chainStages[0]).toEqual({ type: 'chain_stage', stage: 'prepare_turn' });
+    expect(chainStages[1]).toEqual({ type: 'chain_stage', stage: 'classify_intent' });
+    expect(chainStages[2]).toEqual({ type: 'chain_stage', stage: 'llm' });
+    expect(chainStages[3]).toEqual({ type: 'chain_stage', stage: 'tools' });
+    expect(chainStages[4]).toEqual({ type: 'chain_stage', stage: 'tool_budget_guard' });
+    expect(chainStages[5]).toEqual({ type: 'chain_stage', stage: 'sql_error_guard' });
+    expect(chainStages[6]).toEqual({ type: 'chain_stage', stage: 'finalize_turn' });
     expect(events.some((e) => e.type === 'done')).toBe(true);
   });
 

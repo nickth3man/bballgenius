@@ -1,13 +1,36 @@
-import { describe, expect, mock, test } from 'bun:test';
+import { afterEach, test as baseTest, beforeEach, describe, expect, mock } from 'bun:test';
 import { AIMessage, HumanMessage, SystemMessage, ToolMessage } from '@langchain/core/messages';
 
-describe('chatbotGraph', () => {
+const test = baseTest.serial;
+
+describe.serial('chatbotGraph', () => {
   let nextToolResponse: string;
   let forceToolCalls: boolean;
   let forceParallelCalls = false;
   let forceMixedParallelError = false;
   let forceQueryError = false;
   let forceNeedsSchemaTools = false;
+  let forceRepeatedSqlError = false;
+
+  beforeEach(() => {
+    nextToolResponse = 'The database has LeBron James.';
+    forceToolCalls = false;
+    forceParallelCalls = false;
+    forceMixedParallelError = false;
+    forceQueryError = false;
+    forceNeedsSchemaTools = false;
+    forceRepeatedSqlError = false;
+  });
+
+  afterEach(() => {
+    nextToolResponse = 'The database has LeBron James.';
+    forceToolCalls = false;
+    forceParallelCalls = false;
+    forceMixedParallelError = false;
+    forceQueryError = false;
+    forceNeedsSchemaTools = false;
+    forceRepeatedSqlError = false;
+  });
 
   mock.module('@langchain/openai', () => ({
     ChatOpenAI: class {
@@ -24,6 +47,18 @@ describe('chatbotGraph', () => {
             m.content.includes('SQL validation failed'),
         );
         if (hasSqlCorrectionRequest) {
+          if (forceRepeatedSqlError) {
+            return new AIMessage({
+              content: '',
+              tool_calls: [
+                {
+                  id: `call_retry_${Date.now()}`,
+                  name: 'query_nba_db',
+                  args: { sql: 'SELECT * FROM missing_table' },
+                },
+              ],
+            });
+          }
           return new AIMessage(nextToolResponse);
         }
         if (hasToolResult) {
@@ -106,7 +141,21 @@ describe('chatbotGraph', () => {
     getColumns: async () => [],
     getTableRefs: async () => [
       { schema: 'main', name: 'dim_player', type: 'BASE TABLE', qualifiedName: 'dim_player' },
+      { schema: 'main', name: 'fact_game', type: 'BASE TABLE', qualifiedName: 'fact_game' },
+      {
+        schema: 'main',
+        name: 'fact_player_award_vote',
+        type: 'BASE TABLE',
+        qualifiedName: 'fact_player_award_vote',
+      },
+      {
+        schema: 'stg_bref',
+        name: 'player_totals',
+        type: 'BASE TABLE',
+        qualifiedName: 'stg_bref.player_totals',
+      },
     ],
+    invalidateSchemaCache: () => {},
   }));
 
   test('processes a question without tool calls', async () => {
@@ -240,7 +289,7 @@ describe('chatbotGraph', () => {
     const systemMessages = result.messages.filter((m) => SystemMessage.isInstance(m));
     expect(systemMessages.length).toBeGreaterThan(0);
     expect(systemMessages[0].content).toContain('SQL validation failed');
-    expect(result.sqlRetryCount).toBe(1);
+    expect(result.sqlRetryCount ?? 0).toBe(0);
     const lastMsg = result.messages[result.messages.length - 1];
     expect(lastMsg.content).toContain('corrected');
     forceMixedParallelError = false;
@@ -283,7 +332,7 @@ describe('chatbotGraph', () => {
     const systemMessages = result.messages.filter((m) => SystemMessage.isInstance(m));
     expect(systemMessages.length).toBeGreaterThan(0);
     expect(systemMessages[0].content).toContain('SQL validation failed');
-    expect(result.sqlRetryCount).toBe(1);
+    expect(result.sqlRetryCount ?? 0).toBe(0);
     const lastMsg = result.messages[result.messages.length - 1];
     expect(lastMsg).toBeInstanceOf(AIMessage);
   });
@@ -304,22 +353,44 @@ describe('chatbotGraph', () => {
     expect(result.sqlRetryCount ?? 0).toBe(0);
   });
 
-  test('ends after max SQL retries exceeded', async () => {
+  test('resets per-turn tool budget before handling a new tool call', async () => {
     forceToolCalls = true;
-    forceQueryError = true;
-    nextToolResponse = 'SQL Error: table not found';
+    forceQueryError = false;
+    nextToolResponse = 'Query returned after a fresh turn budget.';
     const { getChatbotGraph, resetGraph } = await import('../agent/graph.js');
     resetGraph();
     const chatbotGraph = getChatbotGraph();
 
     const result = await chatbotGraph.invoke(
-      { messages: [new HumanMessage('Query a bad table')], sqlRetryCount: 3 },
+      { messages: [new HumanMessage('Query something valid')], totalToolCalls: 10 },
+      { configurable: { thread_id: 'fresh-tool-budget-test' } },
+    );
+
+    const lastMsg = result.messages[result.messages.length - 1];
+    expect(lastMsg).toBeInstanceOf(AIMessage);
+    expect(lastMsg.content).toContain('fresh turn budget');
+    expect(result.totalToolCalls ?? 0).toBe(0);
+  });
+
+  test('ends after max SQL retries exceeded', async () => {
+    forceToolCalls = true;
+    forceQueryError = true;
+    forceRepeatedSqlError = true;
+    const { getChatbotGraph, resetGraph } = await import('../agent/graph.js');
+    resetGraph();
+    const chatbotGraph = getChatbotGraph();
+
+    const result = await chatbotGraph.invoke(
+      { messages: [new HumanMessage('Query a bad table')] },
       { configurable: { thread_id: 'critic-max-test' } },
     );
 
     const systemMessages = result.messages.filter((m) => SystemMessage.isInstance(m));
-    expect(systemMessages.length).toBeGreaterThan(0);
-    expect(systemMessages[0].content).toContain('failed after 3 retries');
+    const maxRetryMessage = systemMessages.find(
+      (message) =>
+        typeof message.content === 'string' && message.content.includes('failed after 3 retries'),
+    );
+    expect(maxRetryMessage).toBeDefined();
     const lastMsg = result.messages[result.messages.length - 1];
     expect(lastMsg).toBeInstanceOf(SystemMessage);
   });

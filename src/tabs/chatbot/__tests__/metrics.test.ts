@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, test } from 'bun:test';
+import { afterEach, test as baseTest, describe, expect } from 'bun:test';
 import { rmSync } from 'node:fs';
 import { join } from 'node:path';
 import {
@@ -13,6 +13,8 @@ import {
   startMetrics,
 } from '../utils/metrics.js';
 
+const test = baseTest.serial;
+
 const TEST_DIR = 'data/test-metrics';
 const TEST_FILE = join(TEST_DIR, 'chatbot-metrics.ndjson');
 
@@ -25,7 +27,7 @@ afterEach(() => {
   }
 });
 
-describe('MetricsSession', () => {
+describe.serial('MetricsSession', () => {
   test('startMetrics initializes session', () => {
     startMetrics('thread-1', 'test question', 'test-model');
     const session = getMetricsSession();
@@ -109,7 +111,7 @@ describe('MetricsSession', () => {
   });
 });
 
-describe('getMetricsSummary', () => {
+describe.serial('getMetricsSummary', () => {
   test('returns zeros for missing file', async () => {
     const summary = await getMetricsSummary('/nonexistent/path.ndjson');
     expect(summary.totalQueries).toBe(0);
