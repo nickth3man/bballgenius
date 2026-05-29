@@ -29,10 +29,8 @@ export function formatTable(
 ): string[] {
   if (!headers || headers.length === 0) return [];
 
-  // Identify column keys to map objects to columns
   const keys = options.colKeys || headers;
 
-  // Standardize rows to string arrays
   const stringRows: string[][] = [];
   const limit = options.maxRows ? Math.min(rows.length, options.maxRows) : rows.length;
 
@@ -53,7 +51,6 @@ export function formatTable(
     stringRows.push(stringRow);
   }
 
-  // Calculate column widths based on headers and data
   const colWidths = headers.map((header, c) => {
     let maxLen = header.length;
     for (let r = 0; r < stringRows.length; r++) {
@@ -64,12 +61,10 @@ export function formatTable(
     return maxLen;
   });
 
-  // Determine alignments (right-align numbers automatically if not specified)
   const alignments = headers.map((_, c) => {
     if (options.alignments?.[c]) {
       return options.alignments[c];
     }
-    // Check if column values are mostly numeric
     let numericCount = 0;
     for (let r = 0; r < stringRows.length; r++) {
       const val = stringRows[r][c].trim();
@@ -82,7 +77,6 @@ export function formatTable(
 
   const lines: string[] = [];
 
-  // Top border
   let topBorder = '┌';
   colWidths.forEach((w, idx) => {
     topBorder += '─'.repeat(w + 2);
@@ -91,7 +85,6 @@ export function formatTable(
   topBorder += '┐';
   lines.push(topBorder);
 
-  // Header row
   let headerLine = '│';
   headers.forEach((h, c) => {
     const w = colWidths[c];
@@ -100,7 +93,6 @@ export function formatTable(
   });
   lines.push(headerLine);
 
-  // Separator border
   let sepBorder = '├';
   colWidths.forEach((w, idx) => {
     sepBorder += '─'.repeat(w + 2);
@@ -109,7 +101,6 @@ export function formatTable(
   sepBorder += '┤';
   lines.push(sepBorder);
 
-  // Data rows
   stringRows.forEach((row) => {
     let rowLine = '│';
     row.forEach((val, c) => {
@@ -120,7 +111,6 @@ export function formatTable(
     lines.push(rowLine);
   });
 
-  // Bottom border
   let botBorder = '└';
   colWidths.forEach((w, idx) => {
     botBorder += '─'.repeat(w + 2);
@@ -147,7 +137,6 @@ export function drawHalfCourt(
   const cols = 40;
   const grid: string[][] = Array.from({ length: rows }, () => Array(cols).fill(' '));
 
-  // 1. Draw static court lines into grid
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
       // Baseline
@@ -229,9 +218,7 @@ export function drawHalfCourt(
   if (grid[7][13] === '│') grid[7][13] = '└';
   if (grid[7][26] === '│') grid[7][26] = '┘';
 
-  // 2. Plot shots — green 'o' (made), red 'x' (missed); monochrome uses plain symbols
   shots.forEach((shot) => {
-    // Normalise coordinates
     // Database coordinates: x=0..100 (left baseline to right baseline), y=0..100 (bottom sideline to top sideline)
     // We fold into left half-court where x is distance from nearest baseline (0..50)
     let x_half = shot.x;
@@ -242,7 +229,6 @@ export function drawHalfCourt(
     const grid_r = Math.floor((x_half / 50) * (rows - 1));
     const grid_c = Math.floor((shot.y / 100) * (cols - 1));
 
-    // Ensure within bounds
     if (grid_r >= 0 && grid_r < rows && grid_c >= 0 && grid_c < cols) {
       const isMade = shot.shot_result.toLowerCase().includes('made') || shot.shot_result === '1';
       const symbol = isMade ? 'o' : 'x';
@@ -261,7 +247,6 @@ export function drawHalfCourt(
     }
   });
 
-  // Convert grid to lines
   return grid.map((row) => row.join(''));
 }
 

@@ -1,13 +1,21 @@
 import {
   BoxRenderable,
   type CliRenderer,
-  ScrollBoxRenderable,
+  type ScrollBoxRenderable,
   TextRenderable,
 } from '@opentui/core';
 import { getErrorMessage } from '../../core/errors.js';
 import type { AppKeyEvent } from '../../core/input.js';
+import {
+  createPanel,
+  createScrollPanel,
+  FocusManager,
+  focusScroll,
+  resetBorderColors,
+  scrollIntoView,
+} from '../../shared/ui/index.js';
 import { ansiToStyledText, drawHalfCourt, formatTable } from '../../shared/utils/formatters.js';
-import { Theme } from '../../shared/utils/theme.js';
+import { ansiBold, ansiGreen, ansiRed, ansiYellow, Theme } from '../../shared/utils/theme.js';
 import {
   type BoxScoreRow,
   type GameShotRow,
@@ -17,12 +25,43 @@ import {
   type RecentGameRow,
 } from './queries.js';
 
+const BOX_SCORE_HEADERS: string[] = ['Player', 'Team', 'MIN', 'PTS', 'AST', 'REB', 'STL', 'BLK'];
+const BOX_SCORE_KEYS = [
+  'full_name',
+  'team_abbrev',
+  'min',
+  'points',
+  'assists',
+  'reb',
+  'steals',
+  'blocks',
+];
+
+function buildAllPlayersRow(isSelected: boolean) {
+  return {
+    full_name: isSelected ? '\u25b6 All Players' : '  All Players',
+    team_abbrev: '\xb7',
+    min: '\xb7',
+    points: '\xb7',
+    assists: '\xb7',
+    reb: '\xb7',
+    steals: '\xb7',
+    blocks: '\xb7',
+  };
+}
+
+function buildGameLine(game: RecentGameRow, idx: number, selectedIdx: number): string {
+  const dateStr = String(game.game_date).substring(5, 10);
+  const prefix = idx === selectedIdx ? ` ${ansiBold('\u25b6')} ` : '   ';
+  const matchup = `${ansiBold(game.away_team)} @ ${ansiBold(game.home_team)}`;
+  return `${prefix}[${dateStr}] ${matchup}`;
+}
+
 export class GameCenterTab {
   readonly id = 'game-center';
   readonly name = 'Game Center';
   readonly container: BoxRenderable;
 
-  // UI Components
   private readonly leftPanel: BoxRenderable;
   private readonly middlePanel: BoxRenderable;
   private readonly rightPanel: BoxRenderable;
@@ -35,21 +74,17 @@ export class GameCenterTab {
 
   private readonly shotChartText: TextRenderable;
 
-  // State
   private games: RecentGameRow[] = [];
   private selectedGameIdx = 0;
 
   private boxScores: BoxScoreRow[] = [];
-  private selectedPlayerIdx = -1; // -1 means "All Players"
+  private selectedPlayerIdx = -1;
 
   private shots: GameShotRow[] = [];
 
-  // Focus Management: 0 = games, 1 = box score, 2 = shot chart
-  private focusIndex = 0;
-  private focusablePanels: BoxRenderable[] = [];
+  private readonly focusManager: FocusManager;
 
   constructor(renderer: CliRenderer) {
-    // Parent container spanning 100% of workspace width/height
     this.container = new BoxRenderable(renderer, {
       id: 'game-center-container',
       width: '100%',
@@ -59,81 +94,28 @@ export class GameCenterTab {
       backgroundColor: Theme.background,
     });
 
-    // Left Panel: Game Directory
-    this.leftPanel = new BoxRenderable(renderer, {
+    const gamePanel = createScrollPanel(renderer, {
       id: 'game-directory-panel',
-      width: '22%',
-      height: '100%',
-      border: true,
-      borderStyle: Theme.borderStyle,
-      borderColor: Theme.borderNormal,
-      focusable: true,
-      focusedBorderColor: Theme.borderFocused,
       title: 'Games',
-      titleAlignment: Theme.titleAlignment,
-      paddingX: 1,
+      width: '22%',
     });
+    this.leftPanel = gamePanel.panel;
+    this.gameListScroll = gamePanel.scroll;
+    this.gameListText = gamePanel.text;
 
-    this.gameListScroll = new ScrollBoxRenderable(renderer, {
-      id: 'game-list-scroll',
-      width: '100%',
-      height: '100%',
-      viewportCulling: true,
-    });
-
-    this.gameListText = new TextRenderable(renderer, {
-      id: 'game-list-text',
-      content: 'Loading games...',
-      wrapMode: 'none',
-    });
-
-    this.gameListScroll.add(this.gameListText);
-    this.leftPanel.add(this.gameListScroll);
-
-    // Middle Panel: Box Score Details
-    this.middlePanel = new BoxRenderable(renderer, {
+    const boxPanel = createScrollPanel(renderer, {
       id: 'box-score-panel',
-      width: '42%',
-      height: '100%',
-      border: true,
-      borderStyle: Theme.borderStyle,
-      borderColor: Theme.borderNormal,
-      focusable: true,
-      focusedBorderColor: Theme.borderFocused,
       title: 'Box Score',
-      titleAlignment: Theme.titleAlignment,
-      paddingX: 1,
+      width: '42%',
     });
+    this.middlePanel = boxPanel.panel;
+    this.boxScoreScroll = boxPanel.scroll;
+    this.boxScoreText = boxPanel.text;
 
-    this.boxScoreScroll = new ScrollBoxRenderable(renderer, {
-      id: 'box-score-scroll',
-      width: '100%',
-      height: '100%',
-      viewportCulling: true,
-    });
-
-    this.boxScoreText = new TextRenderable(renderer, {
-      id: 'box-score-text',
-      content: 'Select a game to view box scores.',
-      wrapMode: 'none',
-    });
-
-    this.boxScoreScroll.add(this.boxScoreText);
-    this.middlePanel.add(this.boxScoreScroll);
-
-    // Right Panel: Shot Chart Visualisation
-    this.rightPanel = new BoxRenderable(renderer, {
+    this.rightPanel = createPanel(renderer, {
       id: 'shot-chart-panel',
-      width: '36%',
-      height: '100%',
-      border: true,
-      borderStyle: Theme.borderStyle,
-      borderColor: Theme.borderNormal,
-      focusable: true,
-      focusedBorderColor: Theme.borderFocused,
       title: 'Shot Chart',
-      titleAlignment: Theme.titleAlignment,
-      paddingX: 1,
+      width: '36%',
     });
 
     this.shotChartText = new TextRenderable(renderer, {
@@ -144,18 +126,13 @@ export class GameCenterTab {
 
     this.rightPanel.add(this.shotChartText);
 
-    // Assembly
     this.container.add(this.leftPanel);
     this.container.add(this.middlePanel);
     this.container.add(this.rightPanel);
 
-    // Focus arrays
-    this.focusablePanels = [this.leftPanel, this.middlePanel, this.rightPanel];
+    this.focusManager = new FocusManager([this.leftPanel, this.middlePanel, this.rightPanel]);
   }
 
-  /**
-   * Initializes the tab by loading recent games from the database.
-   */
   async init() {
     try {
       this.games = await loadRecentGames();
@@ -174,68 +151,47 @@ export class GameCenterTab {
     }
   }
 
-  /**
-   * Switches focus to the current sub-panel and wires scroll focus.
-   */
   focus() {
-    this.focusActivePanel();
+    this.applyFocus();
   }
 
-  /**
-   * Cycles focus forward: games → box score → shot chart.
-   */
   cycleFocus() {
-    this.focusIndex = (this.focusIndex + 1) % this.focusablePanels.length;
-    this.focus();
+    this.focusManager.next();
+    this.applyFocus();
   }
 
-  /**
-   * Cycles focus backward (reverse of cycleFocus).
-   */
   cycleFocusBackward() {
-    this.focusIndex =
-      (this.focusIndex - 1 + this.focusablePanels.length) % this.focusablePanels.length;
-    this.focus();
+    this.focusManager.prev();
+    this.applyFocus();
   }
 
-  /**
-   * Footer status line for the app shell.
-   */
   getStatusLine(): string {
     const gameCount = this.games.length;
     const gamePos = gameCount > 0 ? `${this.selectedGameIdx + 1}/${gameCount}` : '0/0';
     const panelLabels = ['Games', 'Box score', 'Shot chart'];
-    const panel = panelLabels[this.focusIndex] ?? 'Games';
+    const panel = panelLabels[this.focusManager.currentIndex] ?? 'Games';
 
     let playerLabel = 'All Players';
     if (this.selectedPlayerIdx >= 0 && this.boxScores[this.selectedPlayerIdx]) {
       playerLabel = this.boxScores[this.selectedPlayerIdx].full_name;
     }
 
+    const idx = this.focusManager.currentIndex;
     const moveHint =
-      this.focusIndex === 0
-        ? '↑↓ move game'
-        : this.focusIndex === 1
-          ? '↑↓ move player'
-          : 'read-only';
+      idx === 0 ? '\u2191\u2193 move game' : idx === 1 ? '\u2191\u2193 move player' : 'read-only';
 
     return `Games ${gamePos} | ${panel} | Player: ${playerLabel} | ${moveHint}`;
   }
 
-  private focusActivePanel() {
-    this.focusablePanels.forEach((panel, idx) => {
-      if (idx === this.focusIndex) {
-        panel.focus();
-      } else {
-        panel.blur();
-        panel.borderColor = Theme.borderNormal;
-      }
-    });
+  private applyFocus() {
+    resetBorderColors(this.focusManager.panels);
+    this.focusManager.focusActive();
 
-    if (this.focusIndex === 0) {
-      this.gameListScroll.focus();
-    } else if (this.focusIndex === 1) {
-      this.boxScoreScroll.focus();
+    const idx = this.focusManager.currentIndex;
+    if (idx === 0) {
+      focusScroll(this.gameListScroll);
+    } else if (idx === 1) {
+      focusScroll(this.boxScoreScroll);
     }
 
     this.container.requestRender();
@@ -249,88 +205,55 @@ export class GameCenterTab {
     // Game Center doesn't have an input field to blur
   }
 
-  /**
-   * Handles keyboard navigation within the Game Center tab.
-   * Returns true if the key was handled, false otherwise.
-   */
   handleKeyPress(event: AppKeyEvent): boolean {
-    if (this.focusIndex === 0) {
-      // Game Directory focused
-      if (event.name === 'up') {
-        if (this.selectedGameIdx > 0) {
-          this.selectedGameIdx--;
-          this.selectedPlayerIdx = -1; // Reset player filter on game change
-          this.renderGameList();
-          this.scrollGameListIntoView();
-          this.loadGameDetails();
-        }
-        return true;
-      }
-      if (event.name === 'down') {
-        if (this.selectedGameIdx < this.games.length - 1) {
-          this.selectedGameIdx++;
-          this.selectedPlayerIdx = -1; // Reset player filter on game change
-          this.renderGameList();
-          this.scrollGameListIntoView();
-          this.loadGameDetails();
-        }
-        return true;
-      }
-    } else if (this.focusIndex === 1) {
-      // Box Score / Player List focused
-      if (event.name === 'up') {
-        if (this.selectedPlayerIdx > -1) {
-          this.selectedPlayerIdx--;
-          this.renderBoxScore();
-          this.scrollBoxScoreIntoView();
-          this.renderShotChart();
-        }
-        return true;
-      }
-      if (event.name === 'down') {
-        if (this.selectedPlayerIdx < this.boxScores.length - 1) {
-          this.selectedPlayerIdx++;
-          this.renderBoxScore();
-          this.scrollBoxScoreIntoView();
-          this.renderShotChart();
-        }
-        return true;
-      }
-    } else if (this.focusIndex === 2) {
-      // Shot chart panel: read-only, no navigation keys
-      return false;
+    const idx = this.focusManager.currentIndex;
+
+    if (idx === 0) {
+      return this.handleGameNav(event);
     }
+
+    if (idx === 1) {
+      return this.handleBoxScoreNav(event);
+    }
+
     return false;
   }
 
-  private scrollGameListIntoView() {
-    const visibleHeight = this.gameListScroll.height || 20;
-    const currentScroll = this.gameListScroll.scrollTop;
-    const idx = this.selectedGameIdx;
+  private changeGame(delta: number): boolean {
+    const newIdx = this.selectedGameIdx + delta;
+    if (newIdx < 0 || newIdx >= this.games.length) return false;
 
-    if (idx < currentScroll) {
-      this.gameListScroll.scrollTop = idx;
-    } else if (idx >= currentScroll + visibleHeight - 2) {
-      this.gameListScroll.scrollTop = Math.max(0, idx - visibleHeight + 3);
-    }
+    this.selectedGameIdx = newIdx;
+    this.selectedPlayerIdx = -1;
+    this.renderGameList();
+    scrollIntoView(this.gameListScroll, this.selectedGameIdx);
+    this.loadGameDetails();
+    return true;
   }
 
-  private scrollBoxScoreIntoView() {
-    const visibleHeight = this.boxScoreScroll.height || 20;
-    const currentScroll = this.boxScoreScroll.scrollTop;
-    // Selected player is row index this.selectedPlayerIdx + 3 (+3 accounts for top border, header, separator)
-    const lineIdx = this.selectedPlayerIdx + 3;
+  private changePlayer(delta: number): boolean {
+    const newIdx = this.selectedPlayerIdx + delta;
+    if (newIdx < -1 || newIdx >= this.boxScores.length) return false;
 
-    if (lineIdx < currentScroll) {
-      this.boxScoreScroll.scrollTop = Math.max(0, lineIdx - 2);
-    } else if (lineIdx >= currentScroll + visibleHeight - 2) {
-      this.boxScoreScroll.scrollTop = Math.max(0, lineIdx - visibleHeight + 3);
-    }
+    this.selectedPlayerIdx = newIdx;
+    this.renderBoxScore();
+    scrollIntoView(this.boxScoreScroll, this.selectedPlayerIdx + 3);
+    this.renderShotChart();
+    return true;
   }
 
-  /**
-   * Loads rosters, stats, and shots for the selected game.
-   */
+  private handleGameNav(event: AppKeyEvent): boolean {
+    if (event.name === 'up') return this.changeGame(-1);
+    if (event.name === 'down') return this.changeGame(1);
+    return false;
+  }
+
+  private handleBoxScoreNav(event: AppKeyEvent): boolean {
+    if (event.name === 'up') return this.changePlayer(-1);
+    if (event.name === 'down') return this.changePlayer(1);
+    return false;
+  }
+
   private async loadGameDetails() {
     const activeGame = this.games[this.selectedGameIdx];
     if (!activeGame) return;
@@ -340,10 +263,8 @@ export class GameCenterTab {
     this.container.requestRender();
 
     try {
-      // Fetch box scores with deduplicated team abbreviations
       this.boxScores = await loadBoxScoreWithTeamDedup(String(activeGame.game_id));
 
-      // Fetch shots
       this.shots = await loadGameShots(String(activeGame.game_id));
 
       this.renderBoxScore();
@@ -357,25 +278,12 @@ export class GameCenterTab {
     }
   }
 
-  /**
-   * Renders the game list text buffer with selection indicator.
-   */
   private renderGameList() {
-    const lines = this.games.map((game, idx) => {
-      const dateStr = String(game.game_date).substring(5, 10); // MM-DD
-      const prefix = idx === this.selectedGameIdx ? ' \x1b[1m▶\x1b[0m ' : '   ';
-      const matchup = `\x1b[1m${game.away_team}\x1b[0m @ \x1b[1m${game.home_team}\x1b[0m`;
-      const item = `${prefix}[${dateStr}] ${matchup}`;
-      return item;
-    });
-
+    const lines = this.games.map((game, idx) => buildGameLine(game, idx, this.selectedGameIdx));
     this.gameListText.content = ansiToStyledText(lines.join('\n'));
     this.container.requestRender();
   }
 
-  /**
-   * Renders the box score table in the middle panel.
-   */
   private renderBoxScore() {
     if (this.boxScores.length === 0) {
       this.boxScoreText.content = 'No box score data available.';
@@ -383,49 +291,22 @@ export class GameCenterTab {
       return;
     }
 
-    // Build the grid headers and rows
-    const headers = ['Player', 'Team', 'MIN', 'PTS', 'AST', 'REB', 'STL', 'BLK'];
-    const keys = [
-      'full_name',
-      'team_abbrev',
-      'min',
-      'points',
-      'assists',
-      'reb',
-      'steals',
-      'blocks',
-    ];
-
-    // Map rows and insert a selection indicator on player rows
     const mappedRows = this.boxScores.map((player, idx) => {
       const isSelected = idx === this.selectedPlayerIdx;
       return {
         ...player,
-        full_name: isSelected ? `▶ ${player.full_name}` : `  ${player.full_name}`,
+        full_name: isSelected ? `\u25b6 ${player.full_name}` : `  ${player.full_name}`,
       };
     });
 
-    // Prepend a row representing "All Players"
-    const isAllSelected = this.selectedPlayerIdx === -1;
-    const allRow = {
-      full_name: isAllSelected ? '▶ All Players' : '  All Players',
-      team_abbrev: '·',
-      min: '·',
-      points: '·',
-      assists: '·',
-      reb: '·',
-      steals: '·',
-      blocks: '·',
-    };
-
-    const tableLines = formatTable(headers, [allRow, ...mappedRows], { colKeys: keys });
+    const allRow = buildAllPlayersRow(this.selectedPlayerIdx === -1);
+    const tableLines = formatTable(BOX_SCORE_HEADERS, [allRow, ...mappedRows], {
+      colKeys: BOX_SCORE_KEYS,
+    });
     this.boxScoreText.content = ansiToStyledText(tableLines.join('\n'));
     this.container.requestRender();
   }
 
-  /**
-   * Renders the shot chart in the right panel.
-   */
   private renderShotChart() {
     const activeGame = this.games[this.selectedGameIdx];
     if (!activeGame) return;
@@ -457,7 +338,7 @@ export class GameCenterTab {
     const zoneSummary = total > 0 ? this.summarizeShotZones(filteredShots) : 'Zones: (no shots)';
 
     // Title / stats overlay
-    const titleOverlay = `\x1b[1;33m${selectedPlayerName}\x1b[0m\nShots: \x1b[32m${makes}\x1b[0m/\x1b[31m${total - makes}\x1b[0m (${pct}% FG)\n${zoneSummary}`;
+    const titleOverlay = `${ansiYellow(selectedPlayerName)}\nShots: ${ansiGreen(String(makes))}/${ansiRed(String(total - makes))} (${pct}% FG)\n${zoneSummary}`;
 
     this.shotChartText.content = ansiToStyledText(`${titleOverlay}\n\n${courtLines.join('\n')}`);
     this.container.requestRender();
