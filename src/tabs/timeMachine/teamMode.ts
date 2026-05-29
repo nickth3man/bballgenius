@@ -2,6 +2,7 @@ import type { KeyEvent } from '@opentui/core';
 import { getErrorMessage } from '../../core/errors.js';
 import type { AppKeyEvent } from '../../core/input.js';
 import { ansiToStyledText } from '../../shared/utils/formatters.js';
+import { ansiBold, ansiCyan, ansiDim, ansiMagenta, ansiYellow } from '../../shared/utils/theme.js';
 import type { TeamRosterRow } from './queries.js';
 import { findTeam, loadTeamRoster, loadTeamSeasonStats } from './queries.js';
 import type { TeamComparisonData, TimeMachineHost } from './types.js';
@@ -112,7 +113,7 @@ export class TeamModeController {
     const C = 22; // per-team column width
     const rule = (ch: string) => ch.repeat(M + C + C + 6);
 
-    let content = '\x1b[1;36mHISTORICAL TEAM COMPARISON\x1b[0m\n';
+    let content = `${ansiBold(ansiCyan('HISTORICAL TEAM COMPARISON'))}\n`;
     content += `${rule('─')}\n`;
 
     const formatTeamHeader = (data: TeamComparisonData | null) => {
@@ -130,7 +131,7 @@ export class TeamModeController {
       return s + ' '.repeat(Math.max(0, len - s.length));
     };
 
-    content += `${pad('Metric', M)}│ \x1b[1;33m${pad(headerA, C)}\x1b[0m│ \x1b[1;35m${pad(headerB, C)}\x1b[0m\n`;
+    content += `${pad('Metric', M)}│ ${ansiBold(ansiYellow(pad(headerA, C)))}│ ${ansiBold(ansiMagenta(pad(headerB, C)))}\n`;
     content += `${'─'.repeat(M)}┼${'─'.repeat(C + 1)}┼${'─'.repeat(C + 1)}\n`;
 
     const getVal = (
@@ -155,7 +156,7 @@ export class TeamModeController {
     metricRow('Steals / Game', 'spg');
     metricRow('Blocks / Game', 'bpg');
 
-    content += '\n\x1b[1;36mROSTER SIDE-BY-SIDE\x1b[0m \x1b[90m(PPG / APG)\x1b[0m\n';
+    content += `\n${ansiBold(ansiCyan('ROSTER SIDE-BY-SIDE'))} ${ansiDim('(PPG / APG)')}\n`;
     content += `${rule('─')}\n`;
 
     const nameA =
@@ -168,7 +169,7 @@ export class TeamModeController {
         : 'Team B';
 
     const R = 32; // roster column width
-    content += `\x1b[1;33m${pad(`${nameA} Roster`, R)}\x1b[0m│ \x1b[1;35m${pad(`${nameB} Roster`, R)}\x1b[0m\n`;
+    content += `${ansiBold(ansiYellow(pad(`${nameA} Roster`, R)))}│ ${ansiBold(ansiMagenta(pad(`${nameB} Roster`, R)))}\n`;
     content += `${'─'.repeat(R)}┼${'─'.repeat(R + 1)}\n`;
 
     const maxRosterLen = Math.max(this.teamARoster.length, this.teamBRoster.length);
@@ -201,14 +202,13 @@ export class TeamModeController {
   }
 
   renderTeamInstructions(): void {
-    let content =
-      '\n\x1b[90mInstructions:\x1b[0m\nType Team name/abbreviation with a 4-digit year. Press [Enter] to fetch stats. Use [Tab] to move, [C] to toggle.\n';
+    let content = `\n${ansiDim('Instructions:')}\nType Team name/abbreviation with a 4-digit year. Press [Enter] to fetch stats. Use [Tab] to move, [C] to toggle.\n`;
 
-    content += '\n\x1b[1;33mSub-pages (Press keys anywhere to load):\x1b[0m\n';
+    content += `\n${ansiBold(ansiYellow('Sub-pages (Press keys anywhere to load):'))}\n`;
     const subpageIndicator = (sub: string, key: string, label: string) => {
       return this.host.activeTeamSubpage === sub
-        ? `\x1b[1;36m[${key}] ${label}\x1b[0m`
-        : `\x1b[1m[${key}]\x1b[0m ${label}`;
+        ? `${ansiBold(ansiCyan(`[${key}] ${label}`))}`
+        : `${ansiBold(`[${key}]`)} ${label}`;
     };
     content += ` ${subpageIndicator('comparison', 'R', 'Reset')} · ${subpageIndicator('teams_index', 'I', 'Teams')} · ${subpageIndicator('team_a_profile', 'F', 'Team A Page')}\n`;
     content += ` ${subpageIndicator('team_b_profile', 'G', 'Team B Page')} · ${subpageIndicator('leaders_index', 'L', 'Leaders')} · ${subpageIndicator('leagues_index', 'E', 'Leagues')}\n`;

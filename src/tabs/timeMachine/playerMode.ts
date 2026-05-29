@@ -3,8 +3,9 @@ import { getErrorMessage } from '../../core/errors.js';
 import type { AppKeyEvent } from '../../core/input.js';
 import type { DbRow } from '../../core/types.js';
 import { ansiToStyledText, formatTable } from '../../shared/utils/formatters.js';
+import { ansiBold, ansiGreen, ansiMagenta, ansiYellow } from '../../shared/utils/theme.js';
 import type { BbrViewController } from './bbrView.js';
-import type { PlayerAwardRow } from './queries.js';
+import type { CareerStatRow, PlayerAwardRow } from './queries.js';
 import {
   loadCareerStats,
   loadPlayerAwards,
@@ -18,6 +19,96 @@ import {
   formatPlayerStatusLabel,
   isPlayerActive,
 } from './utils/playerStatus.js';
+
+interface ComputedStats {
+  totalGp: number;
+  totalGs: number;
+  totalMin: number;
+  totalPts: number;
+  totalAst: number;
+  totalReb: number;
+  totalStl: number;
+  totalBlk: number;
+  hasStl: boolean;
+  hasBlk: boolean;
+  hasGs: boolean;
+  tsSum: number;
+  tsCount: number;
+}
+
+function computeStatTotals(stats: CareerStatRow[]): ComputedStats {
+  let totalGp = 0;
+  let totalGs = 0;
+  let totalMin = 0;
+  let totalPts = 0;
+  let totalAst = 0;
+  let totalReb = 0;
+  let totalStl = 0;
+  let totalBlk = 0;
+  let hasStl = false;
+  let hasBlk = false;
+  let hasGs = false;
+  let tsSum = 0;
+  let tsCount = 0;
+
+  for (const stat of stats) {
+    const gp = Number(stat.gp || 0);
+    totalGp += gp;
+    if (stat.gs !== null && stat.gs !== undefined) {
+      totalGs += Number(stat.gs);
+      hasGs = true;
+    }
+    totalMin += Number(stat.min || 0);
+    totalPts += Number(stat.pts || 0);
+    totalAst += Number(stat.ast || 0);
+    if (stat.reb !== null && stat.reb !== undefined) {
+      totalReb += Number(stat.reb);
+    }
+    if (stat.stl !== null && stat.stl !== undefined) {
+      totalStl += Number(stat.stl);
+      hasStl = true;
+    }
+    if (stat.blk !== null && stat.blk !== undefined) {
+      totalBlk += Number(stat.blk);
+      hasBlk = true;
+    }
+    if (stat.ts_pct !== null && stat.ts_pct !== undefined) {
+      tsSum += Number(stat.ts_pct);
+      tsCount++;
+    }
+  }
+
+  return {
+    totalGp,
+    totalGs,
+    totalMin,
+    totalPts,
+    totalAst,
+    totalReb,
+    totalStl,
+    totalBlk,
+    hasStl,
+    hasBlk,
+    hasGs,
+    tsSum,
+    tsCount,
+  };
+}
+
+function formatStatSummary(s: ComputedStats, coloredHeader: string): string {
+  const avgMin = s.totalGp > 0 ? (s.totalMin / s.totalGp).toFixed(1) : '---';
+  const avgPts = s.totalGp > 0 ? (s.totalPts / s.totalGp).toFixed(1) : '---';
+  const avgAst = s.totalGp > 0 ? (s.totalAst / s.totalGp).toFixed(1) : '---';
+  const avgReb = s.totalGp > 0 ? (s.totalReb / s.totalGp).toFixed(1) : '---';
+  const avgStl = s.totalGp > 0 && s.hasStl ? (s.totalStl / s.totalGp).toFixed(1) : '---';
+  const avgBlk = s.totalGp > 0 && s.hasBlk ? (s.totalBlk / s.totalGp).toFixed(1) : '---';
+  const avgTs = s.tsCount > 0 ? `${((s.tsSum / s.tsCount) * 100).toFixed(1)}%` : '---';
+
+  let summary = `\n${coloredHeader}\n`;
+  summary += `\u2022 ${ansiBold('Totals:')}   GP: ${s.totalGp} | GS: ${s.hasGs ? s.totalGs : '---'} | MIN: ${s.totalMin} | PTS: ${s.totalPts} | AST: ${s.totalAst} | REB: ${s.totalReb} | STL: ${s.hasStl ? s.totalStl : '---'} | BLK: ${s.hasBlk ? s.totalBlk : '---'}\n`;
+  summary += `\u2022 ${ansiBold('Averages:')} MPG: ${avgMin} | PPG: ${avgPts} | APG: ${avgAst} | RPG: ${avgReb} | SPG: ${avgStl} | BPG: ${avgBlk} | TS%: ${avgTs}\n`;
+  return summary;
+}
 
 export class PlayerModeController {
   constructor(
@@ -54,11 +145,11 @@ export class PlayerModeController {
 
     const lines = this.host.suggestions.map((p, idx) => {
       const isSelected = idx === this.host.selectedSuggestIdx;
-      const prefix = isSelected ? ' \x1b[1;35m▶\x1b[0m ' : '   ';
-      const status = isPlayerActive(p as unknown as DbRow) ? '\x1b[32mActive\x1b[0m' : 'Retired';
+      const prefix = isSelected ? ` ${ansiBold(ansiMagenta('▶'))} ` : '   ';
+      const status = isPlayerActive(p as unknown as DbRow) ? ansiGreen('Active') : 'Retired';
       const endYear = p.to_year === null || p.to_year === undefined ? 'Present' : p.to_year;
       const seasons = `(${p.from_year}-${endYear})`;
-      const name = isSelected ? `\x1b[1m${p.full_name}\x1b[0m` : p.full_name;
+      const name = isSelected ? ansiBold(p.full_name) : p.full_name;
       return `${prefix}${name} ${seasons} - ${status}`;
     });
 
@@ -136,22 +227,22 @@ export class PlayerModeController {
       draftStr = `${meta.draft_year} - Rd ${meta.draft_round}, Pick ${meta.draft_number}`;
     }
 
-    let dossier = `\x1b[1;35m${fullName}\x1b[0m\n`;
+    let dossier = `${ansiBold(ansiMagenta(fullName))}\n`;
     dossier += `${'═'.repeat(fullName.length)}\n`;
     const statusLabel = formatPlayerStatusLabel(meta);
-    const statusAnsi = statusLabel === 'Active' ? '\x1b[32mActive\x1b[0m' : 'Retired';
-    dossier += `• \x1b[1mCareer Span:\x1b[0m ${meta.from_year} - ${formatCareerEndYear(meta)} (${statusAnsi})\n`;
-    dossier += `• \x1b[1mPhysicals:\x1b[0m   ${heightStr} | ${weightStr}\n`;
-    dossier += `• \x1b[1mBirth Date:\x1b[0m  ${meta.birth_date || 'Unknown'}\n`;
-    dossier += `• \x1b[1mBackground:\x1b[0m  ${meta.country || 'USA'} | ${meta.school || 'High School'}\n`;
-    dossier += `• \x1b[1mDraft Card:\x1b[0m  ${draftStr}\n`;
+    const statusAnsi = statusLabel === 'Active' ? ansiGreen('Active') : 'Retired';
+    dossier += `\u2022 ${ansiBold('Career Span:')} ${meta.from_year} - ${formatCareerEndYear(meta)} (${statusAnsi})\n`;
+    dossier += `\u2022 ${ansiBold('Physicals:')}   ${heightStr} | ${weightStr}\n`;
+    dossier += `\u2022 ${ansiBold('Birth Date:')}  ${meta.birth_date || 'Unknown'}\n`;
+    dossier += `\u2022 ${ansiBold('Background:')}  ${meta.country || 'USA'} | ${meta.school || 'High School'}\n`;
+    dossier += `\u2022 ${ansiBold('Draft Card:')}  ${draftStr}\n`;
 
     if (awards.length > 0) {
-      dossier += '\n\x1b[1;33mKey Career Accolades:\x1b[0m\n';
+      dossier += `\n${ansiBold(ansiYellow('Key Career Accolades:'))}\n`;
       const grouped = groupPlayerAwards(awards);
       for (const entry of grouped) {
         const n = entry.seasons.length;
-        dossier += ` * \x1b[1m${entry.label}\x1b[0m (${n}x):\n`;
+        dossier += ` * ${ansiBold(entry.label)} (${n}x):\n`;
         for (const line of formatAwardSeasonLines(entry.seasons)) {
           dossier += `   ${line}\n`;
         }
@@ -221,118 +312,18 @@ export class PlayerModeController {
     const regSeasonStats = this.host.careerStats.filter((s) => !s.is_playoffs);
     let summary = '';
     if (regSeasonStats.length > 0) {
-      let totalGp = 0;
-      let totalGs = 0;
-      let totalMin = 0;
-      let totalPts = 0;
-      let totalAst = 0;
-      let totalReb = 0;
-      let totalStl = 0;
-      let totalBlk = 0;
-      let hasStl = false;
-      let hasBlk = false;
-      let hasGs = false;
-
-      let tsSum = 0;
-      let tsCount = 0;
-
-      for (const stat of regSeasonStats) {
-        const gp = Number(stat.gp || 0);
-        totalGp += gp;
-
-        if (stat.gs !== null && stat.gs !== undefined) {
-          totalGs += Number(stat.gs);
-          hasGs = true;
-        }
-        totalMin += Number(stat.min || 0);
-        totalPts += Number(stat.pts || 0);
-        totalAst += Number(stat.ast || 0);
-        if (stat.reb !== null && stat.reb !== undefined) {
-          totalReb += Number(stat.reb);
-        }
-        if (stat.stl !== null && stat.stl !== undefined) {
-          totalStl += Number(stat.stl);
-          hasStl = true;
-        }
-        if (stat.blk !== null && stat.blk !== undefined) {
-          totalBlk += Number(stat.blk);
-          hasBlk = true;
-        }
-        if (stat.ts_pct !== null && stat.ts_pct !== undefined) {
-          tsSum += Number(stat.ts_pct);
-          tsCount++;
-        }
-      }
-
-      const avgMin = totalGp > 0 ? (totalMin / totalGp).toFixed(1) : '---';
-      const avgPts = totalGp > 0 ? (totalPts / totalGp).toFixed(1) : '---';
-      const avgAst = totalGp > 0 ? (totalAst / totalGp).toFixed(1) : '---';
-      const avgReb = totalGp > 0 ? (totalReb / totalGp).toFixed(1) : '---';
-      const avgStl = totalGp > 0 && hasStl ? (totalStl / totalGp).toFixed(1) : '---';
-      const avgBlk = totalGp > 0 && hasBlk ? (totalBlk / totalGp).toFixed(1) : '---';
-      const avgTs = tsCount > 0 ? `${((tsSum / tsCount) * 100).toFixed(1)}%` : '---';
-
-      summary += '\n\x1b[1;33mRegular Season Career Totals & Averages:\x1b[0m\n';
-      summary += `• \x1b[1mTotals:\x1b[0m   GP: ${totalGp} | GS: ${hasGs ? totalGs : '---'} | MIN: ${totalMin} | PTS: ${totalPts} | AST: ${totalAst} | REB: ${totalReb} | STL: ${hasStl ? totalStl : '---'} | BLK: ${hasBlk ? totalBlk : '---'}\n`;
-      summary += `• \x1b[1mAverages:\x1b[0m MPG: ${avgMin} | PPG: ${avgPts} | APG: ${avgAst} | RPG: ${avgReb} | SPG: ${avgStl} | BPG: ${avgBlk} | TS%: ${avgTs}\n`;
+      summary += formatStatSummary(
+        computeStatTotals(regSeasonStats),
+        ansiBold(ansiYellow('Regular Season Career Totals & Averages:')),
+      );
     }
 
     const playoffStats = this.host.careerStats.filter((s) => s.is_playoffs);
     if (playoffStats.length > 0) {
-      let pTotalGp = 0;
-      let pTotalGs = 0;
-      let pTotalMin = 0;
-      let pTotalPts = 0;
-      let pTotalAst = 0;
-      let pTotalReb = 0;
-      let pTotalStl = 0;
-      let pTotalBlk = 0;
-      let pHasStl = false;
-      let pHasBlk = false;
-      let pHasGs = false;
-
-      let pTsSum = 0;
-      let pTsCount = 0;
-
-      for (const stat of playoffStats) {
-        const gp = Number(stat.gp || 0);
-        pTotalGp += gp;
-
-        if (stat.gs !== null && stat.gs !== undefined) {
-          pTotalGs += Number(stat.gs);
-          pHasGs = true;
-        }
-        pTotalMin += Number(stat.min || 0);
-        pTotalPts += Number(stat.pts || 0);
-        pTotalAst += Number(stat.ast || 0);
-        if (stat.reb !== null && stat.reb !== undefined) {
-          pTotalReb += Number(stat.reb);
-        }
-        if (stat.stl !== null && stat.stl !== undefined) {
-          pTotalStl += Number(stat.stl);
-          pHasStl = true;
-        }
-        if (stat.blk !== null && stat.blk !== undefined) {
-          pTotalBlk += Number(stat.blk);
-          pHasBlk = true;
-        }
-        if (stat.ts_pct !== null && stat.ts_pct !== undefined) {
-          pTsSum += Number(stat.ts_pct);
-          pTsCount++;
-        }
-      }
-
-      const pAvgMin = pTotalGp > 0 ? (pTotalMin / pTotalGp).toFixed(1) : '---';
-      const pAvgPts = pTotalGp > 0 ? (pTotalPts / pTotalGp).toFixed(1) : '---';
-      const pAvgAst = pTotalGp > 0 ? (pTotalAst / pTotalGp).toFixed(1) : '---';
-      const pAvgReb = pTotalGp > 0 ? (pTotalReb / pTotalGp).toFixed(1) : '---';
-      const pAvgStl = pTotalGp > 0 && pHasStl ? (pTotalStl / pTotalGp).toFixed(1) : '---';
-      const pAvgBlk = pTotalGp > 0 && pHasBlk ? (pTotalBlk / pTotalGp).toFixed(1) : '---';
-      const pAvgTs = pTsCount > 0 ? `${((pTsSum / pTsCount) * 100).toFixed(1)}%` : '---';
-
-      summary += '\n\x1b[1;35mPlayoffs Career Totals & Averages:\x1b[0m\n';
-      summary += `• \x1b[1mTotals:\x1b[0m   GP: ${pTotalGp} | GS: ${pHasGs ? pTotalGs : '---'} | MIN: ${pTotalMin} | PTS: ${pTotalPts} | AST: ${pTotalAst} | REB: ${pTotalReb} | STL: ${pHasStl ? pTotalStl : '---'} | BLK: ${pHasBlk ? pTotalBlk : '---'}\n`;
-      summary += `• \x1b[1mAverages:\x1b[0m MPG: ${pAvgMin} | PPG: ${pAvgPts} | APG: ${pAvgAst} | RPG: ${pAvgReb} | SPG: ${pAvgStl} | BPG: ${pAvgBlk} | TS%: ${pAvgTs}\n`;
+      summary += formatStatSummary(
+        computeStatTotals(playoffStats),
+        ansiBold(ansiMagenta('Playoffs Career Totals & Averages:')),
+      );
     }
 
     this.host.statsText.content = ansiToStyledText(`${lines.join('\n')}\n${summary}`);

@@ -1,5 +1,6 @@
 import { getErrorMessage } from '../../core/errors.js';
 import { ansiToStyledText, formatTable } from '../../shared/utils/formatters.js';
+import { ansiBold, ansiCyan, ansiDim, ansiMagenta, ansiYellow } from '../../shared/utils/theme.js';
 import type { TimeMachineHost } from './types.js';
 import { depthStepLabel, getDepthChain, orderSectionPages } from './utils/bbr/bbrDepthCatalog.js';
 import type { BbrMirroredPage } from './utils/bbr/bbrMirroredStore.js';
@@ -143,18 +144,18 @@ export class BbrViewController {
 
   renderSiteCatalog(): void {
     this.host.statsPanel.title = 'Basketball-Reference Site Index';
-    let output = '\x1b[1;35mBasketball-Reference Site Sections\x1b[0m\n';
+    let output = `${ansiBold(ansiMagenta('Basketball-Reference Site Sections'))}\n`;
     output += `${'═'.repeat(36)}\n\n`;
-    output += '\x1b[90m↑↓ section · ←→ page · Enter load · [M] shortcuts below\x1b[0m\n\n';
+    output += `${ansiDim('↑↓ section · ←→ page · Enter load · [M] shortcuts below')}\n\n`;
 
     for (const page of BBR_SITE_PAGES) {
-      output += ` \x1b[1m[${page.key}]\x1b[0m ${page.label}\n`;
+      output += ` ${ansiBold(`[${page.key}]`)} ${page.label}\n`;
     }
 
-    output += `\n\x1b[1;33mMirrored sections (${this.host.siteCatalog.length}):\x1b[0m\n`;
+    output += `\n${ansiBold(ansiYellow(`Mirrored sections (${this.host.siteCatalog.length}):`))}\n`;
     for (let idx = 0; idx < this.host.siteCatalog.length; idx++) {
       const section = this.host.siteCatalog[idx];
-      const prefix = idx === this.host.selectedSiteSectionIdx ? '\x1b[1;36m▶\x1b[0m' : ' ';
+      const prefix = idx === this.host.selectedSiteSectionIdx ? ansiBold(ansiCyan('▶')) : ' ';
       const depthChain = getDepthChain(section.id);
       const depthHint =
         depthChain.length > 0 ? ` · depth ${depthChain.map((pick) => pick.depth).join('→')}` : '';
@@ -164,15 +165,15 @@ export class BbrViewController {
     const activeSection = this.getActiveSiteSection();
     const sectionPages = this.getActiveSiteSectionPages();
     if (activeSection && sectionPages.length > 0) {
-      output += `\n\x1b[1;33m${activeSection.label} pages:\x1b[0m\n`;
+      output += `\n${ansiBold(ansiYellow(`${activeSection.label} pages:`))}\n`;
       const depthByPath = new Map(
         getDepthChain(activeSection.id).map((pick) => [pick.relativePath, pick.depth]),
       );
       for (let idx = 0; idx < sectionPages.length; idx++) {
         const page = sectionPages[idx];
         const depth = depthByPath.get(page.relativePath);
-        const depthTag = depth !== undefined ? `\x1b[90md${depth}\x1b[0m ` : '';
-        const prefix = idx === this.host.selectedSitePageIdx ? '\x1b[1;36m▶\x1b[0m' : ' ';
+        const depthTag = depth !== undefined ? `${ansiDim(`d${depth}`)} ` : '';
+        const prefix = idx === this.host.selectedSitePageIdx ? ansiBold(ansiCyan('▶')) : ' ';
         output += `${prefix} ${depthTag}${page.label}\n`;
       }
     }
@@ -186,11 +187,11 @@ export class BbrViewController {
       return dossier;
     }
 
-    dossier += '\n\x1b[1;33mPlayer sub-pages (press key anywhere):\x1b[0m\n';
+    dossier += `\n${ansiBold(ansiYellow('Player sub-pages (press key anywhere):'))}\n`;
     const subpageIndicator = (sub: string, subKey: string, label: string) => {
       return this.host.activeSubpage === sub
-        ? `\x1b[1;36m[${subKey}] ${label}\x1b[0m`
-        : `\x1b[1m[${subKey}]\x1b[0m ${label}`;
+        ? `${ansiBold(ansiCyan(`[${subKey}] ${label}`))}`
+        : `${ansiBold(`[${subKey}]`)} ${label}`;
     };
 
     const row1 = BBR_PLAYER_SUBPAGES.slice(0, 5)
@@ -204,25 +205,25 @@ export class BbrViewController {
 
     const yearLink = this.getActiveBbrSubpageLink();
     if (yearLink) {
-      dossier += `\n\x1b[90mSeason/year (↑↓ in dossier): ${yearLink.label}\x1b[0m\n`;
+      dossier += `\n${ansiDim(`Season/year (↑↓ in dossier): ${yearLink.label}`)}\n`;
     }
 
     if (this.host.activeSubpage === 'site') {
-      dossier += '\n\x1b[1;33mSite sections (↑↓) · pages (←→ · Enter):\x1b[0m\n';
+      dossier += `\n${ansiBold(ansiYellow('Site sections (↑↓) · pages (←→ · Enter):'))}\n`;
       for (let idx = 0; idx < this.host.siteCatalog.length; idx++) {
         const section = this.host.siteCatalog[idx];
-        const prefix = idx === this.host.selectedSiteSectionIdx ? '\x1b[1;36m▶\x1b[0m' : ' ';
+        const prefix = idx === this.host.selectedSiteSectionIdx ? ansiBold(ansiCyan('▶')) : ' ';
         dossier += `${prefix} ${section.label}\n`;
       }
       const sectionPages = this.getActiveSiteSectionPages();
       if (sectionPages.length > 0) {
-        dossier += '\n\x1b[90mDepth chain:\x1b[0m\n';
+        dossier += `\n${ansiDim('Depth chain:')}\n`;
         for (const pick of getDepthChain(this.getActiveSiteSection()?.id ?? '')) {
-          dossier += ` · ${depthStepLabel(pick)}\n`;
+          dossier += ` \u00B7 ${depthStepLabel(pick)}\n`;
         }
         const page = sectionPages[this.host.selectedSitePageIdx];
         if (page) {
-          dossier += `\n\x1b[90mSelected:\x1b[0m ${page.relativePath}\n`;
+          dossier += `\n${ansiDim('Selected:')} ${page.relativePath}\n`;
         }
       }
     }
@@ -389,7 +390,7 @@ export class BbrViewController {
     }
 
     parsed.tables.forEach((table, tableIdx) => {
-      output += `\n\x1b[1;33mTable [${tableIdx + 1}]: ${table.title}\x1b[0m\n`;
+      output += `\n${ansiBold(ansiYellow(`Table [${tableIdx + 1}]: ${table.title}`))}\n`;
       output += `${'─'.repeat(table.title.length + 12)}\n`;
 
       const colKeys = table.headers;
