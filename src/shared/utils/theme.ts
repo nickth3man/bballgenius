@@ -5,18 +5,21 @@
 
 export const Theme = {
   // Brand colors (Hex values)
-  primary: '#7aa2f7', // Accent Blue
-  secondary: '#bb9af7', // Accent Purple/Magenta
-  accent: '#2ac3de', // Cyan
-  success: '#9ece6a', // Green
-  error: '#f7768e', // Red
-  warning: '#e0af68', // Yellow/Orange
-  foreground: '#a9b1d6', // Soft white/gray
-  background: '#1a1b26', // Dark Blue/Gray background
-  borderFocused: '#bb9af7', // Highlight border on focus
-  borderNormal: '#383e5a', // Subtle border normally
+  primary: '#7aa2f7',
+  secondary: '#bb9af7',
+  accent: '#2ac3de',
+  success: '#9ece6a',
+  error: '#f7768e',
+  warning: '#e0af68',
+  foreground: '#a9b1d6',
+  foregroundMuted: '#565f89',
+  background: '#1a1b26',
+  surface: '#16161e',
+  surfaceAlt: '#1f2231',
+  inputBg: '#222530',
+  borderFocused: '#bb9af7',
+  borderNormal: '#383e5a',
 
-  // Layout and components
   borderStyle: 'rounded' as const,
   titleAlignment: 'left' as const,
   gap: 1 as const,
@@ -28,7 +31,7 @@ export function isNoColor(): boolean {
   return value !== undefined && value !== '';
 }
 
-/** Snapshot at module load; use `isNoColor()` when env may change (e.g. tests). */
+/** Live check; prefer `isNoColor()` for dynamic env (e.g. tests). */
 export const noColor: boolean = isNoColor();
 
 export type ThemeFgRole =
