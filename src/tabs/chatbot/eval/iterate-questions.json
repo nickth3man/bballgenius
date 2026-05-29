@@ -1,0 +1,902 @@
+[
+  {
+    "id": "new-001",
+    "q": "Who scored the most total points in the 2022-23 NBA regular season?",
+    "tier": "season_leaders",
+    "expectedKind": "entity_with_value",
+    "expected": { "canonical": "Jayson Tatum (2,225 points)", "entity": "Jayson Tatum", "value": 2225, "unit": "points", "aliases": ["Tatum"], "acceptedAnswers": ["Jayson Tatum", "Tatum"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "easy", "source": { "name": "StatMuse", "retrievedAt": "2026-05-29" }, "season": "2022-23", "statCategory": "PTS", "scope": "regular_season", "tags": ["leader", "points"] }
+  },
+  {
+    "id": "new-002",
+    "q": "Who had the most total rebounds in the 2018-19 NBA regular season?",
+    "tier": "season_leaders",
+    "expectedKind": "entity_with_value",
+    "expected": { "canonical": "Andre Drummond (1,232 rebounds)", "entity": "Andre Drummond", "value": 1232, "unit": "rebounds", "aliases": ["Drummond"], "acceptedAnswers": ["Andre Drummond", "Drummond"], "disallowedAnswers": ["rebounds"] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "easy", "source": { "name": "LandOfBasketball", "retrievedAt": "2026-05-29" }, "season": "2018-19", "statCategory": "TRB", "scope": "regular_season", "tags": ["leader", "rebounds"] }
+  },
+  {
+    "id": "new-003",
+    "q": "Who had the most total assists in the 2016-17 NBA regular season?",
+    "tier": "season_leaders",
+    "expectedKind": "entity_with_value",
+    "expected": { "canonical": "James Harden (907 assists)", "entity": "James Harden", "value": 907, "unit": "assists", "aliases": ["Harden"], "acceptedAnswers": ["James Harden", "Harden"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "Basketball-Reference", "retrievedAt": "2026-05-29" }, "season": "2016-17", "statCategory": "AST", "scope": "regular_season", "tags": ["leader", "assists"] }
+  },
+  {
+    "id": "new-004",
+    "q": "Who led the NBA in regular season blocks in 2021-22?",
+    "tier": "season_leaders",
+    "expectedKind": "entity_with_value",
+    "expected": { "canonical": "Jaren Jackson Jr. (177 blocks)", "entity": "Jaren Jackson Jr.", "value": 177, "unit": "blocks", "aliases": ["Jaren Jackson", "Jackson Jr."], "acceptedAnswers": ["Jaren Jackson Jr.", "Jaren Jackson"], "disallowedAnswers": ["blocks"] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "LandOfBasketball", "retrievedAt": "2026-05-29" }, "season": "2021-22", "statCategory": "BLK", "scope": "regular_season", "tags": ["leader", "blocks"] }
+  },
+  {
+    "id": "new-005",
+    "q": "Who made the most three-pointers in the 2020-21 NBA regular season?",
+    "tier": "season_leaders",
+    "expectedKind": "entity_with_value",
+    "expected": { "canonical": "Stephen Curry (337 three-pointers)", "entity": "Stephen Curry", "value": 337, "unit": "three-pointers", "aliases": ["Steph Curry", "Curry"], "acceptedAnswers": ["Stephen Curry", "Steph Curry", "Curry"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "easy", "source": { "name": "LandOfBasketball", "retrievedAt": "2026-05-29" }, "season": "2020-21", "statCategory": "3PM", "scope": "regular_season", "tags": ["leader", "three-pointers"] }
+  },
+  {
+    "id": "new-006",
+    "q": "What was Giannis Antetokounmpo's points per game in the 2019-20 season?",
+    "tier": "season_leaders",
+    "expectedKind": "numeric_with_tolerance",
+    "expected": { "canonical": "29.5 points per game", "entity": "Giannis Antetokounmpo", "value": 29.5, "unit": "PPG", "aliases": ["Giannis"], "acceptedAnswers": ["29.5"], "disallowedAnswers": [] },
+    "validation": { "mode": "numeric_tolerance", "tolerance": 0.1, "precision": 1, "mustMentionEntity": false, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "Basketball-Reference", "retrievedAt": "2026-05-29" }, "season": "2019-20", "statCategory": "PPG", "scope": "regular_season", "tags": ["ppg", "giannis"] }
+  },
+  {
+    "id": "new-007",
+    "q": "What was Joel Embiid's points per game in the 2022-23 season?",
+    "tier": "season_leaders",
+    "expectedKind": "numeric_with_tolerance",
+    "expected": { "canonical": "33.1 points per game", "entity": "Joel Embiid", "value": 33.1, "unit": "PPG", "aliases": ["Embiid"], "acceptedAnswers": ["33.1"], "disallowedAnswers": [] },
+    "validation": { "mode": "numeric_tolerance", "tolerance": 0.1, "precision": 1, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "Basketball-Reference", "retrievedAt": "2026-05-29" }, "season": "2022-23", "statCategory": "PPG", "scope": "regular_season", "tags": ["ppg", "embiid"] }
+  },
+  {
+    "id": "new-008",
+    "q": "Which regular seasons did Andre Drummond lead the NBA in rebounds per game?",
+    "tier": "season_leaders",
+    "expectedKind": "set_exact",
+    "expected": { "canonical": ["2015-16", "2017-18", "2018-19", "2019-20"], "entity": "Andre Drummond", "value": null, "unit": "seasons", "aliases": ["Drummond"], "acceptedAnswers": ["2015-16", "2017-18", "2018-19", "2019-20"], "disallowedAnswers": [] },
+    "validation": { "mode": "set_match", "mustMentionEntity": true, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "hard", "source": { "name": "Basketball-Reference", "retrievedAt": "2026-05-29" }, "statCategory": "RPG", "scope": "regular_season", "notes": "Rewritten from singular to plural because Drummond led RPG in multiple seasons.", "tags": ["leader", "rebounds", "multi-season"] }
+  },
+  {
+    "id": "new-009",
+    "q": "Who averaged the most assists per game in the 2014-15 NBA season?",
+    "tier": "season_leaders",
+    "expectedKind": "entity_with_value",
+    "expected": { "canonical": "Rajon Rondo (11.7 assists per game)", "entity": "Rajon Rondo", "value": 11.7, "unit": "APG", "aliases": ["Rondo"], "acceptedAnswers": ["Rajon Rondo", "Rondo"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "Basketball-Reference", "retrievedAt": "2026-05-29" }, "season": "2014-15", "statCategory": "APG", "scope": "regular_season", "notes": "Original expected 'Rondo' was directionally correct but lacked APG value. Chris Paul was 10.2 APG, Rondo led at 11.7.", "tags": ["leader", "assists"] }
+  },
+  {
+    "id": "new-010",
+    "q": "How many regular season career steals does Chris Paul have?",
+    "tier": "career_totals",
+    "expectedKind": "entity_with_value",
+    "expected": { "canonical": "Chris Paul (2,728 steals)", "entity": "Chris Paul", "value": 2728, "unit": "steals", "aliases": ["CP3"], "acceptedAnswers": ["2,728", "2728"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "LandOfBasketball", "retrievedAt": "2026-05-29" }, "asOfDate": "2026-04-16", "statCategory": "STL", "scope": "career_regular_season", "notes": "Career total is time-sensitive; value frozen as of asOfDate.", "tags": ["career", "steals", "chris-paul"] }
+  },
+  {
+    "id": "new-011",
+    "q": "Who averaged the most blocks per game in the 2019-20 NBA season?",
+    "tier": "season_leaders",
+    "expectedKind": "entity_with_value",
+    "expected": { "canonical": "Hassan Whiteside (2.9 blocks per game)", "entity": "Hassan Whiteside", "value": 2.9, "unit": "BPG", "aliases": ["Whiteside"], "acceptedAnswers": ["Hassan Whiteside", "Whiteside"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "Basketball-Reference", "retrievedAt": "2026-05-29" }, "season": "2019-20", "statCategory": "BPG", "scope": "regular_season", "tags": ["leader", "blocks"] }
+  },
+  {
+    "id": "new-012",
+    "q": "What was Damian Lillard's points per game in the 2022-23 season?",
+    "tier": "season_leaders",
+    "expectedKind": "numeric_with_tolerance",
+    "expected": { "canonical": "32.2 points per game", "entity": "Damian Lillard", "value": 32.2, "unit": "PPG", "aliases": ["Lillard", "Dame"], "acceptedAnswers": ["32.2"], "disallowedAnswers": [] },
+    "validation": { "mode": "numeric_tolerance", "tolerance": 0.1, "precision": 1, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "StatMuse", "retrievedAt": "2026-05-29" }, "season": "2022-23", "statCategory": "PPG", "scope": "regular_season", "tags": ["ppg", "lillard"] }
+  },
+  {
+    "id": "new-013",
+    "q": "What was Shai Gilgeous-Alexander's points per game in the 2023-24 season?",
+    "tier": "season_leaders",
+    "expectedKind": "numeric_with_tolerance",
+    "expected": { "canonical": "30.1 points per game", "entity": "Shai Gilgeous-Alexander", "value": 30.1, "unit": "PPG", "aliases": ["SGA", "Shai"], "acceptedAnswers": ["30.1"], "disallowedAnswers": [] },
+    "validation": { "mode": "numeric_tolerance", "tolerance": 0.1, "precision": 1, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "StatMuse", "retrievedAt": "2026-05-29" }, "season": "2023-24", "statCategory": "PPG", "scope": "regular_season", "tags": ["ppg", "sga"] }
+  },
+  {
+    "id": "new-014",
+    "q": "What was Kevin Durant's points per game in the 2013-14 season?",
+    "tier": "season_leaders",
+    "expectedKind": "numeric_with_tolerance",
+    "expected": { "canonical": "32.0 points per game", "entity": "Kevin Durant", "value": 32.0, "unit": "PPG", "aliases": ["Durant", "KD"], "acceptedAnswers": ["32.0", "32"], "disallowedAnswers": [] },
+    "validation": { "mode": "numeric_tolerance", "tolerance": 0.1, "precision": 1, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "Basketball-Reference", "retrievedAt": "2026-05-29" }, "season": "2013-14", "statCategory": "PPG", "scope": "regular_season", "tags": ["ppg", "durant"] }
+  },
+  {
+    "id": "new-015",
+    "q": "What was Chris Paul's assists per game in the 2007-08 season?",
+    "tier": "season_leaders",
+    "expectedKind": "numeric_with_tolerance",
+    "expected": { "canonical": "11.6 assists per game", "entity": "Chris Paul", "value": 11.6, "unit": "APG", "aliases": ["CP3"], "acceptedAnswers": ["11.6"], "disallowedAnswers": [] },
+    "validation": { "mode": "numeric_tolerance", "tolerance": 0.1, "precision": 1, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "Basketball-Reference", "retrievedAt": "2026-05-29" }, "season": "2007-08", "statCategory": "APG", "scope": "regular_season", "tags": ["apg", "chris-paul"] }
+  },
+  {
+    "id": "new-016",
+    "q": "How many total points did Luka Doncic score in the 2023-24 regular season?",
+    "tier": "season_leaders",
+    "expectedKind": "entity_with_value",
+    "expected": { "canonical": "Luka Doncic (2,370 points)", "entity": "Luka Doncic", "value": 2370, "unit": "points", "aliases": ["Luka", "Doncic", "Dončić"], "acceptedAnswers": ["2,370", "2370"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "StatMuse", "retrievedAt": "2026-05-29" }, "season": "2023-24", "statCategory": "PTS", "scope": "regular_season", "tags": ["points", "luka"] }
+  },
+  {
+    "id": "new-017",
+    "q": "How many total points did Jayson Tatum score in the 2022-23 regular season?",
+    "tier": "season_leaders",
+    "expectedKind": "entity_with_value",
+    "expected": { "canonical": "Jayson Tatum (2,225 points)", "entity": "Jayson Tatum", "value": 2225, "unit": "points", "aliases": ["Tatum"], "acceptedAnswers": ["2,225", "2225"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "StatMuse", "retrievedAt": "2026-05-29" }, "season": "2022-23", "statCategory": "PTS", "scope": "regular_season", "tags": ["points", "tatum"] }
+  },
+  {
+    "id": "new-018",
+    "q": "How many total rebounds did Wilt Chamberlain have in the 1961-62 regular season?",
+    "tier": "season_leaders",
+    "expectedKind": "entity_with_value",
+    "expected": { "canonical": "Wilt Chamberlain (2,052 rebounds)", "entity": "Wilt Chamberlain", "value": 2052, "unit": "rebounds", "aliases": ["Wilt"], "acceptedAnswers": ["2,052", "2052"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "Basketball-Reference", "retrievedAt": "2026-05-29" }, "season": "1961-62", "statCategory": "TRB", "scope": "regular_season", "tags": ["rebounds", "wilt"] }
+  },
+  {
+    "id": "new-019",
+    "q": "How many three-pointers did Stephen Curry make in the 2015-16 regular season?",
+    "tier": "season_leaders",
+    "expectedKind": "entity_with_value",
+    "expected": { "canonical": "Stephen Curry (402 three-pointers)", "entity": "Stephen Curry", "value": 402, "unit": "three-pointers", "aliases": ["Steph Curry", "Curry"], "acceptedAnswers": ["402"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "easy", "source": { "name": "Basketball-Reference", "retrievedAt": "2026-05-29" }, "season": "2015-16", "statCategory": "3PM", "scope": "regular_season", "tags": ["three-pointers", "curry"] }
+  },
+  {
+    "id": "new-020",
+    "q": "How many three-pointers did James Harden make in the 2018-19 regular season?",
+    "tier": "season_leaders",
+    "expectedKind": "entity_with_value",
+    "expected": { "canonical": "James Harden (378 three-pointers)", "entity": "James Harden", "value": 378, "unit": "three-pointers", "aliases": ["Harden"], "acceptedAnswers": ["378"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "Basketball-Reference", "retrievedAt": "2026-05-29" }, "season": "2018-19", "statCategory": "3PM", "scope": "regular_season", "tags": ["three-pointers", "harden"] }
+  },
+  {
+    "id": "new-021",
+    "q": "How many three-pointers did Klay Thompson make in the 2022-23 regular season?",
+    "tier": "season_leaders",
+    "expectedKind": "entity_with_value",
+    "expected": { "canonical": "Klay Thompson (301 three-pointers)", "entity": "Klay Thompson", "value": 301, "unit": "three-pointers", "aliases": ["Klay"], "acceptedAnswers": ["301"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "Basketball-Reference", "retrievedAt": "2026-05-29" }, "season": "2022-23", "statCategory": "3PM", "scope": "regular_season", "tags": ["three-pointers", "klay"] }
+  },
+  {
+    "id": "new-022",
+    "q": "What was Nikola Jokic's points per game in the 2020-21 season?",
+    "tier": "season_leaders",
+    "expectedKind": "numeric_with_tolerance",
+    "expected": { "canonical": "26.4 points per game", "entity": "Nikola Jokic", "value": 26.4, "unit": "PPG", "aliases": ["Jokic", "Jokić"], "acceptedAnswers": ["26.4"], "disallowedAnswers": [] },
+    "validation": { "mode": "numeric_tolerance", "tolerance": 0.1, "precision": 1, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "Basketball-Reference", "retrievedAt": "2026-05-29" }, "season": "2020-21", "statCategory": "PPG", "scope": "regular_season", "tags": ["ppg", "jokic"] }
+  },
+  {
+    "id": "new-023",
+    "q": "What was LeBron James's points per game in the 2007-08 season?",
+    "tier": "season_leaders",
+    "expectedKind": "numeric_with_tolerance",
+    "expected": { "canonical": "30.0 points per game", "entity": "LeBron James", "value": 30.0, "unit": "PPG", "aliases": ["LeBron"], "acceptedAnswers": ["30.0", "30"], "disallowedAnswers": [] },
+    "validation": { "mode": "numeric_tolerance", "tolerance": 0.1, "precision": 1, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "Basketball-Reference", "retrievedAt": "2026-05-29" }, "season": "2007-08", "statCategory": "PPG", "scope": "regular_season", "tags": ["ppg", "lebron"] }
+  },
+  {
+    "id": "new-024",
+    "q": "How many regular season career points does Kevin Garnett have?",
+    "tier": "career_totals",
+    "expectedKind": "entity_with_value",
+    "expected": { "canonical": "Kevin Garnett (26,071 points)", "entity": "Kevin Garnett", "value": 26071, "unit": "points", "aliases": ["Garnett", "KG"], "acceptedAnswers": ["26,071", "26071"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "ESPN", "retrievedAt": "2026-05-29" }, "statCategory": "PTS", "scope": "career_regular_season", "tags": ["career", "points", "garnett"] }
+  },
+  {
+    "id": "new-025",
+    "q": "What was Dwight Howard's rebounds per game in the 2010-11 season?",
+    "tier": "season_leaders",
+    "expectedKind": "numeric_with_tolerance",
+    "expected": { "canonical": "14.1 rebounds per game", "entity": "Dwight Howard", "value": 14.1, "unit": "RPG", "aliases": ["Howard"], "acceptedAnswers": ["14.1"], "disallowedAnswers": [] },
+    "validation": { "mode": "numeric_tolerance", "tolerance": 0.1, "precision": 1, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "Basketball-Reference", "retrievedAt": "2026-05-29" }, "season": "2010-11", "statCategory": "RPG", "scope": "regular_season", "tags": ["rpg", "howard"] }
+  },
+  {
+    "id": "new-026",
+    "q": "What was Anthony Davis's blocks per game in the 2017-18 season?",
+    "tier": "season_leaders",
+    "expectedKind": "numeric_with_tolerance",
+    "expected": { "canonical": "2.6 blocks per game", "entity": "Anthony Davis", "value": 2.6, "unit": "BPG", "aliases": ["Davis", "AD"], "acceptedAnswers": ["2.6"], "disallowedAnswers": [] },
+    "validation": { "mode": "numeric_tolerance", "tolerance": 0.1, "precision": 1, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "Basketball-Reference", "retrievedAt": "2026-05-29" }, "season": "2017-18", "statCategory": "BPG", "scope": "regular_season", "tags": ["bpg", "davis"] }
+  },
+  {
+    "id": "new-027",
+    "q": "What was Kawhi Leonard's points per game in the 2016-17 season?",
+    "tier": "season_leaders",
+    "expectedKind": "numeric_with_tolerance",
+    "expected": { "canonical": "25.5 points per game", "entity": "Kawhi Leonard", "value": 25.5, "unit": "PPG", "aliases": ["Kawhi"], "acceptedAnswers": ["25.5"], "disallowedAnswers": [] },
+    "validation": { "mode": "numeric_tolerance", "tolerance": 0.1, "precision": 1, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "Basketball-Reference", "retrievedAt": "2026-05-29" }, "season": "2016-17", "statCategory": "PPG", "scope": "regular_season", "tags": ["ppg", "kawhi"] }
+  },
+  {
+    "id": "new-028",
+    "q": "How many total assists did Trae Young have in the 2021-22 regular season?",
+    "tier": "season_leaders",
+    "expectedKind": "entity_with_value",
+    "expected": { "canonical": "Trae Young (737 assists)", "entity": "Trae Young", "value": 737, "unit": "assists", "aliases": ["Trae"], "acceptedAnswers": ["737"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "Basketball-Reference", "retrievedAt": "2026-05-29" }, "season": "2021-22", "statCategory": "AST", "scope": "regular_season", "tags": ["assists", "trae-young"] }
+  },
+  {
+    "id": "new-029",
+    "q": "How many total rebounds did Rudy Gobert have in the 2020-21 regular season?",
+    "tier": "season_leaders",
+    "expectedKind": "entity_with_value",
+    "expected": { "canonical": "Rudy Gobert (960 rebounds)", "entity": "Rudy Gobert", "value": 960, "unit": "rebounds", "aliases": ["Gobert"], "acceptedAnswers": ["960"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "Basketball-Reference", "retrievedAt": "2026-05-29" }, "season": "2020-21", "statCategory": "TRB", "scope": "regular_season", "tags": ["rebounds", "gobert"] }
+  },
+  {
+    "id": "new-030",
+    "q": "How many total steals did Chris Paul have in the 2008-09 regular season?",
+    "tier": "season_leaders",
+    "expectedKind": "entity_with_value",
+    "expected": { "canonical": "Chris Paul (216 steals)", "entity": "Chris Paul", "value": 216, "unit": "steals", "aliases": ["CP3"], "acceptedAnswers": ["216"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "Basketball-Reference", "retrievedAt": "2026-05-29" }, "season": "2008-09", "statCategory": "STL", "scope": "regular_season", "tags": ["steals", "chris-paul"] }
+  },
+  {
+    "id": "new-031",
+    "q": "How many wins did the Detroit Pistons have in the 2023-24 regular season?",
+    "tier": "team_seasons",
+    "expectedKind": "entity_with_value",
+    "expected": { "canonical": "Detroit Pistons (14 wins)", "entity": "Detroit Pistons", "value": 14, "unit": "wins", "aliases": ["Detroit", "Pistons"], "acceptedAnswers": ["14"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "easy", "source": { "name": "Basketball-Reference", "retrievedAt": "2026-05-29" }, "season": "2023-24", "statCategory": "W", "scope": "regular_season", "tags": ["wins", "pistons"] }
+  },
+  {
+    "id": "new-032",
+    "q": "Which team had the best SRS in the 1995-96 season according to the database?",
+    "tier": "team_seasons",
+    "expectedKind": "entity_with_value",
+    "expected": { "canonical": "Chicago Bulls (SRS 11.80)", "entity": "Chicago Bulls", "value": 11.80, "unit": "SRS", "aliases": ["Chicago", "Bulls"], "acceptedAnswers": ["Chicago Bulls", "Bulls"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "Basketball-Reference", "retrievedAt": "2026-05-29" }, "season": "1995-96", "statCategory": "SRS", "scope": "regular_season", "tags": ["srs", "bulls"] }
+  },
+  {
+    "id": "new-033",
+    "q": "How many wins did the 2016-17 Golden State Warriors have?",
+    "tier": "team_seasons",
+    "expectedKind": "entity_with_value",
+    "expected": { "canonical": "Golden State Warriors (67 wins)", "entity": "Golden State Warriors", "value": 67, "unit": "wins", "aliases": ["Golden State", "Warriors"], "acceptedAnswers": ["67"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "easy", "source": { "name": "Basketball-Reference", "retrievedAt": "2026-05-29" }, "season": "2016-17", "statCategory": "W", "scope": "regular_season", "tags": ["wins", "warriors"] }
+  },
+  {
+    "id": "new-034",
+    "q": "What was the Milwaukee Bucks win total in the 2019-20 season?",
+    "tier": "team_seasons",
+    "expectedKind": "entity_with_value",
+    "expected": { "canonical": "Milwaukee Bucks (56 wins)", "entity": "Milwaukee Bucks", "value": 56, "unit": "wins", "aliases": ["Bucks", "Milwaukee"], "acceptedAnswers": ["56"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "Basketball-Reference", "retrievedAt": "2026-05-29" }, "season": "2019-20", "statCategory": "W", "scope": "regular_season", "tags": ["wins", "bucks"] }
+  },
+  {
+    "id": "new-035",
+    "q": "What was the Phoenix Suns win total in the 2021-22 season?",
+    "tier": "team_seasons",
+    "expectedKind": "entity_with_value",
+    "expected": { "canonical": "Phoenix Suns (64 wins)", "entity": "Phoenix Suns", "value": 64, "unit": "wins", "aliases": ["Suns", "Phoenix"], "acceptedAnswers": ["64"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "Basketball-Reference", "retrievedAt": "2026-05-29" }, "season": "2021-22", "statCategory": "W", "scope": "regular_season", "tags": ["wins", "suns"] }
+  },
+  {
+    "id": "new-036",
+    "q": "Which team had the most wins in the 2017-18 regular season?",
+    "tier": "team_seasons",
+    "expectedKind": "entity_with_value",
+    "expected": { "canonical": "Houston Rockets (65 wins)", "entity": "Houston Rockets", "value": 65, "unit": "wins", "aliases": ["Houston", "Rockets"], "acceptedAnswers": ["Houston Rockets", "Rockets"], "disallowedAnswers": ["Nuggets"] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "Basketball-Reference", "retrievedAt": "2026-05-29" }, "season": "2017-18", "statCategory": "W", "scope": "regular_season", "notes": "Original expected 'Nuggets' was incorrect. Houston Rockets led with 65 wins.", "tags": ["wins", "leader"] }
+  },
+  {
+    "id": "new-037",
+    "q": "How many wins did the Oklahoma City Thunder have in the 2023-24 regular season?",
+    "tier": "team_seasons",
+    "expectedKind": "entity_with_value",
+    "expected": { "canonical": "Oklahoma City Thunder (57 wins)", "entity": "Oklahoma City Thunder", "value": 57, "unit": "wins", "aliases": ["Oklahoma City", "Thunder", "OKC"], "acceptedAnswers": ["57"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "Basketball-Reference", "retrievedAt": "2026-05-29" }, "season": "2023-24", "statCategory": "W", "scope": "regular_season", "tags": ["wins", "thunder"] }
+  },
+  {
+    "id": "new-038",
+    "q": "How many wins did the 2014-15 Atlanta Hawks have?",
+    "tier": "team_seasons",
+    "expectedKind": "entity_with_value",
+    "expected": { "canonical": "Atlanta Hawks (60 wins)", "entity": "Atlanta Hawks", "value": 60, "unit": "wins", "aliases": ["Atlanta", "Hawks"], "acceptedAnswers": ["60"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "Basketball-Reference", "retrievedAt": "2026-05-29" }, "season": "2014-15", "statCategory": "W", "scope": "regular_season", "tags": ["wins", "hawks"] }
+  },
+  {
+    "id": "new-039",
+    "q": "Which team had the most regular season wins in the 2012-13 season?",
+    "tier": "team_seasons",
+    "expectedKind": "entity_with_value",
+    "expected": { "canonical": "Miami Heat (66 wins)", "entity": "Miami Heat", "value": 66, "unit": "wins", "aliases": ["Miami", "Heat"], "acceptedAnswers": ["Miami Heat", "Heat"], "disallowedAnswers": ["wins"] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "Basketball-Reference", "retrievedAt": "2026-05-29" }, "season": "2012-13", "statCategory": "W", "scope": "regular_season", "tags": ["wins", "leader"] }
+  },
+  {
+    "id": "new-040",
+    "q": "What was the worst regular season record by wins in the 2011-12 lockout season?",
+    "tier": "team_seasons",
+    "expectedKind": "entity_with_value",
+    "expected": { "canonical": "Charlotte Bobcats (7 wins, 7-59)", "entity": "Charlotte Bobcats", "value": 7, "unit": "wins", "aliases": ["Bobcats", "Charlotte"], "acceptedAnswers": ["Charlotte Bobcats", "Bobcats", "7-59"], "disallowedAnswers": ["wins"] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "Wikipedia", "retrievedAt": "2026-05-29" }, "season": "2011-12", "statCategory": "W", "scope": "regular_season", "tags": ["wins", "worst-record", "lockout"] }
+  },
+  {
+    "id": "new-041",
+    "q": "How many regular season career points does Luka Doncic have?",
+    "tier": "career_totals",
+    "expectedKind": "entity_with_value",
+    "expected": { "canonical": "Luka Doncic (15,021 points)", "entity": "Luka Doncic", "value": 15021, "unit": "points", "aliases": ["Luka", "Dončić"], "acceptedAnswers": ["15,021", "15021"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "LandOfBasketball", "retrievedAt": "2026-05-29" }, "asOfDate": "2026-04-16", "statCategory": "PTS", "scope": "career_regular_season", "notes": "Active player; total frozen as of asOfDate.", "tags": ["career", "points", "luka"] }
+  },
+  {
+    "id": "new-042",
+    "q": "How many regular season career assists does Chris Paul have?",
+    "tier": "career_totals",
+    "expectedKind": "entity_with_value",
+    "expected": { "canonical": "Chris Paul (12,552 assists)", "entity": "Chris Paul", "value": 12552, "unit": "assists", "aliases": ["CP3"], "acceptedAnswers": ["12,552", "12552"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "LandOfBasketball", "retrievedAt": "2026-05-29" }, "asOfDate": "2026-04-16", "statCategory": "AST", "scope": "career_regular_season", "notes": "Active player; total frozen as of asOfDate.", "tags": ["career", "assists", "chris-paul"] }
+  },
+  {
+    "id": "new-043",
+    "q": "How many regular season career rebounds does Nikola Jokic have?",
+    "tier": "career_totals",
+    "expectedKind": "entity_with_value",
+    "expected": { "canonical": "Nikola Jokic (8,977 rebounds)", "entity": "Nikola Jokic", "value": 8977, "unit": "rebounds", "aliases": ["Jokic", "Jokić"], "acceptedAnswers": ["8,977", "8977"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "LandOfBasketball", "retrievedAt": "2026-05-29" }, "asOfDate": "2026-04-16", "statCategory": "TRB", "scope": "career_regular_season", "notes": "Active player; total frozen as of asOfDate.", "tags": ["career", "rebounds", "jokic"] }
+  },
+  {
+    "id": "new-044",
+    "q": "How many triple-doubles did Russell Westbrook have in the 2020-21 regular season?",
+    "tier": "season_aggregates",
+    "expectedKind": "entity_with_value",
+    "expected": { "canonical": "Russell Westbrook (38 triple-doubles)", "entity": "Russell Westbrook", "value": 38, "unit": "triple-doubles", "aliases": ["Westbrook"], "acceptedAnswers": ["38"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "Basketball-Reference", "retrievedAt": "2026-05-29" }, "season": "2020-21", "statCategory": "triple-doubles", "scope": "regular_season", "tags": ["triple-doubles", "westbrook"] }
+  },
+  {
+    "id": "new-045",
+    "q": "How many points did Luka Doncic score in his career-high game?",
+    "tier": "games",
+    "expectedKind": "entity_with_value",
+    "expected": { "canonical": "Luka Doncic (73 points)", "entity": "Luka Doncic", "value": 73, "unit": "points", "aliases": ["Luka", "Dončić"], "acceptedAnswers": ["73"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "Basketball-Reference", "retrievedAt": "2026-05-29" }, "statCategory": "PTS", "scope": "regular_season", "tags": ["career-high", "points", "luka"] }
+  },
+  {
+    "id": "new-046",
+    "q": "How many points did Joel Embiid score in his career-high game?",
+    "tier": "games",
+    "expectedKind": "entity_with_value",
+    "expected": { "canonical": "Joel Embiid (70 points)", "entity": "Joel Embiid", "value": 70, "unit": "points", "aliases": ["Embiid"], "acceptedAnswers": ["70"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "Basketball-Reference", "retrievedAt": "2026-05-29" }, "statCategory": "PTS", "scope": "regular_season", "tags": ["career-high", "points", "embiid"] }
+  },
+  {
+    "id": "new-047",
+    "q": "How many points did Giannis Antetokounmpo score in his career-high game?",
+    "tier": "games",
+    "expectedKind": "entity_with_value",
+    "expected": { "canonical": "Giannis Antetokounmpo (64 points)", "entity": "Giannis Antetokounmpo", "value": 64, "unit": "points", "aliases": ["Giannis"], "acceptedAnswers": ["64"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "Basketball-Reference", "retrievedAt": "2026-05-29" }, "statCategory": "PTS", "scope": "regular_season", "tags": ["career-high", "points", "giannis"] }
+  },
+  {
+    "id": "new-048",
+    "q": "How many points did Kobe Bryant score in his 81-point game?",
+    "tier": "games",
+    "expectedKind": "entity_with_value",
+    "expected": { "canonical": "Kobe Bryant (81 points)", "entity": "Kobe Bryant", "value": 81, "unit": "points", "aliases": ["Kobe"], "acceptedAnswers": ["81"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "easy", "source": { "name": "Basketball-Reference", "retrievedAt": "2026-05-29" }, "statCategory": "PTS", "scope": "regular_season", "tags": ["career-high", "points", "kobe"] }
+  },
+  {
+    "id": "new-049",
+    "q": "How many points did Donovan Mitchell score in his 71-point game?",
+    "tier": "games",
+    "expectedKind": "entity_with_value",
+    "expected": { "canonical": "Donovan Mitchell (71 points)", "entity": "Donovan Mitchell", "value": 71, "unit": "points", "aliases": ["Mitchell"], "acceptedAnswers": ["71"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "easy", "source": { "name": "Basketball-Reference", "retrievedAt": "2026-05-29" }, "statCategory": "PTS", "scope": "regular_season", "tags": ["career-high", "points", "mitchell"] }
+  },
+  {
+    "id": "new-050",
+    "q": "How many points did Damian Lillard score in his 71-point game?",
+    "tier": "games",
+    "expectedKind": "entity_with_value",
+    "expected": { "canonical": "Damian Lillard (71 points)", "entity": "Damian Lillard", "value": 71, "unit": "points", "aliases": ["Lillard", "Dame"], "acceptedAnswers": ["71"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "easy", "source": { "name": "Basketball-Reference", "retrievedAt": "2026-05-29" }, "statCategory": "PTS", "scope": "regular_season", "tags": ["career-high", "points", "lillard"] }
+  },
+  {
+    "id": "new-051",
+    "q": "Who averaged more points per game in the 2022-23 season, Damian Lillard or Shai Gilgeous-Alexander?",
+    "tier": "season_leaders",
+    "expectedKind": "comparison",
+    "expected": { "canonical": "Damian Lillard (32.2 PPG vs. Shai Gilgeous-Alexander 31.4 PPG)", "entity": "Damian Lillard", "value": 32.2, "unit": "PPG", "aliases": ["Lillard", "Dame"], "acceptedAnswers": ["Damian Lillard", "Lillard"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": false },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "Basketball-Reference", "retrievedAt": "2026-05-29" }, "season": "2022-23", "statCategory": "PPG", "scope": "regular_season", "tags": ["comparison", "ppg"] }
+  },
+  {
+    "id": "new-052",
+    "q": "Who had more total rebounds in the 2023-24 season, Nikola Jokic or Anthony Davis?",
+    "tier": "season_leaders",
+    "expectedKind": "comparison",
+    "expected": { "canonical": "Nikola Jokic (976 rebounds vs. Anthony Davis 961)", "entity": "Nikola Jokic", "value": 976, "unit": "rebounds", "aliases": ["Jokic", "Jokić"], "acceptedAnswers": ["Nikola Jokic", "Jokic"], "disallowedAnswers": ["Anthony Davis"] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": false },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "Basketball-Reference", "retrievedAt": "2026-05-29" }, "season": "2023-24", "statCategory": "TRB", "scope": "regular_season", "notes": "Original expected 'Anthony Davis' was incorrect. Jokic had 976 vs Davis 961.", "tags": ["comparison", "rebounds"] }
+  },
+  {
+    "id": "new-053",
+    "q": "Which team won more games in the 2022-23 season, the Denver Nuggets or the Boston Celtics?",
+    "tier": "team_seasons",
+    "expectedKind": "comparison",
+    "expected": { "canonical": "Boston Celtics (57 wins vs. Denver Nuggets 53)", "entity": "Boston Celtics", "value": 57, "unit": "wins", "aliases": ["Boston", "Celtics"], "acceptedAnswers": ["Boston Celtics", "Celtics"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": false },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "Basketball-Reference", "retrievedAt": "2026-05-29" }, "season": "2022-23", "statCategory": "W", "scope": "regular_season", "tags": ["comparison", "wins"] }
+  },
+  {
+    "id": "new-054",
+    "q": "Who made more three-pointers in the 2015-16 regular season, Stephen Curry or Klay Thompson?",
+    "tier": "season_leaders",
+    "expectedKind": "comparison",
+    "expected": { "canonical": "Stephen Curry (402 vs. Klay Thompson 276 threes)", "entity": "Stephen Curry", "value": 402, "unit": "three-pointers", "aliases": ["Steph Curry", "Curry"], "acceptedAnswers": ["Stephen Curry", "Steph Curry", "Curry"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": false },
+    "metadata": { "status": "verified", "difficulty": "easy", "source": { "name": "Basketball-Reference", "retrievedAt": "2026-05-29" }, "season": "2015-16", "statCategory": "3PM", "scope": "regular_season", "tags": ["comparison", "three-pointers"] }
+  },
+  {
+    "id": "new-055",
+    "q": "Who had more total blocks in the 2023-24 regular season, Victor Wembanyama or Brook Lopez?",
+    "tier": "season_leaders",
+    "expectedKind": "comparison",
+    "expected": { "canonical": "Victor Wembanyama (254 blocks vs. Brook Lopez 189)", "entity": "Victor Wembanyama", "value": 254, "unit": "blocks", "aliases": ["Wembanyama"], "acceptedAnswers": ["Victor Wembanyama", "Wembanyama"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": false },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "Basketball-Reference", "retrievedAt": "2026-05-29" }, "season": "2023-24", "statCategory": "BLK", "scope": "regular_season", "tags": ["comparison", "blocks"] }
+  },
+  {
+    "id": "new-056",
+    "q": "How many regular season career points does Russell Westbrook have?",
+    "tier": "career_totals",
+    "expectedKind": "entity_with_value",
+    "expected": { "canonical": "Russell Westbrook (27,176 points)", "entity": "Russell Westbrook", "value": 27176, "unit": "points", "aliases": ["Westbrook"], "acceptedAnswers": ["27,176", "27176"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "LandOfBasketball", "retrievedAt": "2026-05-29" }, "asOfDate": "2026-04-16", "statCategory": "PTS", "scope": "career_regular_season", "notes": "Active player; total frozen as of asOfDate.", "tags": ["career", "points", "westbrook"] }
+  },
+  {
+    "id": "new-057",
+    "q": "Which team had a better SRS in the 2015-16 season, the Golden State Warriors or the San Antonio Spurs?",
+    "tier": "team_seasons",
+    "expectedKind": "comparison",
+    "expected": { "canonical": "Golden State Warriors (SRS 10.38 vs. Spurs 10.28)", "entity": "Golden State Warriors", "value": 10.38, "unit": "SRS", "aliases": ["Golden State", "Warriors"], "acceptedAnswers": ["Golden State Warriors", "Warriors"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": false },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "Basketball-Reference", "retrievedAt": "2026-05-29" }, "season": "2015-16", "statCategory": "SRS", "scope": "regular_season", "tags": ["comparison", "srs"] }
+  },
+  {
+    "id": "new-058",
+    "q": "Who scored more total points in the 2017-18 regular season, LeBron James or James Harden?",
+    "tier": "season_leaders",
+    "expectedKind": "comparison",
+    "expected": { "canonical": "LeBron James (2,251 points vs. James Harden 2,191)", "entity": "LeBron James", "value": 2251, "unit": "points", "aliases": ["LeBron"], "acceptedAnswers": ["LeBron James", "LeBron"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": false },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "Basketball-Reference", "retrievedAt": "2026-05-29" }, "season": "2017-18", "statCategory": "PTS", "scope": "regular_season", "tags": ["comparison", "points"] }
+  },
+  {
+    "id": "new-059",
+    "q": "Who averaged more assists per game in the 2015-16 season, Rajon Rondo or Russell Westbrook?",
+    "tier": "season_leaders",
+    "expectedKind": "comparison",
+    "expected": { "canonical": "Rajon Rondo (11.7 APG vs. Russell Westbrook 10.4)", "entity": "Rajon Rondo", "value": 11.7, "unit": "APG", "aliases": ["Rondo"], "acceptedAnswers": ["Rajon Rondo", "Rondo"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": false },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "Basketball-Reference", "retrievedAt": "2026-05-29" }, "season": "2015-16", "statCategory": "APG", "scope": "regular_season", "tags": ["comparison", "assists"] }
+  },
+  {
+    "id": "new-060",
+    "q": "Who has more NBA MVP awards, Michael Jordan or LeBron James?",
+    "tier": "awards",
+    "expectedKind": "comparison",
+    "expected": { "canonical": "Michael Jordan (5 MVPs vs. LeBron James 4)", "entity": "Michael Jordan", "value": 5, "unit": "MVPs", "aliases": ["Jordan", "MJ"], "acceptedAnswers": ["Michael Jordan", "Jordan"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": false },
+    "metadata": { "status": "verified", "difficulty": "easy", "source": { "name": "NBA.com", "retrievedAt": "2026-05-29" }, "statCategory": "MVP", "scope": "awards", "tags": ["comparison", "mvp"] }
+  },
+  {
+    "id": "new-061",
+    "q": "Who won the NBA MVP award in the 2022-23 season?",
+    "tier": "awards",
+    "expectedKind": "entity_exact",
+    "expected": { "canonical": "Joel Embiid", "entity": "Joel Embiid", "value": null, "unit": null, "aliases": ["Embiid"], "acceptedAnswers": ["Joel Embiid", "Embiid"], "disallowedAnswers": [] },
+    "validation": { "mode": "exact_normalized", "mustMentionEntity": true },
+    "metadata": { "status": "verified", "difficulty": "easy", "source": { "name": "NBA.com", "retrievedAt": "2026-05-29" }, "season": "2022-23", "statCategory": "MVP", "scope": "awards", "tags": ["mvp"] }
+  },
+  {
+    "id": "new-062",
+    "q": "Who won NBA Rookie of the Year in the 2021-22 season?",
+    "tier": "awards",
+    "expectedKind": "entity_exact",
+    "expected": { "canonical": "Scottie Barnes", "entity": "Scottie Barnes", "value": null, "unit": null, "aliases": ["Barnes"], "acceptedAnswers": ["Scottie Barnes", "Barnes"], "disallowedAnswers": [] },
+    "validation": { "mode": "exact_normalized", "mustMentionEntity": true },
+    "metadata": { "status": "verified", "difficulty": "easy", "source": { "name": "NBA.com", "retrievedAt": "2026-05-29" }, "season": "2021-22", "statCategory": "ROY", "scope": "awards", "tags": ["roy"] }
+  },
+  {
+    "id": "new-063",
+    "q": "Who won NBA Defensive Player of the Year in the 2017-18 season?",
+    "tier": "awards",
+    "expectedKind": "entity_exact",
+    "expected": { "canonical": "Rudy Gobert", "entity": "Rudy Gobert", "value": null, "unit": null, "aliases": ["Gobert"], "acceptedAnswers": ["Rudy Gobert", "Gobert"], "disallowedAnswers": [] },
+    "validation": { "mode": "exact_normalized", "mustMentionEntity": true },
+    "metadata": { "status": "verified", "difficulty": "easy", "source": { "name": "NBA.com", "retrievedAt": "2026-05-29" }, "season": "2017-18", "statCategory": "DPOY", "scope": "awards", "tags": ["dpoy"] }
+  },
+  {
+    "id": "new-064",
+    "q": "Who won NBA MVP in the 2014-15 season?",
+    "tier": "awards",
+    "expectedKind": "entity_exact",
+    "expected": { "canonical": "Stephen Curry", "entity": "Stephen Curry", "value": null, "unit": null, "aliases": ["Steph Curry", "Curry"], "acceptedAnswers": ["Stephen Curry", "Steph Curry", "Curry"], "disallowedAnswers": [] },
+    "validation": { "mode": "exact_normalized", "mustMentionEntity": true },
+    "metadata": { "status": "verified", "difficulty": "easy", "source": { "name": "NBA.com", "retrievedAt": "2026-05-29" }, "season": "2014-15", "statCategory": "MVP", "scope": "awards", "tags": ["mvp"] }
+  },
+  {
+    "id": "new-065",
+    "q": "Who won NBA MVP in the 2011-12 season?",
+    "tier": "awards",
+    "expectedKind": "entity_exact",
+    "expected": { "canonical": "LeBron James", "entity": "LeBron James", "value": null, "unit": null, "aliases": ["LeBron"], "acceptedAnswers": ["LeBron James", "LeBron"], "disallowedAnswers": [] },
+    "validation": { "mode": "exact_normalized", "mustMentionEntity": true },
+    "metadata": { "status": "verified", "difficulty": "easy", "source": { "name": "NBA.com", "retrievedAt": "2026-05-29" }, "season": "2011-12", "statCategory": "MVP", "scope": "awards", "tags": ["mvp"] }
+  },
+  {
+    "id": "new-066",
+    "q": "Who won NBA MVP in the 2010-11 season?",
+    "tier": "awards",
+    "expectedKind": "entity_exact",
+    "expected": { "canonical": "Derrick Rose", "entity": "Derrick Rose", "value": null, "unit": null, "aliases": ["Rose"], "acceptedAnswers": ["Derrick Rose", "Rose"], "disallowedAnswers": [] },
+    "validation": { "mode": "exact_normalized", "mustMentionEntity": true },
+    "metadata": { "status": "verified", "difficulty": "easy", "source": { "name": "NBA.com", "retrievedAt": "2026-05-29" }, "season": "2010-11", "statCategory": "MVP", "scope": "awards", "tags": ["mvp"] }
+  },
+  {
+    "id": "new-067",
+    "q": "Who won NBA MVP in the 2000-01 season?",
+    "tier": "awards",
+    "expectedKind": "entity_exact",
+    "expected": { "canonical": "Allen Iverson", "entity": "Allen Iverson", "value": null, "unit": null, "aliases": ["Iverson", "AI"], "acceptedAnswers": ["Allen Iverson", "Iverson"], "disallowedAnswers": [] },
+    "validation": { "mode": "exact_normalized", "mustMentionEntity": true },
+    "metadata": { "status": "verified", "difficulty": "easy", "source": { "name": "NBA.com", "retrievedAt": "2026-05-29" }, "season": "2000-01", "statCategory": "MVP", "scope": "awards", "tags": ["mvp"] }
+  },
+  {
+    "id": "new-068",
+    "q": "Who won NBA Rookie of the Year in the 2003-04 season?",
+    "tier": "awards",
+    "expectedKind": "entity_exact",
+    "expected": { "canonical": "LeBron James", "entity": "LeBron James", "value": null, "unit": null, "aliases": ["LeBron"], "acceptedAnswers": ["LeBron James", "LeBron"], "disallowedAnswers": [] },
+    "validation": { "mode": "exact_normalized", "mustMentionEntity": true },
+    "metadata": { "status": "verified", "difficulty": "easy", "source": { "name": "NBA.com", "retrievedAt": "2026-05-29" }, "season": "2003-04", "statCategory": "ROY", "scope": "awards", "tags": ["roy"] }
+  },
+  {
+    "id": "new-069",
+    "q": "How many NBA MVP awards has LeBron James won?",
+    "tier": "awards",
+    "expectedKind": "numeric_exact",
+    "expected": { "canonical": "4", "entity": "LeBron James", "value": 4, "unit": "MVPs", "aliases": ["LeBron"], "acceptedAnswers": ["4"], "disallowedAnswers": [] },
+    "validation": { "mode": "numeric_exact", "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "easy", "source": { "name": "NBA.com", "retrievedAt": "2026-05-29" }, "statCategory": "MVP", "scope": "awards", "tags": ["mvp", "count"] }
+  },
+  {
+    "id": "new-070",
+    "q": "Who won NBA Defensive Player of the Year in the 2020-21 season?",
+    "tier": "awards",
+    "expectedKind": "entity_exact",
+    "expected": { "canonical": "Rudy Gobert", "entity": "Rudy Gobert", "value": null, "unit": null, "aliases": ["Gobert"], "acceptedAnswers": ["Rudy Gobert", "Gobert"], "disallowedAnswers": [] },
+    "validation": { "mode": "exact_normalized", "mustMentionEntity": true },
+    "metadata": { "status": "verified", "difficulty": "easy", "source": { "name": "NBA.com", "retrievedAt": "2026-05-29" }, "season": "2020-21", "statCategory": "DPOY", "scope": "awards", "tags": ["dpoy"] }
+  },
+  {
+    "id": "new-071",
+    "q": "What draft position was Stephen Curry selected in the 2009 NBA draft?",
+    "tier": "draft",
+    "expectedKind": "entity_with_value",
+    "expected": { "canonical": "7th overall by the Golden State Warriors", "entity": "Stephen Curry", "value": 7, "unit": "draft pick", "aliases": ["Steph Curry", "Curry"], "acceptedAnswers": ["7th", "7", "7th overall"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": false, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "easy", "source": { "name": "NBA.com", "retrievedAt": "2026-05-29" }, "season": "2009", "statCategory": "draft", "scope": "draft", "tags": ["draft", "curry"] }
+  },
+  {
+    "id": "new-072",
+    "q": "What year was Giannis Antetokounmpo drafted?",
+    "tier": "draft",
+    "expectedKind": "entity_with_value",
+    "expected": { "canonical": "2013, 15th overall by the Milwaukee Bucks", "entity": "Giannis Antetokounmpo", "value": 2013, "unit": "year", "aliases": ["Giannis"], "acceptedAnswers": ["2013"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": false, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "easy", "source": { "name": "NBA.com", "retrievedAt": "2026-05-29" }, "season": "2013", "statCategory": "draft", "scope": "draft", "tags": ["draft", "giannis"] }
+  },
+  {
+    "id": "new-073",
+    "q": "Which team drafted Kevin Durant in the 2007 NBA draft?",
+    "tier": "draft",
+    "expectedKind": "entity_exact",
+    "expected": { "canonical": "Seattle SuperSonics", "entity": "Seattle SuperSonics", "value": null, "unit": null, "aliases": ["Seattle", "SuperSonics", "Sonics"], "acceptedAnswers": ["Seattle SuperSonics", "Seattle"], "disallowedAnswers": [] },
+    "validation": { "mode": "exact_normalized", "mustMentionEntity": true },
+    "metadata": { "status": "verified", "difficulty": "easy", "source": { "name": "Wikipedia", "retrievedAt": "2026-05-29" }, "season": "2007", "statCategory": "draft", "scope": "draft", "tags": ["draft", "durant"] }
+  },
+  {
+    "id": "new-074",
+    "q": "Who was selected second overall in the 2022 NBA draft?",
+    "tier": "draft",
+    "expectedKind": "entity_with_value",
+    "expected": { "canonical": "Chet Holmgren, 2nd overall, Oklahoma City Thunder", "entity": "Chet Holmgren", "value": 2, "unit": "draft pick", "aliases": ["Holmgren"], "acceptedAnswers": ["Chet Holmgren", "Holmgren"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": false },
+    "metadata": { "status": "verified", "difficulty": "easy", "source": { "name": "Wikipedia", "retrievedAt": "2026-05-29" }, "season": "2022", "statCategory": "draft", "scope": "draft", "tags": ["draft"] }
+  },
+  {
+    "id": "new-075",
+    "q": "Who was the first overall pick in the 2022 NBA draft?",
+    "tier": "draft",
+    "expectedKind": "entity_with_value",
+    "expected": { "canonical": "Paolo Banchero, 1st overall, Orlando Magic", "entity": "Paolo Banchero", "value": 1, "unit": "draft pick", "aliases": ["Banchero"], "acceptedAnswers": ["Paolo Banchero", "Banchero"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": false },
+    "metadata": { "status": "verified", "difficulty": "easy", "source": { "name": "Wikipedia", "retrievedAt": "2026-05-29" }, "season": "2022", "statCategory": "draft", "scope": "draft", "tags": ["draft"] }
+  },
+  {
+    "id": "new-076",
+    "q": "How many three-point attempts did Stephen Curry take in the 2015-16 regular season?",
+    "tier": "season_leaders",
+    "expectedKind": "entity_with_value",
+    "expected": { "canonical": "Stephen Curry (886 three-point attempts)", "entity": "Stephen Curry", "value": 886, "unit": "three-point attempts", "aliases": ["Steph Curry", "Curry"], "acceptedAnswers": ["886"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "Basketball-Reference", "retrievedAt": "2026-05-29" }, "season": "2015-16", "statCategory": "3PA", "scope": "regular_season", "tags": ["three-point-attempts", "curry"] }
+  },
+  {
+    "id": "new-077",
+    "q": "How many regular season career points does James Harden have?",
+    "tier": "career_totals",
+    "expectedKind": "entity_with_value",
+    "expected": { "canonical": "James Harden (29,339 points)", "entity": "James Harden", "value": 29339, "unit": "points", "aliases": ["Harden"], "acceptedAnswers": ["29,339", "29339"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "LandOfBasketball", "retrievedAt": "2026-05-29" }, "asOfDate": "2026-04-16", "statCategory": "PTS", "scope": "career_regular_season", "notes": "Active player; total frozen as of asOfDate.", "tags": ["career", "points", "harden"] }
+  },
+  {
+    "id": "new-078",
+    "q": "How many regular season career points does Giannis Antetokounmpo have?",
+    "tier": "career_totals",
+    "expectedKind": "entity_with_value",
+    "expected": { "canonical": "Giannis Antetokounmpo (21,531 points)", "entity": "Giannis Antetokounmpo", "value": 21531, "unit": "points", "aliases": ["Giannis"], "acceptedAnswers": ["21,531", "21531"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "LandOfBasketball", "retrievedAt": "2026-05-29" }, "asOfDate": "2026-04-16", "statCategory": "PTS", "scope": "career_regular_season", "notes": "Active player; total frozen as of asOfDate.", "tags": ["career", "points", "giannis"] }
+  },
+  {
+    "id": "new-079",
+    "q": "What percentage of LeBron James's made shots were at the rim in the 2023-24 season?",
+    "tier": "shot_charts",
+    "expectedKind": "entity_with_value",
+    "expected": { "canonical": "LeBron James", "entity": "LeBron James", "value": null, "unit": "percent", "aliases": ["LeBron"], "acceptedAnswers": [], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": true },
+    "metadata": { "status": "needs_source", "difficulty": "hard", "source": { "name": "Basketball-Reference", "retrievedAt": "2026-05-29" }, "season": "2023-24", "statCategory": "shot-chart", "scope": "regular_season", "notes": "Shot-zone definition and source table need clarification. 'At rim' may mean 0-3 ft (BBR) or restricted area (NBA).", "tags": ["shot-chart", "lebron"] }
+  },
+  {
+    "id": "new-080",
+    "q": "How many corner three-pointers did Klay Thompson attempt in the 2015-16 season?",
+    "tier": "shot_charts",
+    "expectedKind": "entity_with_value",
+    "expected": { "canonical": "Klay Thompson", "entity": "Klay Thompson", "value": null, "unit": "corner three attempts", "aliases": ["Klay"], "acceptedAnswers": [], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": true },
+    "metadata": { "status": "needs_source", "difficulty": "hard", "source": { "name": "Basketball-Reference", "retrievedAt": "2026-05-29" }, "season": "2015-16", "statCategory": "shot-chart", "scope": "regular_season", "notes": "Corner-three zone definition and source table need clarification before benchmark use.", "tags": ["shot-chart", "klay"] }
+  },
+  {
+    "id": "new-081",
+    "q": "Does this database include the 2024 NBA Finals MVP?",
+    "tier": "database_coverage",
+    "expectedKind": "not_available",
+    "expected": { "canonical": "not available", "entity": null, "value": null, "unit": null, "aliases": [], "acceptedAnswers": ["not available", "do not have", "not in the database"], "disallowedAnswers": [] },
+    "validation": { "mode": "not_available_policy" },
+    "metadata": { "status": "database_coverage_test", "difficulty": "easy", "source": { "name": "Database schema" }, "scope": "database", "notes": "Rewritten to explicitly test database coverage. Factual answer is Jaylen Brown.", "tags": ["coverage", "finals-mvp"] }
+  },
+  {
+    "id": "new-082",
+    "q": "Does this database include the 2023 NBA championship winner?",
+    "tier": "database_coverage",
+    "expectedKind": "not_available",
+    "expected": { "canonical": "not available", "entity": null, "value": null, "unit": null, "aliases": [], "acceptedAnswers": ["not available", "do not have", "not in the database"], "disallowedAnswers": [] },
+    "validation": { "mode": "not_available_policy" },
+    "metadata": { "status": "database_coverage_test", "difficulty": "easy", "source": { "name": "Database schema" }, "scope": "database", "notes": "Rewritten to explicitly test database coverage. Factual answer is Denver Nuggets.", "tags": ["coverage", "championship"] }
+  },
+  {
+    "id": "new-083",
+    "q": "How many All-Star selections does LeBron James have?",
+    "tier": "awards",
+    "expectedKind": "entity_with_value",
+    "expected": { "canonical": "LeBron James (22 All-Star selections)", "entity": "LeBron James", "value": 22, "unit": "All-Star selections", "aliases": ["LeBron"], "acceptedAnswers": ["22"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "NBA.com", "retrievedAt": "2026-05-29" }, "asOfSeason": "2025-26", "statCategory": "All-Star", "scope": "awards", "notes": "Count changes annually.", "tags": ["all-star", "lebron"] }
+  },
+  {
+    "id": "new-084",
+    "q": "How many regular season career points does Bob Cousy have?",
+    "tier": "career_totals",
+    "expectedKind": "entity_with_value",
+    "expected": { "canonical": "Bob Cousy (16,960 points)", "entity": "Bob Cousy", "value": 16960, "unit": "points", "aliases": ["Cousy"], "acceptedAnswers": ["16,960", "16960"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "Basketball-Reference", "retrievedAt": "2026-05-29" }, "statCategory": "PTS", "scope": "career_regular_season", "tags": ["career", "points", "bob-cousy"] }
+  },
+  {
+    "id": "new-085",
+    "q": "How many regular season career points does Jerry West have?",
+    "tier": "career_totals",
+    "expectedKind": "entity_with_value",
+    "expected": { "canonical": "Jerry West (25,192 points)", "entity": "Jerry West", "value": 25192, "unit": "points", "aliases": ["West"], "acceptedAnswers": ["25,192", "25192"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "Basketball-Reference", "retrievedAt": "2026-05-29" }, "statCategory": "PTS", "scope": "career_regular_season", "tags": ["career", "points", "jerry-west"] }
+  },
+  {
+    "id": "new-086",
+    "q": "How many MVP awards did Bill Russell win?",
+    "tier": "awards",
+    "expectedKind": "numeric_exact",
+    "expected": { "canonical": "5", "entity": "Bill Russell", "value": 5, "unit": "MVPs", "aliases": ["Russell"], "acceptedAnswers": ["5"], "disallowedAnswers": [] },
+    "validation": { "mode": "numeric_exact", "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "easy", "source": { "name": "NBA.com", "retrievedAt": "2026-05-29" }, "statCategory": "MVP", "scope": "awards", "tags": ["mvp", "count", "bill-russell"] }
+  },
+  {
+    "id": "new-087",
+    "q": "Does the database have a player named John Smith?",
+    "tier": "identity",
+    "expectedKind": "negative_identity_exact",
+    "expected": { "canonical": "No, the database does not have a player named John Smith.", "entity": "John Smith", "value": null, "unit": null, "aliases": [], "acceptedAnswers": ["no", "does not", "not found", "no player"], "disallowedAnswers": [] },
+    "validation": { "mode": "exact_normalized" },
+    "metadata": { "status": "verified", "difficulty": "easy", "source": { "name": "Database schema" }, "scope": "database", "notes": "Original expected 'not' was too broad; any sentence with 'not' passed.", "tags": ["identity", "negative"] }
+  },
+  {
+    "id": "new-088",
+    "q": "How many regular season career points does Dwyane Wade have?",
+    "tier": "career_totals",
+    "expectedKind": "entity_with_value",
+    "expected": { "canonical": "Dwyane Wade (23,165 points)", "entity": "Dwyane Wade", "value": 23165, "unit": "points", "aliases": ["Wade"], "acceptedAnswers": ["23,165", "23165"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "StatMuse", "retrievedAt": "2026-05-29" }, "statCategory": "PTS", "scope": "career_regular_season", "tags": ["career", "points", "wade"] }
+  },
+  {
+    "id": "new-089",
+    "q": "How many points per game did Michael Jordan average in the 1994-95 regular season?",
+    "tier": "season_leaders",
+    "expectedKind": "numeric_with_tolerance",
+    "expected": { "canonical": "26.9 points per game", "entity": "Michael Jordan", "value": 26.9, "unit": "PPG", "aliases": ["Jordan", "MJ"], "acceptedAnswers": ["26.9"], "disallowedAnswers": [] },
+    "validation": { "mode": "numeric_tolerance", "tolerance": 0.1, "precision": 1, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "Basketball-Reference", "retrievedAt": "2026-05-29" }, "season": "1994-95", "statCategory": "PPG", "scope": "regular_season", "tags": ["ppg", "jordan"] }
+  },
+  {
+    "id": "new-090",
+    "q": "How many regular season career points does Shaquille O'Neal have?",
+    "tier": "career_totals",
+    "expectedKind": "entity_with_value",
+    "expected": { "canonical": "Shaquille O'Neal (28,596 points)", "entity": "Shaquille O'Neal", "value": 28596, "unit": "points", "aliases": ["Shaq", "O'Neal"], "acceptedAnswers": ["28,596", "28596"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "Basketball-Reference", "retrievedAt": "2026-05-29" }, "statCategory": "PTS", "scope": "career_regular_season", "tags": ["career", "points", "shaq"] }
+  },
+  {
+    "id": "new-091",
+    "q": "Who is the best player in the NBA?",
+    "tier": "clarification",
+    "expectedKind": "clarification_required",
+    "expected": { "canonical": "clarification", "entity": null, "value": null, "unit": null, "aliases": [], "acceptedAnswers": ["clarify", "what do you mean", "which metric", "specific"], "disallowedAnswers": [] },
+    "validation": { "mode": "semantic_clarification", "clarificationCriteria": ["must ask what metric defines 'best'", "must not provide a definitive ranking"] },
+    "metadata": { "status": "verified", "difficulty": "easy", "source": { "name": "N/A" }, "scope": "database", "tags": ["clarification", "ambiguous"] }
+  },
+  {
+    "id": "new-092",
+    "q": "Which team is better?",
+    "tier": "clarification",
+    "expectedKind": "clarification_required",
+    "expected": { "canonical": "clarification", "entity": null, "value": null, "unit": null, "aliases": [], "acceptedAnswers": ["clarify", "which teams", "specify"], "disallowedAnswers": [] },
+    "validation": { "mode": "semantic_clarification", "clarificationCriteria": ["must ask which teams", "must ask for season or metric"] },
+    "metadata": { "status": "verified", "difficulty": "easy", "source": { "name": "N/A" }, "scope": "database", "tags": ["clarification", "ambiguous"] }
+  },
+  {
+    "id": "new-093",
+    "q": "Tell me about LeBron.",
+    "tier": "clarification",
+    "expectedKind": "clarification_required",
+    "expected": { "canonical": "clarification", "entity": "LeBron James", "value": null, "unit": null, "aliases": ["LeBron"], "acceptedAnswers": ["clarify", "what specific", "which stats", "what would you like"], "disallowedAnswers": [] },
+    "validation": { "mode": "semantic_clarification", "clarificationCriteria": ["must ask what specific information about LeBron", "must not dump all stats"] },
+    "metadata": { "status": "verified", "difficulty": "easy", "source": { "name": "N/A" }, "scope": "database", "tags": ["clarification", "ambiguous"] }
+  },
+  {
+    "id": "new-094",
+    "q": "What was the best season ever?",
+    "tier": "clarification",
+    "expectedKind": "clarification_required",
+    "expected": { "canonical": "clarification", "entity": null, "value": null, "unit": null, "aliases": [], "acceptedAnswers": ["clarify", "what metric", "best by what", "specific"], "disallowedAnswers": [] },
+    "validation": { "mode": "semantic_clarification", "clarificationCriteria": ["must ask what defines 'best'", "must ask for player or team"] },
+    "metadata": { "status": "verified", "difficulty": "easy", "source": { "name": "N/A" }, "scope": "database", "tags": ["clarification", "ambiguous"] }
+  },
+  {
+    "id": "new-095",
+    "q": "How good was Jordan?",
+    "tier": "clarification",
+    "expectedKind": "clarification_required",
+    "expected": { "canonical": "clarification", "entity": "Michael Jordan", "value": null, "unit": null, "aliases": ["Jordan", "MJ"], "acceptedAnswers": ["clarify", "which stats", "what metric", "specific"], "disallowedAnswers": [] },
+    "validation": { "mode": "semantic_clarification", "clarificationCriteria": ["must ask which stats or metric", "must ask which season or career"] },
+    "metadata": { "status": "verified", "difficulty": "easy", "source": { "name": "N/A" }, "scope": "database", "tags": ["clarification", "ambiguous"] }
+  },
+  {
+    "id": "new-096",
+    "q": "How many points did LeBron James score in the 2023 playoffs?",
+    "tier": "playoffs",
+    "expectedKind": "entity_with_value",
+    "expected": { "canonical": "LeBron James (392 points)", "entity": "LeBron James", "value": 392, "unit": "points", "aliases": ["LeBron"], "acceptedAnswers": ["392"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "Basketball-Reference", "retrievedAt": "2026-05-29" }, "season": "2022-23", "statCategory": "PTS", "scope": "playoffs", "tags": ["playoffs", "points", "lebron"] }
+  },
+  {
+    "id": "new-097",
+    "q": "Who won the NBA MVP award in the 2018-19 season?",
+    "tier": "awards",
+    "expectedKind": "entity_exact",
+    "expected": { "canonical": "Giannis Antetokounmpo", "entity": "Giannis Antetokounmpo", "value": null, "unit": null, "aliases": ["Giannis"], "acceptedAnswers": ["Giannis Antetokounmpo", "Giannis"], "disallowedAnswers": [] },
+    "validation": { "mode": "exact_normalized", "mustMentionEntity": true },
+    "metadata": { "status": "verified", "difficulty": "easy", "source": { "name": "NBA.com", "retrievedAt": "2026-05-29" }, "season": "2018-19", "statCategory": "MVP", "scope": "awards", "tags": ["mvp"] }
+  },
+  {
+    "id": "new-098",
+    "q": "What is Nikola Jokic's career regular season assist total?",
+    "tier": "career_totals",
+    "expectedKind": "entity_with_value",
+    "expected": { "canonical": "Nikola Jokic (6,080 assists)", "entity": "Nikola Jokic", "value": 6080, "unit": "assists", "aliases": ["Jokic", "Jokić"], "acceptedAnswers": ["6,080", "6080"], "disallowedAnswers": [] },
+    "validation": { "mode": "contains_all", "mustMentionEntity": true, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "StatMuse", "retrievedAt": "2026-05-29" }, "asOfDate": "2026-04-16", "statCategory": "AST", "scope": "career_regular_season", "notes": "Active player; total frozen as of asOfDate.", "tags": ["career", "assists", "jokic"] }
+  },
+  {
+    "id": "new-099",
+    "q": "What is Michael Jordan's career regular season free throw percentage?",
+    "tier": "career_totals",
+    "expectedKind": "numeric_with_tolerance",
+    "expected": { "canonical": "83.5%", "entity": "Michael Jordan", "value": 83.5, "unit": "percent", "aliases": ["Jordan", "MJ", "0.835"], "acceptedAnswers": ["83.5%", "83.5", "0.835"], "disallowedAnswers": [] },
+    "validation": { "mode": "numeric_tolerance", "tolerance": 0.1, "precision": 1, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "StatMuse", "retrievedAt": "2026-05-29" }, "statCategory": "FT%", "scope": "career_regular_season", "tags": ["career", "ft-pct", "jordan"] }
+  },
+  {
+    "id": "new-100",
+    "q": "What is LeBron James's career regular season field goal percentage?",
+    "tier": "career_totals",
+    "expectedKind": "numeric_with_tolerance",
+    "expected": { "canonical": "50.7%", "entity": "LeBron James", "value": 50.7, "unit": "percent", "aliases": ["LeBron", "0.507", "50.6%"], "acceptedAnswers": ["50.7%", "50.7", "0.507", "50.6%"], "disallowedAnswers": [] },
+    "validation": { "mode": "numeric_tolerance", "tolerance": 0.1, "precision": 1, "mustMentionValue": true },
+    "metadata": { "status": "verified", "difficulty": "medium", "source": { "name": "LandOfBasketball", "retrievedAt": "2026-05-29" }, "statCategory": "FG%", "scope": "career_regular_season", "tags": ["career", "fg-pct", "lebron"] }
+  }
+]
