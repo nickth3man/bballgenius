@@ -48,6 +48,13 @@ async function reportCount(label: string, sql: string): Promise<void> {
 
 const knownTeams = [
   {
+    teamId: 0,
+    abbreviation: 'TBD',
+    fullName: 'Unknown Special Event Team',
+    city: 'Unknown',
+    state: 'Special Event',
+  },
+  {
     teamId: 15016,
     abbreviation: 'MEL',
     fullName: 'Melbourne United',
@@ -60,6 +67,20 @@ const knownTeams = [
     fullName: 'Guangzhou Long-Lions',
     city: 'Guangzhou',
     state: 'China',
+  },
+  {
+    teamId: 15020,
+    abbreviation: 'NZB',
+    fullName: 'New Zealand Breakers',
+    city: 'New Zealand',
+    state: 'International',
+  },
+  {
+    teamId: 15025,
+    abbreviation: 'ADL',
+    fullName: 'Adelaide 36ers',
+    city: 'Adelaide',
+    state: 'Australia',
   },
   {
     teamId: 50013,
