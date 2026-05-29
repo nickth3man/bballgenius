@@ -1,0 +1,514 @@
+/**
+ * verify-dq.ts — Data-quality verification suite (Phase 2: internal consistency).
+ *
+ * Runs a declarative registry of checks against the curated `nbadb` star tier and
+ * writes one row per check to `audit.dq_results`
+ *   (check_name, table_name, severity, row_count, details, checked_at).
+ *
+ * Each check counts *violating* rows. row_count = 0 means the check passed.
+ * Results are appended (history is retained for trend tracking); a single run
+ * shares one `checked_at` timestamp so "latest run" is queryable.
+ *
+ * Severity ladder: CRITICAL > HIGH > MEDIUM > LOW > INFO.
+ *   CRITICAL = physically impossible / breaks the grain (must be zero).
+ *   HIGH     = strong correctness signal, almost always a genuine defect.
+ *   MEDIUM   = likely defect or completeness gap; triage + justify residual.
+ *   LOW/INFO = cosmetic / informational.
+ *
+ * Usage:
+ *   bun run scripts/db/verify-dq.ts                 # run all, write results, gate on CRITICAL
+ *   bun run scripts/db/verify-dq.ts --dry-run       # print only, do not write
+ *   bun run scripts/db/verify-dq.ts --gate=HIGH     # also fail the process on HIGH violations
+ *   bun run scripts/db/verify-dq.ts --filter=orphan # run only checks whose name contains "orphan"
+ *
+ * Exit code is non-zero when any check at or above the gate severity has violations,
+ * so this doubles as a CI gate.
+ *
+ * NOTE: accuracy vs. reality (cross-source reconciliation) lives separately in the
+ * audit.metric_discrepancy / player_identity_bridge pipeline — see build-canonical-merge.ts.
+ * This file covers internal consistency, validity, completeness, uniqueness and
+ * referential integrity, which are fully provable from the DB alone.
+ */
+import { DuckDBInstance } from '@duckdb/node-api';
+
+const DB_PATH = process.env['NBA_DUCKDB_PATH'] ?? './data/nba.duckdb';
+
+type Severity = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' | 'INFO';
+type Dimension = 'uniqueness' | 'referential' | 'consistency' | 'validity' | 'completeness';
+
+const SEVERITY_RANK: Record<Severity, number> = {
+  CRITICAL: 5,
+  HIGH: 4,
+  MEDIUM: 3,
+  LOW: 2,
+  INFO: 1,
+};
+
+type CheckSpec = {
+  /** Stable identifier stored in audit.dq_results.check_name. */
+  name: string;
+  /** Fully-qualified table the check is about (stored as table_name). */
+  table: string;
+  severity: Severity;
+  dimension: Dimension;
+  /** Human-readable statement of the rule that must hold. */
+  rule: string;
+  /**
+   * SQL returning exactly one row with columns:
+   *   n       BIGINT   — count of violating rows
+   *   details VARCHAR  — short explanation (NULL when n = 0)
+   */
+  countSql: string;
+};
+
+// ── Reusable check builders ────────────────────────────────────────────────
+
+/** Count rows where `predicate` holds (NULLs in the predicate are not counted). */
+function violations(table: string, predicate: string, label: string): string {
+  return `SELECT count(*) AS n,
+    CASE WHEN count(*) > 0 THEN '${label}: ' || count(*) || ' rows' END AS details
+    FROM ${table} WHERE ${predicate}`;
+}
+
+/** Count duplicate grain groups for the given key columns. */
+function duplicateGrain(table: string, keys: string[]): string {
+  const k = keys.join(', ');
+  return `SELECT count(*) AS n,
+    CASE WHEN count(*) > 0 THEN 'duplicate (${k}) groups: ' || count(*) END AS details
+    FROM (SELECT ${k} FROM ${table} GROUP BY ${k} HAVING count(*) > 1)`;
+}
+
+/** Count child rows whose non-null FK has no matching parent PK (orphans). */
+function orphans(child: string, fk: string, parent: string, pk: string, distinct = false): string {
+  const src = distinct ? `(SELECT DISTINCT ${fk} FROM ${child}) c` : `${child} c`;
+  return `SELECT count(*) AS n,
+    CASE WHEN count(*) > 0 THEN 'orphan ${fk} (not in ${parent}): ' || count(*) END AS details
+    FROM ${src}
+    WHERE c.${fk} IS NOT NULL
+      AND NOT EXISTS (SELECT 1 FROM ${parent} p WHERE p.${pk} = c.${fk})`;
+}
+
+// ── Table short-hands ────────────────────────────────────────────────────────
+const PGT = 'nbadb.fact_player_game_traditional';
+const TG = 'nbadb.fact_team_game';
+const GR = 'nbadb.fact_game_result';
+const DG = 'nbadb.dim_game';
+const DP = 'nbadb.dim_player';
+const DT = 'nbadb.dim_team';
+const DTC = 'nbadb.v_dim_team_current';
+
+const SEASON_TYPES = "('Cup','Preseason','Playoffs','Regular')";
+
+// ── Check registry ───────────────────────────────────────────────────────────
+const CHECKS: CheckSpec[] = [
+  // ── Uniqueness / grain ──────────────────────────────────────────────────
+  {
+    name: 'pgt_dup_grain',
+    table: PGT,
+    severity: 'CRITICAL',
+    dimension: 'uniqueness',
+    rule: 'exactly one row per (game_id, player_id)',
+    countSql: duplicateGrain(PGT, ['game_id', 'player_id']),
+  },
+  {
+    name: 'team_game_dup_grain',
+    table: TG,
+    severity: 'CRITICAL',
+    dimension: 'uniqueness',
+    rule: 'exactly one row per (game_id, team_id)',
+    countSql: duplicateGrain(TG, ['game_id', 'team_id']),
+  },
+  {
+    name: 'game_result_dup_grain',
+    table: GR,
+    severity: 'CRITICAL',
+    dimension: 'uniqueness',
+    rule: 'exactly one row per game_id',
+    countSql: duplicateGrain(GR, ['game_id']),
+  },
+  {
+    name: 'dim_game_dup_pk',
+    table: DG,
+    severity: 'CRITICAL',
+    dimension: 'uniqueness',
+    rule: 'game_id is unique in dim_game',
+    countSql: duplicateGrain(DG, ['game_id']),
+  },
+  {
+    name: 'dim_player_dup_master',
+    table: DP,
+    severity: 'CRITICAL',
+    dimension: 'uniqueness',
+    rule: 'at most one current (is_current) row per player_id',
+    countSql: `SELECT count(*) AS n,
+      CASE WHEN count(*) > 0 THEN 'players with >1 current master row: ' || count(*) END AS details
+      FROM (SELECT player_id FROM ${DP} WHERE is_current GROUP BY player_id HAVING count(*) > 1)`,
+  },
+  {
+    name: 'dim_team_current_dup_pk',
+    table: DTC,
+    severity: 'CRITICAL',
+    dimension: 'uniqueness',
+    rule: 'current-team/franchise view has one row per team_id',
+    countSql: duplicateGrain(DTC, ['team_id']),
+  },
+
+  // ── Referential integrity ──────────────────────────────────────────────
+  {
+    name: 'pgt_orphan_game',
+    table: PGT,
+    severity: 'CRITICAL',
+    dimension: 'referential',
+    rule: 'every player-game game_id exists in dim_game',
+    countSql: orphans(PGT, 'game_id', DG, 'game_id'),
+  },
+  {
+    name: 'pgt_orphan_player',
+    table: PGT,
+    severity: 'HIGH',
+    dimension: 'referential',
+    rule: 'every player-game player_id exists in dim_player',
+    countSql: orphans(PGT, 'player_id', DP, 'player_id', true),
+  },
+  {
+    name: 'pgt_orphan_team',
+    table: PGT,
+    severity: 'HIGH',
+    dimension: 'referential',
+    rule: 'every player-game team_id exists in dim_team',
+    countSql: orphans(PGT, 'team_id', DT, 'team_id', true),
+  },
+  {
+    name: 'team_game_orphan_game',
+    table: TG,
+    severity: 'CRITICAL',
+    dimension: 'referential',
+    rule: 'every team-game game_id exists in dim_game',
+    countSql: orphans(TG, 'game_id', DG, 'game_id'),
+  },
+  {
+    name: 'team_game_orphan_team',
+    table: TG,
+    severity: 'HIGH',
+    dimension: 'referential',
+    rule: 'every team-game team_id exists in dim_team',
+    countSql: orphans(TG, 'team_id', DT, 'team_id', true),
+  },
+  {
+    name: 'game_result_orphan_game',
+    table: GR,
+    severity: 'HIGH',
+    dimension: 'referential',
+    rule: 'every game result game_id exists in dim_game',
+    countSql: orphans(GR, 'game_id', DG, 'game_id'),
+  },
+  {
+    name: 'game_result_orphan_home_team',
+    table: GR,
+    severity: 'HIGH',
+    dimension: 'referential',
+    rule: 'home_team_id exists in dim_team',
+    countSql: orphans(GR, 'home_team_id', DT, 'team_id', true),
+  },
+  {
+    name: 'game_result_orphan_visitor_team',
+    table: GR,
+    severity: 'HIGH',
+    dimension: 'referential',
+    rule: 'visitor_team_id exists in dim_team',
+    countSql: orphans(GR, 'visitor_team_id', DT, 'team_id', true),
+  },
+
+  // ── Consistency (physically impossible = CRITICAL) ──────────────────────
+  {
+    name: 'pgt_fg_consistency',
+    table: PGT,
+    severity: 'CRITICAL',
+    dimension: 'consistency',
+    rule: 'made shots never exceed attempts (fgm<=fga, fg3m<=fg3a, ftm<=fta)',
+    countSql: violations(PGT, 'fgm > fga OR fg3m > fg3a OR ftm > fta', 'made > attempted'),
+  },
+  {
+    name: 'pgt_3p_subset',
+    table: PGT,
+    severity: 'CRITICAL',
+    dimension: 'consistency',
+    rule: 'three-pointers are a subset of field goals (fg3m<=fgm, fg3a<=fga)',
+    countSql: violations(PGT, 'fg3m > fgm OR fg3a > fga', '3PT exceeds total FG'),
+  },
+  {
+    name: 'pgt_negative_stats',
+    table: PGT,
+    severity: 'CRITICAL',
+    dimension: 'consistency',
+    rule: 'counting stats are non-negative',
+    countSql: violations(
+      PGT,
+      'pts < 0 OR reb < 0 OR ast < 0 OR stl < 0 OR blk < 0 OR tov < 0 OR pf < 0 OR fgm < 0 OR fga < 0 OR ftm < 0 OR fta < 0 OR oreb < 0 OR dreb < 0',
+      'negative counting stat',
+    ),
+  },
+  {
+    name: 'pgt_pct_range',
+    table: PGT,
+    severity: 'CRITICAL',
+    dimension: 'validity',
+    rule: 'shooting percentages are within [0,1]',
+    countSql: violations(
+      PGT,
+      'fg_pct < 0 OR fg_pct > 1 OR fg3_pct < 0 OR fg3_pct > 1 OR ft_pct < 0 OR ft_pct > 1',
+      'percentage outside [0,1]',
+    ),
+  },
+  {
+    name: 'pgt_min_impossible',
+    table: PGT,
+    severity: 'CRITICAL',
+    dimension: 'validity',
+    rule: 'a single player cannot exceed game length (~72 min incl. OT)',
+    countSql: violations(PGT, 'min < 0 OR min > 72', 'minutes outside 0-72'),
+  },
+  {
+    name: 'pgt_min_range',
+    table: PGT,
+    severity: 'MEDIUM',
+    dimension: 'validity',
+    rule: 'minutes within regulation+OT envelope (0-68)',
+    countSql: violations(PGT, 'min < 0 OR min > 68', 'minutes outside 0-68'),
+  },
+  {
+    name: 'pgt_reb_consistency',
+    table: PGT,
+    severity: 'HIGH',
+    dimension: 'consistency',
+    rule: 'oreb + dreb = reb when all three are present',
+    countSql: violations(
+      PGT,
+      'oreb IS NOT NULL AND dreb IS NOT NULL AND reb IS NOT NULL AND oreb + dreb <> reb',
+      'oreb+dreb <> reb',
+    ),
+  },
+  {
+    name: 'pgt_pct_recompute',
+    table: PGT,
+    severity: 'MEDIUM',
+    dimension: 'consistency',
+    rule: 'stored fg_pct matches fgm/fga within 0.011',
+    countSql: violations(
+      PGT,
+      'fga > 0 AND fg_pct IS NOT NULL AND abs(fg_pct - (fgm * 1.0 / fga)) > 0.011',
+      'fg_pct disagrees with fgm/fga',
+    ),
+  },
+  {
+    name: 'team_game_fg_consistency',
+    table: TG,
+    severity: 'CRITICAL',
+    dimension: 'consistency',
+    rule: 'team made shots never exceed attempts',
+    countSql: violations(
+      TG,
+      'fgm > fga OR fg3m > fg3a OR ftm > fta OR fg3m > fgm OR fg3a > fga',
+      'team made > attempted',
+    ),
+  },
+  {
+    name: 'team_game_quarter_exceeds_total',
+    table: TG,
+    severity: 'CRITICAL',
+    dimension: 'consistency',
+    // team_game has only qtr1-4 (no OT cols), so we assert quarters cannot EXCEED
+    // the total (equality would false-positive on every OT game).
+    rule: 'sum of quarter points never exceeds final team points',
+    countSql: violations(
+      TG,
+      'pts_qtr1 + pts_qtr2 + pts_qtr3 + pts_qtr4 > pts',
+      'quarter sum exceeds final pts',
+    ),
+  },
+  {
+    name: 'game_result_components_exceed_total',
+    table: GR,
+    severity: 'CRITICAL',
+    dimension: 'consistency',
+    // fact_game_result carries only ot1/ot2; games with 3+ OT would fail an
+    // equality check, so we assert known components cannot EXCEED the final.
+    rule: 'sum of quarter+OT points never exceeds final score (either side)',
+    countSql: violations(
+      GR,
+      `coalesce(pts_qtr1_home,0)+coalesce(pts_qtr2_home,0)+coalesce(pts_qtr3_home,0)+coalesce(pts_qtr4_home,0)+coalesce(pts_ot1_home,0)+coalesce(pts_ot2_home,0) > pts_home
+       OR coalesce(pts_qtr1_away,0)+coalesce(pts_qtr2_away,0)+coalesce(pts_qtr3_away,0)+coalesce(pts_qtr4_away,0)+coalesce(pts_ot1_away,0)+coalesce(pts_ot2_away,0) > pts_away`,
+      'period components exceed final score',
+    ),
+  },
+
+  // ── Validity ────────────────────────────────────────────────────────────
+  {
+    name: 'game_result_season_type',
+    table: GR,
+    severity: 'MEDIUM',
+    dimension: 'validity',
+    rule: `season_type in accepted set ${SEASON_TYPES}`,
+    countSql: violations(
+      GR,
+      `season_type IS NOT NULL AND season_type NOT IN ${SEASON_TYPES}`,
+      'unexpected season_type',
+    ),
+  },
+  {
+    name: 'dim_game_season_year_format',
+    table: DG,
+    severity: 'LOW',
+    dimension: 'validity',
+    rule: "season_year matches 'YYYY-YY'",
+    countSql: violations(
+      DG,
+      "season_year IS NOT NULL AND NOT regexp_matches(season_year, '^\\d{4}-\\d{2}$')",
+      'malformed season_year',
+    ),
+  },
+  {
+    name: 'game_result_date_validity',
+    table: GR,
+    severity: 'MEDIUM',
+    dimension: 'validity',
+    rule: 'game_date parses to a date within [1946-01-01, today+1]',
+    countSql: violations(
+      GR,
+      "game_date IS NOT NULL AND (try_cast(game_date AS DATE) IS NULL OR try_cast(game_date AS DATE) < DATE '1946-01-01' OR try_cast(game_date AS DATE) > current_date + 1)",
+      'game_date out of range / unparseable',
+    ),
+  },
+
+  // ── Completeness ─────────────────────────────────────────────────────────
+  {
+    name: 'game_result_null_score',
+    table: GR,
+    severity: 'HIGH',
+    dimension: 'completeness',
+    rule: 'every game result has both final scores',
+    countSql: violations(GR, 'pts_home IS NULL OR pts_away IS NULL', 'missing final score'),
+  },
+  {
+    name: 'dim_player_null_name',
+    table: DP,
+    severity: 'HIGH',
+    dimension: 'completeness',
+    rule: 'every player has a non-empty full_name',
+    countSql: violations(DP, "full_name IS NULL OR trim(full_name) = ''", 'missing player name'),
+  },
+  {
+    name: 'dim_team_null_abbr',
+    table: DT,
+    severity: 'MEDIUM',
+    dimension: 'completeness',
+    rule: 'every team has a non-empty abbreviation',
+    countSql: violations(
+      DT,
+      "abbreviation IS NULL OR trim(abbreviation) = ''",
+      'missing team abbreviation',
+    ),
+  },
+];
+
+// ── Runner ───────────────────────────────────────────────────────────────────
+type Outcome = CheckSpec & { count: number; detail: string | null; error: string | null };
+
+function parseArgs() {
+  const args = process.argv.slice(2);
+  const dryRun = args.includes('--dry-run');
+  const gateArg = args.find((a) => a.startsWith('--gate='));
+  const filterArg = args.find((a) => a.startsWith('--filter='));
+  const gate = (gateArg?.split('=')[1]?.toUpperCase() as Severity) ?? 'CRITICAL';
+  const filter = filterArg?.split('=')[1] ?? null;
+  if (!(gate in SEVERITY_RANK)) {
+    throw new Error(`--gate must be one of ${Object.keys(SEVERITY_RANK).join(', ')}`);
+  }
+  return { dryRun, gate, filter };
+}
+
+const { dryRun, gate, filter } = parseArgs();
+const runId = new Date().toISOString().replace('T', ' ').replace('Z', '');
+const selected = filter ? CHECKS.filter((c) => c.name.includes(filter)) : CHECKS;
+
+const db = await DuckDBInstance.fromCache(DB_PATH);
+const conn = await db.connect();
+
+const outcomes: Outcome[] = [];
+for (const check of selected) {
+  try {
+    const res = await conn.runAndReadAll(check.countSql);
+    const row = res.getRowObjectsJson()[0] ?? {};
+    const count = Number(row['n'] ?? 0);
+    const detail = (row['details'] as string | null) ?? null;
+    outcomes.push({ ...check, count, detail, error: null });
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : String(e);
+    outcomes.push({ ...check, count: -1, detail: null, error: message });
+  }
+}
+
+// Persist (one shared checked_at per run; history retained for trend tracking).
+if (!dryRun) {
+  for (const o of outcomes) {
+    if (o.error) continue; // do not record rows for checks that failed to execute
+    const detailSql = o.detail === null ? 'NULL' : `'${o.detail.replace(/'/g, "''")}'`;
+    await conn.run(
+      `INSERT INTO audit.dq_results (check_name, table_name, severity, row_count, details, checked_at)
+       VALUES ('${o.name}', '${o.table}', '${o.severity}', ${o.count}, ${detailSql}, TIMESTAMP '${runId}')`,
+    );
+  }
+  await conn.run('CHECKPOINT'); // flush WAL → avoid cross-process replay bug
+}
+
+// ── Report ─────────────────────────────────────────────────────────────────
+const order: Severity[] = ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'INFO'];
+const sorted = [...outcomes].sort(
+  (a, b) =>
+    SEVERITY_RANK[b.severity] - SEVERITY_RANK[a.severity] ||
+    b.count - a.count ||
+    a.name.localeCompare(b.name),
+);
+
+console.log(
+  `\nData-quality verification — run ${runId}${dryRun ? ' (dry-run, not persisted)' : ''}`,
+);
+console.log(`DB: ${DB_PATH} · checks: ${selected.length} · gate: ${gate}\n`);
+
+const pad = (s: string, n: number) => s.padEnd(n);
+console.log(`${pad('SEV', 9)}${pad('CHECK', 38)}${pad('TABLE', 38)}${pad('VIOLATIONS', 12)}DETAIL`);
+console.log('─'.repeat(120));
+for (const o of sorted) {
+  const v = o.error ? 'ERROR' : o.count === 0 ? 'ok' : String(o.count);
+  const detail = o.error ? o.error : (o.detail ?? '');
+  console.log(
+    `${pad(o.severity, 9)}${pad(o.name, 38)}${pad(o.table.replace('nbadb.', ''), 38)}${pad(v, 12)}${detail}`,
+  );
+}
+
+const failed = outcomes.filter(
+  (o) => o.error === null && o.count > 0 && SEVERITY_RANK[o.severity] >= SEVERITY_RANK[gate],
+);
+const errored = outcomes.filter((o) => o.error !== null);
+
+console.log('\nSummary by severity:');
+for (const sev of order) {
+  const group = outcomes.filter((o) => o.severity === sev && o.error === null);
+  if (group.length === 0) continue;
+  const failing = group.filter((o) => o.count > 0).length;
+  console.log(`  ${pad(sev, 9)} ${group.length} checks, ${failing} with violations`);
+}
+
+if (errored.length > 0) {
+  console.log(`\n⚠ ${errored.length} check(s) failed to execute (see ERROR rows above).`);
+}
+
+if (failed.length > 0) {
+  console.log(`\n✗ GATE FAILED: ${failed.length} check(s) at or above ${gate} have violations:`);
+  for (const f of failed) console.log(`    - [${f.severity}] ${f.name}: ${f.detail}`);
+  process.exitCode = 1;
+} else {
+  console.log(`\n✓ Gate passed: no violations at or above ${gate}.`);
+}
+
+conn.closeSync();
