@@ -4,10 +4,10 @@
  */
 
 import { HumanMessage, SystemMessage } from '@langchain/core/messages';
-import { getChatbotGraph, resetGraph } from '../src/chatbot/agent/graph.js';
-import { closeDb, initDb } from '../src/chatbot/db.js';
-import { setModel } from '../src/chatbot/openrouter.js';
-import { buildSystemPrompt } from '../src/chatbot/systemPrompt.js';
+import { getChatbotGraph, resetGraph } from '../src/tabs/chatbot/agent/graph.js';
+import { closeDb, initDb } from '../src/tabs/chatbot/db.js';
+import { setModel } from '../src/tabs/chatbot/openrouter.js';
+import { buildSystemPrompt } from '../src/tabs/chatbot/systemPrompt.js';
 
 const MODELS = ['openai/gpt-oss-120b', 'deepseek/deepseek-v4-flash'];
 

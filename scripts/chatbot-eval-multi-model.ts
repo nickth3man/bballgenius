@@ -17,11 +17,11 @@
 
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { HumanMessage, SystemMessage } from '@langchain/core/messages';
-import { getChatbotGraph, resetGraph } from '../src/chatbot/agent/graph.js';
-import { closeDb, initDb } from '../src/chatbot/db.js';
-import { type EvalQuestion, QUESTION_MATRIX } from '../src/chatbot/eval/question-matrix.js';
-import { setModel } from '../src/chatbot/openrouter.js';
-import { buildSystemPrompt } from '../src/chatbot/systemPrompt.js';
+import { getChatbotGraph, resetGraph } from '../src/tabs/chatbot/agent/graph.js';
+import { closeDb, initDb } from '../src/tabs/chatbot/db.js';
+import { type EvalQuestion, QUESTION_MATRIX } from '../src/tabs/chatbot/eval/question-matrix.js';
+import { setModel } from '../src/tabs/chatbot/openrouter.js';
+import { buildSystemPrompt } from '../src/tabs/chatbot/systemPrompt.js';
 
 interface TestResult {
   questionId: string;
@@ -164,7 +164,7 @@ function checkAnswer(
     reasons.push(`expected "${question.expectedAnswer}" not found in answer`);
   } else if (typeof question.expectedAnswer === 'number') {
     const answerNum = parseFloat(answer.replace(/[^0-9.]/g, ''));
-    if (!isNaN(answerNum)) {
+    if (!Number.isNaN(answerNum)) {
       if (question.tolerance === 'exact') {
         if (answerNum === question.expectedAnswer) {
           return { passed: true, failureType: 'PASS', reasons: ['exact numeric match'] };

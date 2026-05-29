@@ -7,15 +7,15 @@ cd "$root"
 
 fail=0
 
-if rg -n '\.(only|skip)\(' src/hub/tests --glob '*.ts' >/dev/null 2>&1; then
-  echo "::error::Focused or skipped tests (.only / .skip) are not allowed under src/hub/tests"
-  rg -n '\.(only|skip)\(' src/hub/tests --glob '*.ts' || true
+if rg -n '\.(only|skip)\(' src/tests --glob '*.ts' >/dev/null 2>&1; then
+  echo "::error::Focused or skipped tests (.only / .skip) are not allowed under src/tests"
+  rg -n '\.(only|skip)\(' src/tests --glob '*.ts' || true
   fail=1
 fi
 
-if rg -n '\.(only|skip)\(' src/chatbot/__tests__ --glob '*.ts' >/dev/null 2>&1; then
-  echo "::error::Focused or skipped tests (.only / .skip) are not allowed under src/chatbot/__tests__"
-  rg -n '\.(only|skip)\(' src/chatbot/__tests__ --glob '*.ts' || true
+if rg -n '\.(only|skip)\(' src/tabs/chatbot/__tests__ --glob '*.ts' >/dev/null 2>&1; then
+  echo "::error::Focused or skipped tests (.only / .skip) are not allowed under src/tabs/chatbot/__tests__"
+  rg -n '\.(only|skip)\(' src/tabs/chatbot/__tests__ --glob '*.ts' || true
   fail=1
 fi
 
@@ -35,9 +35,9 @@ if [ "${lint_ec:-0}" -ne 0 ]; then
   fail=1
 fi
 
-if rg -n "from '\\.\\./(gameCenter|timeMachine|sqlSandbox)" src/hub/tabs/ --glob '*.ts' >/dev/null 2>&1; then
+if rg -n "from '\\.\\./(gameCenter|timeMachine|sqlSandbox|chatbot)" src/tabs/ --glob '*.ts' >/dev/null 2>&1; then
   echo "::error::Tabs must not import sibling tab modules directly (use core/ or shared/ instead)"
-  rg -n "from '\\.\\./(gameCenter|timeMachine|sqlSandbox)" src/hub/tabs/ --glob '*.ts' || true
+  rg -n "from '\\.\\./(gameCenter|timeMachine|sqlSandbox|chatbot)" src/tabs/ --glob '*.ts' || true
   fail=1
 fi
 

@@ -1,0 +1,24 @@
+
+‹Career Time-Machine       SQL Sandbox               Chat
+
+────────────────────────────────────────────────────────────────────────────────
+╭─Database Schema──╮ ╭─SQL Input (Ctrl+R / Ctrl+E Execute)─────────────────────╮
+│dim_player        │ │SELECT * FROM dim_team LIMIT 10;
+│ ▶ ▶ dim_player   │ │                                                         │
+│                  │ │Tip: Enter any standard DuckDB SQL statement.            │
+│                  │ │Keys: [Ctrl+R] or [Ctrl+E] Run, [Enter] Execute/Auto-    │
+│                  │ ╰─────────────────────────────────────────────────────────╯
+│                  │ ╭─Query Results───────────────────────────────────────────╮
+│                  │ │No query has been executed yet.                          │
+│                  │ │                                                         │
+│                  │ │                                                         │
+│                  │ │                                                         │
+│                  │ │                                                         │
+│                  │ │                                                         │
+│                  │ │                                                         │
+│                  │ │                                                         │
+│                  │ │                                                         │
+│                  │ │                                                         │
+│                  │ │                                                         │
+╰──────────────────╯ ╰─────────────────────────────────────────────────────────╯
+                Focus: SQLBInpuF1-4TNaveTabr?dEscgame_main_line
