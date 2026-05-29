@@ -17,11 +17,12 @@
 
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { HumanMessage, SystemMessage } from '@langchain/core/messages';
-import { getChatbotGraph, resetGraph } from '../src/tabs/chatbot/agent/graph.js';
-import { closeDb, initDb } from '../src/tabs/chatbot/db.js';
-import { type EvalQuestion, QUESTION_MATRIX } from '../src/tabs/chatbot/eval/question-matrix.js';
-import { setModel } from '../src/tabs/chatbot/openrouter.js';
-import { buildSystemPrompt } from '../src/tabs/chatbot/systemPrompt.js';
+import { getChatbotGraph, resetGraph } from '../../src/tabs/chatbot/agent/graph.js';
+import { closeDb, initDb } from '../../src/tabs/chatbot/db.js';
+import { type EvalQuestion, QUESTION_MATRIX } from '../../src/tabs/chatbot/eval/question-matrix.js';
+import { setModel } from '../../src/tabs/chatbot/openrouter.js';
+import { buildSystemPrompt } from '../../src/tabs/chatbot/systemPrompt.js';
+import { ANSI, normalizeAnswer, withTimeout } from './shared/index.js';
 
 interface TestResult {
   questionId: string;
@@ -52,46 +53,10 @@ interface IterationResult {
   failurePatterns: Record<string, string[]>;
 }
 
-const MODELS = [
-  'stepfun/step-3.5-flash',
-  'google/gemini-2.5-flash-lite',
-  'openai/gpt-oss-120b',
-  'tencent/hy3-preview',
-  'deepseek/deepseek-v4-flash',
-];
-
-const BOLD = '\x1b[1m';
-const GREEN = '\x1b[32m';
-const RED = '\x1b[31m';
-const YELLOW = '\x1b[33m';
-const BLUE = '\x1b[34m';
-const RESET = '\x1b[0m';
-const DIM = '\x1b[2m';
-
-function withTimeout<T>(promise: Promise<T>, timeoutMs: number, label: string): Promise<T> {
-  return new Promise<T>((resolve, reject) => {
-    const timer = setTimeout(() => {
-      reject(new Error(`${label} timed out after ${timeoutMs}ms`));
-    }, timeoutMs);
-    promise.then(
-      (value) => {
-        clearTimeout(timer);
-        resolve(value);
-      },
-      (error: unknown) => {
-        clearTimeout(timer);
-        reject(error);
-      },
-    );
-  });
-}
-
-function normalizeAnswer(answer: string): string {
-  return answer
-    .toLowerCase()
-    .replace(/[^a-z0-9\s.,'-]/g, '')
-    .trim();
-}
+const MODELS = (
+  process.env.EVAL_MODELS ||
+  'stepfun/step-3.5-flash,google/gemini-2.5-flash-lite,openai/gpt-oss-120b,tencent/hy3-preview,deepseek/deepseek-v4-flash'
+).split(',');
 
 function checkAnswer(
   answer: string,
@@ -267,28 +232,30 @@ async function runIteration(
   questions: EvalQuestion[],
   systemPrompt: string,
 ): Promise<IterationResult[]> {
-  console.log(`\n${BOLD}=== Iteration ${iteration} ===${RESET}\n`);
+  console.log(`\n${ANSI.BOLD}=== Iteration ${iteration} ===${ANSI.RESET}\n`);
 
   const results: IterationResult[] = [];
 
   for (const model of MODELS) {
-    console.log(`${BLUE}Testing model: ${model}${RESET}`);
+    console.log(`${ANSI.BLUE}Testing model: ${model}${ANSI.RESET}`);
     const modelResults: TestResult[] = [];
 
     for (let i = 0; i < questions.length; i++) {
       const q = questions[i];
       process.stdout.write(
-        `  [${i + 1}/${questions.length}] ${q.id} ${DIM}${q.question.slice(0, 50)}...${RESET} `,
+        `  [${i + 1}/${questions.length}] ${q.id} ${ANSI.DIM}${q.question.slice(0, 50)}...${ANSI.RESET} `,
       );
 
       const result = await runTestForModel(model, q, systemPrompt, iteration);
       modelResults.push(result);
 
-      const status = result.passed ? `${GREEN}PASS${RESET}` : `${RED}${result.failureType}${RESET}`;
+      const status = result.passed
+        ? `${ANSI.GREEN}PASS${ANSI.RESET}`
+        : `${ANSI.RED}${result.failureType}${ANSI.RESET}`;
       console.log(status);
 
       if (!result.passed && result.reasons.length > 0) {
-        console.log(`    ${DIM}${result.reasons.join('; ')}${RESET}`);
+        console.log(`    ${ANSI.DIM}${result.reasons.join('; ')}${ANSI.RESET}`);
       }
     }
 
@@ -314,10 +281,10 @@ async function runIteration(
     });
 
     console.log(
-      `\n  ${BOLD}Results: ${passCount}/${modelResults.length} PASS, ${failCount}/${modelResults.length} FAIL${RESET}`,
+      `\n  ${ANSI.BOLD}Results: ${passCount}/${modelResults.length} PASS, ${failCount}/${modelResults.length} FAIL${ANSI.RESET}`,
     );
     for (const [pattern, questionIds] of Object.entries(failurePatterns)) {
-      console.log(`    ${YELLOW}${pattern}${RESET}: ${questionIds.length} questions`);
+      console.log(`    ${ANSI.YELLOW}${pattern}${ANSI.RESET}: ${questionIds.length} questions`);
     }
     console.log();
   }
@@ -355,11 +322,11 @@ function analyzeFailures(allResults: IterationResult[]): string[] {
 }
 
 async function main(): Promise<void> {
-  const maxIterations = Number(process.env.ITERATION_MAX || 5);
+  const maxIterations = Number(process.env.EVAL_ITERATION_MAX || process.env.ITERATION_MAX || 5);
   const parallelModels = process.env.PARALLEL_MODELS !== 'false';
 
   if (!process.env.OPENROUTER_API_KEY) {
-    console.error(`${RED}${BOLD}ERROR:${RESET} OPENROUTER_API_KEY is not set.`);
+    console.error(`${ANSI.RED}${ANSI.BOLD}ERROR:${ANSI.RESET} OPENROUTER_API_KEY is not set.`);
     process.exit(1);
   }
 
@@ -368,7 +335,7 @@ async function main(): Promise<void> {
     mkdirSync('results');
   }
 
-  console.log(`${BOLD}=== Multi-Model NBA Chatbot Evaluation ===${RESET}`);
+  console.log(`${ANSI.BOLD}=== Multi-Model NBA Chatbot Evaluation ===${ANSI.RESET}`);
   console.log(`Models: ${MODELS.join(', ')}`);
   console.log(`Questions: ${QUESTION_MATRIX.length}`);
   console.log(`Max Iterations: ${maxIterations}`);
@@ -379,7 +346,9 @@ async function main(): Promise<void> {
   try {
     await initDb();
   } catch (e: unknown) {
-    console.error(`${RED}Failed to init DB: ${e instanceof Error ? e.message : String(e)}${RESET}`);
+    console.error(
+      `${ANSI.RED}Failed to init DB: ${e instanceof Error ? e.message : String(e)}${ANSI.RESET}`,
+    );
     process.exit(1);
   }
 
@@ -387,10 +356,10 @@ async function main(): Promise<void> {
   let systemPrompt: string;
   try {
     systemPrompt = await buildSystemPrompt();
-    console.log(`${DIM}System prompt: ${systemPrompt.length} chars${RESET}\n`);
+    console.log(`${ANSI.DIM}System prompt: ${systemPrompt.length} chars${ANSI.RESET}\n`);
   } catch (e: unknown) {
     console.error(
-      `${RED}Failed to build prompt: ${e instanceof Error ? e.message : String(e)}${RESET}`,
+      `${ANSI.RED}Failed to build prompt: ${e instanceof Error ? e.message : String(e)}${ANSI.RESET}`,
     );
     await closeDb();
     process.exit(1);
@@ -412,14 +381,14 @@ async function main(): Promise<void> {
 
     if (totalPass === totalQuestions) {
       console.log(
-        `${GREEN}${BOLD}SUCCESS: All ${totalQuestions} tests passed across all models!${RESET}\n`,
+        `${ANSI.GREEN}${ANSI.BOLD}SUCCESS: All ${totalQuestions} tests passed across all models!${ANSI.RESET}\n`,
       );
       break;
     }
 
     // Analyze failures and suggest fixes
     const fixes = analyzeFailures(iterationResults);
-    console.log(`${YELLOW}Suggested fixes: ${fixes.join(', ')}${RESET}\n`);
+    console.log(`${ANSI.YELLOW}Suggested fixes: ${fixes.join(', ')}${ANSI.RESET}\n`);
 
     // For now, just report. In a full implementation, we would:
     // 1. Apply automatic fixes (e.g., bump recursion limit, add examples)
@@ -427,8 +396,10 @@ async function main(): Promise<void> {
     // 3. Continue to next iteration
 
     if (iteration === maxIterations) {
-      console.log(`${RED}${BOLD}REACHED MAX ITERATIONS (${maxIterations})${RESET}`);
-      console.log(`${RED}Some tests still failing. Manual intervention needed.${RESET}\n`);
+      console.log(`${ANSI.RED}${ANSI.BOLD}REACHED MAX ITERATIONS (${maxIterations})${ANSI.RESET}`);
+      console.log(
+        `${ANSI.RED}Some tests still failing. Manual intervention needed.${ANSI.RESET}\n`,
+      );
     }
   }
 
@@ -472,10 +443,10 @@ function generateReport(allIterations: IterationResult[][]): void {
 
   const reportContent = report.join('\n');
   writeFileSync('results/EVAL_REPORT.md', reportContent);
-  console.log(`${GREEN}Report saved to results/EVAL_REPORT.md${RESET}`);
+  console.log(`${ANSI.GREEN}Report saved to results/EVAL_REPORT.md${ANSI.RESET}`);
 }
 
 main().catch((err) => {
-  console.error(`${RED}${BOLD}Fatal:${RESET}`, err);
+  console.error(`${ANSI.RED}${ANSI.BOLD}Fatal:${ANSI.RESET}`, err);
   process.exit(1);
 });

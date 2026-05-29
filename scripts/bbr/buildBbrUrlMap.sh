@@ -13,7 +13,7 @@ MAP_DELAY="${BBR_MAP_DELAY_SEC:-0}"
 MAP_PARALLEL="${BBR_MAP_PARALLEL:-2}"
 cd "$ROOT"
 
-readarray -t SECTIONS < <(node -e "for (const s of require('./scripts/bbrUrlUtils.cjs').BBR_SCOPE_SECTIONS) console.log(s)")
+readarray -t SECTIONS < <(node -e "for (const s of require('./scripts/bbr/bbrUrlUtils.cjs').BBR_SCOPE_SECTIONS) console.log(s)")
 SCOPE_LABEL="${SECTIONS[*]// /,}"
 
 PASS_B_STEPS=${#SECTIONS[@]}
@@ -28,11 +28,11 @@ done
 MAP_BASE_STEPS=$((PASS_B_STEPS + PASS_C_STEPS))
 
 obs_map_event() {
-  node scripts/bbrObservability.cjs map-event "$@"
+  node scripts/bbr/bbrObservability.cjs map-event "$@"
 }
 
 obs_map_pass() {
-  node scripts/bbrObservability.cjs map-pass "$@"
+  node scripts/bbr/bbrObservability.cjs map-pass "$@"
 }
 
 run_map() {
@@ -59,10 +59,10 @@ run_map() {
         wait_sec=$((wait_sec + 1))
       fi
       echo "[bbr:map] rate limited — waiting ${wait_sec}s (attempt $((attempt + 1))/${max_attempts})" >&2
-      node scripts/bbrObservability.cjs map-activity --activity=rate_limit_wait --until-sec="${wait_sec}" || true
+      node scripts/bbr/bbrObservability.cjs map-activity --activity=rate_limit_wait --until-sec="${wait_sec}" || true
       obs_map_event --pass="${MAP_CURRENT_PASS:-map}" --label="rate-limit-wait" --rate-limit --total="${MAP_TOTAL_STEPS}" || true
       sleep "${wait_sec}"
-      node scripts/bbrObservability.cjs map-activity --activity=firecrawl_map || true
+      node scripts/bbr/bbrObservability.cjs map-activity --activity=firecrawl_map || true
       attempt=$((attempt + 1))
       continue
     fi
@@ -78,7 +78,7 @@ run_map_step() {
   local label="$2"
   shift 2
   local start=$SECONDS
-  node scripts/bbrObservability.cjs map-activity --activity=firecrawl_map || true
+  node scripts/bbr/bbrObservability.cjs map-activity --activity=firecrawl_map || true
   if run_map "$@"; then
     local ms=$(( (SECONDS - start) * 1000 ))
     obs_map_event --pass="${pass}" --label="${label}" --ok --ms="${ms}" --total="${MAP_TOTAL_STEPS}"
@@ -124,8 +124,8 @@ if ! firecrawl --status >/dev/null 2>&1; then
 fi
 
 MAP_TOTAL_STEPS=${MAP_BASE_STEPS}
-node scripts/bbrObservability.cjs map-init
-node -e "require('./scripts/bbrObservability.cjs').patchMapProgress({ mapPid: ${BBR_MAP_SHELL_PID:-$$} })" || true
+node scripts/bbr/bbrObservability.cjs map-init
+node -e "require('./scripts/bbr/bbrObservability.cjs').patchMapProgress({ mapPid: ${BBR_MAP_SHELL_PID:-$$} })" || true
 echo "[bbr:map] progress → .firecrawl/bbr-map-progress.json (bun run bbr:status)"
 
 MAP_CURRENT_PASS="B"
@@ -157,7 +157,7 @@ wait_all_map_jobs
 
 MAP_CURRENT_PASS="D"
 echo "[bbr:map] Pass D — interim seeds + deep player subtrees..."
-bun run scripts/mergeBbrUrlMap.ts --interim
+bun run scripts/bbr/mergeBbrUrlMap.ts --interim
 PASS_D_COUNT=1
 if [[ -f "${SCRATCH}/map-pass-d-seeds.txt" ]]; then
   PASS_D_COUNT=$(grep -c . "${SCRATCH}/map-pass-d-seeds.txt" || echo 1)
@@ -167,14 +167,14 @@ obs_map_pass --pass=D --total="${MAP_TOTAL_STEPS}"
 if [[ -f "${SCRATCH}/map-pass-d-seeds.txt" ]]; then
   while IFS= read -r seed_url; do
     [[ -z "${seed_url}" ]] && continue
-    hash=$(printf '%s' "${seed_url}" | md5sum 2>/dev/null | cut -c1-8 || printf '%s' "${seed_url}" | md5 | cut -c1-8)
+    hash=$(printf '%s' "${seed_url}" | md5sum 2>/dev/null | cut -c1-8 || printf '%s' "${seed_url}" | md5 -r 2>/dev/null | cut -c1-8)
     run_map_step_async D "deep:${hash}" "${seed_url}" --limit 500 -o "${SCRATCH}/map-deep-${hash}.txt" || true
   done < "${SCRATCH}/map-pass-d-seeds.txt"
   wait_all_map_jobs
 fi
 
 echo "[bbr:map] merging scratchpad..."
-bun run scripts/mergeBbrUrlMap.ts
-node scripts/bbrObservability.cjs map-done
+bun run scripts/bbr/mergeBbrUrlMap.ts
+node scripts/bbr/bbrObservability.cjs map-done
 
 echo "[bbr:map] complete. Run: bun run bbr:status"

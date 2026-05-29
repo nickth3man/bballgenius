@@ -18,22 +18,22 @@ echo ""
 
 for (( c = 1; c <= CYCLES; c++ )); do
   echo "────────── observe cycle ${c}/${CYCLES} ──────────"
-  node scripts/bbrObservability.cjs map-cancel || true
+  node scripts/bbr/bbrObservability.cjs map-cancel || true
   sleep 1
 
   export BBR_OBSERVE_CYCLE="${c}"
   LOG="${LOG_DIR}/bbr-map-run-cycle-${c}.log"
   export BBR_MAP_RUN_LOG="${LOG}"
-  BBR_MAP_DELAY_SEC="${DELAY}" bash scripts/buildBbrUrlMap.sh >> "${LOG}" 2>&1 &
+  BBR_MAP_DELAY_SEC="${DELAY}" bash scripts/bbr/buildBbrUrlMap.sh >> "${LOG}" 2>&1 &
   map_pid=$!
   echo "[bbr:observe] map pid=${map_pid} (cycle ${c})"
 
   sleep "${WAIT_SEC}"
 
-  bun run bbr:status || node scripts/bbrObservability.cjs status
-  node scripts/bbrObservability.cjs map-snapshot --cycle="${c}"
+  bun run bbr:status || node scripts/bbr/bbrObservability.cjs status
+  node scripts/bbr/bbrObservability.cjs map-snapshot --cycle="${c}"
 
-  node scripts/bbrObservability.cjs map-cancel || true
+  node scripts/bbr/bbrObservability.cjs map-cancel || true
   kill "${map_pid}" 2>/dev/null || true
   sleep 1
   kill -9 "${map_pid}" 2>/dev/null || true

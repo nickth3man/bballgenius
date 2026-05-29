@@ -16,7 +16,7 @@
  * (`bun run chatbot:matrix`). This script remains for broad multi-run loop testing.
  *
  * Usage:
- *   bun run src/chatbot/scripts/iterate_loop.ts   (or: bun run chatbot:iterate)
+ *   bun run scripts/eval/iterate_loop.ts   (or: bun run chatbot:iterate)
  *
  * Useful env vars:
  *   RUNS_PER_QUESTION=3
@@ -38,16 +38,30 @@ import {
 } from 'node:fs';
 import { basename, extname, join, relative } from 'node:path';
 import { HumanMessage, SystemMessage } from '@langchain/core/messages';
-import { resetGraph } from '../agent/graph.js';
-import { streamQuery } from '../agent/streaming.js';
-import { closeDb, initDb } from '../db.js';
-import { getModel } from '../openrouter.js';
-import { buildSystemPrompt } from '../systemPrompt.js';
+import { resetGraph } from '../../src/tabs/chatbot/agent/graph.js';
+import { type StreamEvent, streamQuery } from '../../src/tabs/chatbot/agent/streaming.js';
+import { closeDb, initDb } from '../../src/tabs/chatbot/db.js';
+import {
+  type ExpectedAnswer,
+  type ExpectedKind,
+  QUESTIONS,
+  type Question,
+} from '../../src/tabs/chatbot/eval/iterate-questions.js';
+import { getModel } from '../../src/tabs/chatbot/openrouter.js';
+import { buildSystemPrompt } from '../../src/tabs/chatbot/systemPrompt.js';
+import {
+  countOccurrences,
+  detectDuplicateFinalAnswer,
+  normalizeNumeric,
+  normalizeText,
+} from './shared/index.js';
+
+export { countOccurrences, detectDuplicateFinalAnswer, normalizeNumeric, normalizeText };
 
 const DEFAULT_TOTAL_TIMEOUT_MS = 5 * 60 * 1000;
-const DEFAULT_RUN_TIMEOUT_MS = 90 * 1000;
-const DEFAULT_RUNS_PER_QUESTION = 3;
-const DEFAULT_MAX_TOOL_CALLS = 18;
+const DEFAULT_RUN_TIMEOUT_MS = envInt('EVAL_TIMEOUT_MS', envInt('RUN_TIMEOUT_MS', 90 * 1000));
+const DEFAULT_RUNS_PER_QUESTION = envInt('EVAL_RUNS_PER_QUESTION', envInt('RUNS_PER_QUESTION', 3));
+const DEFAULT_MAX_TOOL_CALLS = envInt('EVAL_MAX_TOOL_CALLS', envInt('MAX_TOOL_CALLS', 18));
 
 const TOTAL_TIMEOUT_MS = envInt('TOTAL_TIMEOUT_MS', DEFAULT_TOTAL_TIMEOUT_MS);
 const RUN_TIMEOUT_MS = envInt('RUN_TIMEOUT_MS', DEFAULT_RUN_TIMEOUT_MS);
@@ -57,9 +71,21 @@ const EXIT_NONZERO_ON_FAIL = envBool('EXIT_NONZERO_ON_FAIL', true);
 const SECRET_SCAN = envBool('SECRET_SCAN', true);
 const LOG_ROOT = process.env.LOG_DIR || '.runs/nba-chatbot';
 
-const TAB = '  ';
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
 
-type ExpectedKind = 'contains' | 'numeric_contains' | 'clarification' | 'not_available';
+const ACTIVE_QUESTIONS = shuffle(QUESTIONS).slice(
+  0,
+  envInt('EVAL_QUESTION_LIMIT', QUESTIONS.length),
+);
+
+const TAB = '  ';
 
 type FailureCategory =
   | 'pass'
@@ -78,14 +104,6 @@ type FailureCategory =
   | 'missing_final_answer'
   | 'evaluator_error'
   | 'unknown';
-
-interface Question {
-  id: string;
-  q: string;
-  expected: string;
-  expectedKind: ExpectedKind;
-  tier: string;
-}
 
 interface ToolTrace {
   index: number;
@@ -177,714 +195,6 @@ interface SuiteSummary {
     stopReason: string;
   }>;
 }
-
-interface StreamEvent {
-  type: string;
-  [key: string]: unknown;
-}
-
-const QUESTIONS: Question[] = [
-  {
-    id: 'new-001',
-    q: 'Who scored the most total points in the 2022-23 NBA regular season?',
-    expected: 'Jayson Tatum',
-    expectedKind: 'contains',
-    tier: 'season_leaders',
-  },
-  {
-    id: 'new-002',
-    q: 'Who had the most total rebounds in the 2018-19 NBA regular season?',
-    expected: 'rebounds',
-    expectedKind: 'contains',
-    tier: 'data_quality',
-  },
-  {
-    id: 'new-003',
-    q: 'Who had the most total assists in the 2016-17 NBA regular season?',
-    expected: 'James Harden',
-    expectedKind: 'contains',
-    tier: 'season_leaders',
-  },
-  {
-    id: 'new-004',
-    q: 'Who led the NBA in regular season blocks in 2021-22?',
-    expected: 'blocks',
-    expectedKind: 'contains',
-    tier: 'data_quality',
-  },
-  {
-    id: 'new-005',
-    q: 'Who made the most three-pointers in the 2020-21 NBA regular season?',
-    expected: 'Curry',
-    expectedKind: 'contains',
-    tier: 'season_leaders',
-  },
-  {
-    id: 'new-006',
-    q: "What was Giannis Antetokounmpo's points per game in the 2019-20 season?",
-    expected: 'Giannis',
-    expectedKind: 'contains',
-    tier: 'season_leaders',
-  },
-  {
-    id: 'new-007',
-    q: "What was Joel Embiid's points per game in the 2022-23 season?",
-    expected: 'Embiid',
-    expectedKind: 'contains',
-    tier: 'season_leaders',
-  },
-  {
-    id: 'new-008',
-    q: 'What regular season did Andre Drummond lead the NBA in rebounds per game?',
-    expected: 'Drummond',
-    expectedKind: 'contains',
-    tier: 'data_quality',
-  },
-  {
-    id: 'new-009',
-    q: 'Who averaged the most assists per game in the 2014-15 NBA season?',
-    expected: 'Rondo',
-    expectedKind: 'contains',
-    tier: 'data_quality',
-  },
-  {
-    id: 'new-010',
-    q: 'How many regular season career steals does Chris Paul have?',
-    expected: 'Chris Paul',
-    expectedKind: 'contains',
-    tier: 'career_leaders',
-  },
-  {
-    id: 'new-011',
-    q: 'Who averaged the most blocks per game in the 2019-20 NBA season?',
-    expected: 'Whiteside',
-    expectedKind: 'contains',
-    tier: 'season_leaders',
-  },
-  {
-    id: 'new-012',
-    q: "What was Damian Lillard's points per game in the 2022-23 season?",
-    expected: 'Lillard',
-    expectedKind: 'contains',
-    tier: 'season_leaders',
-  },
-  {
-    id: 'new-013',
-    q: "What was Shai Gilgeous-Alexander's points per game in the 2023-24 season?",
-    expected: 'Shai',
-    expectedKind: 'contains',
-    tier: 'data_quality',
-  },
-  {
-    id: 'new-014',
-    q: "What was Kevin Durant's points per game in the 2013-14 season?",
-    expected: 'Durant',
-    expectedKind: 'contains',
-    tier: 'season_leaders',
-  },
-  {
-    id: 'new-015',
-    q: "What was Chris Paul's assists per game in the 2007-08 season?",
-    expected: 'Chris Paul',
-    expectedKind: 'contains',
-    tier: 'season_leaders',
-  },
-  {
-    id: 'new-016',
-    q: 'How many total points did Luka Doncic score in the 2023-24 regular season?',
-    expected: 'Luka',
-    expectedKind: 'contains',
-    tier: 'season_leaders',
-  },
-  {
-    id: 'new-017',
-    q: 'How many total points did Jayson Tatum score in the 2022-23 regular season?',
-    expected: 'Tatum',
-    expectedKind: 'contains',
-    tier: 'season_leaders',
-  },
-  {
-    id: 'new-018',
-    q: 'How many total rebounds did Wilt Chamberlain have in the 1961-62 regular season?',
-    expected: 'Wilt',
-    expectedKind: 'contains',
-    tier: 'season_leaders',
-  },
-  {
-    id: 'new-019',
-    q: 'How many three-pointers did Stephen Curry make in the 2015-16 regular season?',
-    expected: '402',
-    expectedKind: 'contains',
-    tier: 'season_leaders',
-  },
-  {
-    id: 'new-020',
-    q: 'How many three-pointers did James Harden make in the 2018-19 regular season?',
-    expected: '378',
-    expectedKind: 'contains',
-    tier: 'season_leaders',
-  },
-  {
-    id: 'new-021',
-    q: 'How many three-pointers did Klay Thompson make in the 2022-23 regular season?',
-    expected: '301',
-    expectedKind: 'contains',
-    tier: 'season_leaders',
-  },
-  {
-    id: 'new-022',
-    q: "What was Nikola Jokic's points per game in the 2020-21 season?",
-    expected: 'Nikola',
-    expectedKind: 'contains',
-    tier: 'data_quality',
-  },
-  {
-    id: 'new-023',
-    q: "What was LeBron James's points per game in the 2007-08 season?",
-    expected: 'LeBron',
-    expectedKind: 'contains',
-    tier: 'season_leaders',
-  },
-  {
-    id: 'new-024',
-    q: 'How many regular season career points does Kevin Garnett have?',
-    expected: 'Garnett',
-    expectedKind: 'contains',
-    tier: 'career_leaders',
-  },
-  {
-    id: 'new-025',
-    q: "What was Dwight Howard's rebounds per game in the 2010-11 season?",
-    expected: 'Howard',
-    expectedKind: 'contains',
-    tier: 'season_leaders',
-  },
-  {
-    id: 'new-026',
-    q: "What was Anthony Davis's blocks per game in the 2017-18 season?",
-    expected: 'Davis',
-    expectedKind: 'contains',
-    tier: 'season_leaders',
-  },
-  {
-    id: 'new-027',
-    q: "What was Kawhi Leonard's points per game in the 2016-17 season?",
-    expected: 'Kawhi',
-    expectedKind: 'contains',
-    tier: 'season_leaders',
-  },
-  {
-    id: 'new-028',
-    q: 'How many total assists did Trae Young have in the 2021-22 regular season?',
-    expected: 'Trae',
-    expectedKind: 'contains',
-    tier: 'season_leaders',
-  },
-  {
-    id: 'new-029',
-    q: 'How many total rebounds did Rudy Gobert have in the 2020-21 regular season?',
-    expected: 'Gobert',
-    expectedKind: 'contains',
-    tier: 'season_leaders',
-  },
-  {
-    id: 'new-030',
-    q: 'How many total steals did Chris Paul have in the 2008-09 regular season?',
-    expected: 'Chris Paul',
-    expectedKind: 'contains',
-    tier: 'season_leaders',
-  },
-  {
-    id: 'new-031',
-    q: 'How many wins did the Detroit Pistons have in the 2023-24 regular season?',
-    expected: 'Detroit',
-    expectedKind: 'contains',
-    tier: 'team_seasons',
-  },
-  {
-    id: 'new-032',
-    q: 'Which team had the best SRS in the 1995-96 season according to the database?',
-    expected: 'Chicago',
-    expectedKind: 'contains',
-    tier: 'data_quality',
-  },
-  {
-    id: 'new-033',
-    q: 'How many wins did the 2016-17 Golden State Warriors have?',
-    expected: 'Golden State',
-    expectedKind: 'contains',
-    tier: 'team_seasons',
-  },
-  {
-    id: 'new-034',
-    q: 'What was the Milwaukee Bucks win total in the 2019-20 season?',
-    expected: 'Bucks',
-    expectedKind: 'contains',
-    tier: 'data_quality',
-  },
-  {
-    id: 'new-035',
-    q: 'What was the Phoenix Suns win total in the 2021-22 season?',
-    expected: 'Suns',
-    expectedKind: 'contains',
-    tier: 'data_quality',
-  },
-  {
-    id: 'new-036',
-    q: 'Which team had the most wins in the 2017-18 regular season?',
-    expected: 'Nuggets',
-    expectedKind: 'contains',
-    tier: 'data_quality',
-  },
-  {
-    id: 'new-037',
-    q: 'How many wins did the Oklahoma City Thunder have in the 2023-24 regular season?',
-    expected: 'Oklahoma City',
-    expectedKind: 'contains',
-    tier: 'team_seasons',
-  },
-  {
-    id: 'new-038',
-    q: 'How many wins did the 2014-15 Atlanta Hawks have?',
-    expected: 'Atlanta',
-    expectedKind: 'contains',
-    tier: 'team_seasons',
-  },
-  {
-    id: 'new-039',
-    q: 'Which team had the most regular season wins in the 2012-13 season?',
-    expected: 'wins',
-    expectedKind: 'contains',
-    tier: 'data_quality',
-  },
-  {
-    id: 'new-040',
-    q: 'What was the worst regular season record by wins in the 2011-12 lockout season?',
-    expected: 'wins',
-    expectedKind: 'contains',
-    tier: 'data_quality',
-  },
-  {
-    id: 'new-041',
-    q: 'How many regular season career points does Luka Doncic have?',
-    expected: 'Luka',
-    expectedKind: 'contains',
-    tier: 'career_leaders',
-  },
-  {
-    id: 'new-042',
-    q: 'How many regular season career assists does Chris Paul have?',
-    expected: 'Chris Paul',
-    expectedKind: 'contains',
-    tier: 'career_leaders',
-  },
-  {
-    id: 'new-043',
-    q: 'How many regular season career rebounds does Nikola Jokic have?',
-    expected: 'Jokic',
-    expectedKind: 'contains',
-    tier: 'career_leaders',
-  },
-  {
-    id: 'new-044',
-    q: 'How many triple-doubles did Russell Westbrook have in the 2020-21 regular season?',
-    expected: 'Westbrook',
-    expectedKind: 'contains',
-    tier: 'games',
-  },
-  {
-    id: 'new-045',
-    q: 'How many points did Luka Doncic score in his career-high game?',
-    expected: '73',
-    expectedKind: 'contains',
-    tier: 'games',
-  },
-  {
-    id: 'new-046',
-    q: 'How many points did Joel Embiid score in his career-high game?',
-    expected: '70',
-    expectedKind: 'contains',
-    tier: 'games',
-  },
-  {
-    id: 'new-047',
-    q: 'How many points did Giannis Antetokounmpo score in his career-high game?',
-    expected: '64',
-    expectedKind: 'contains',
-    tier: 'games',
-  },
-  {
-    id: 'new-048',
-    q: 'How many points did Kobe Bryant score in his 81-point game?',
-    expected: '81',
-    expectedKind: 'contains',
-    tier: 'games',
-  },
-  {
-    id: 'new-049',
-    q: 'How many points did Donovan Mitchell score in his 71-point game?',
-    expected: '71',
-    expectedKind: 'contains',
-    tier: 'games',
-  },
-  {
-    id: 'new-050',
-    q: 'How many points did Damian Lillard score in his 71-point game?',
-    expected: '71',
-    expectedKind: 'contains',
-    tier: 'games',
-  },
-  {
-    id: 'new-051',
-    q: 'Who averaged more points per game in the 2022-23 season, Damian Lillard or Shai Gilgeous-Alexander?',
-    expected: 'Damian Lillard',
-    expectedKind: 'contains',
-    tier: 'season_leaders',
-  },
-  {
-    id: 'new-052',
-    q: 'Who had more total rebounds in the 2023-24 season, Nikola Jokic or Anthony Davis?',
-    expected: 'Anthony Davis',
-    expectedKind: 'contains',
-    tier: 'season_leaders',
-  },
-  {
-    id: 'new-053',
-    q: 'Which team won more games in the 2022-23 season, the Denver Nuggets or the Boston Celtics?',
-    expected: 'Boston',
-    expectedKind: 'contains',
-    tier: 'team_seasons',
-  },
-  {
-    id: 'new-054',
-    q: 'Who made more three-pointers in the 2015-16 regular season, Stephen Curry or Klay Thompson?',
-    expected: 'Stephen Curry',
-    expectedKind: 'contains',
-    tier: 'season_leaders',
-  },
-  {
-    id: 'new-055',
-    q: 'Who had more total blocks in the 2023-24 regular season, Victor Wembanyama or Brook Lopez?',
-    expected: 'Victor Wembanyama',
-    expectedKind: 'contains',
-    tier: 'season_leaders',
-  },
-  {
-    id: 'new-056',
-    q: 'How many regular season career points does Russell Westbrook have?',
-    expected: 'Westbrook',
-    expectedKind: 'contains',
-    tier: 'career_leaders',
-  },
-  {
-    id: 'new-057',
-    q: 'Which team had a better SRS in the 2015-16 season, the Golden State Warriors or the San Antonio Spurs?',
-    expected: 'Golden State',
-    expectedKind: 'contains',
-    tier: 'team_seasons',
-  },
-  {
-    id: 'new-058',
-    q: 'Who scored more total points in the 2017-18 regular season, LeBron James or James Harden?',
-    expected: 'LeBron',
-    expectedKind: 'contains',
-    tier: 'season_leaders',
-  },
-  {
-    id: 'new-059',
-    q: 'Who averaged more assists per game in the 2015-16 season, Rajon Rondo or Russell Westbrook?',
-    expected: 'Rajon Rondo',
-    expectedKind: 'contains',
-    tier: 'season_leaders',
-  },
-  {
-    id: 'new-060',
-    q: 'Who has more NBA MVP awards, Michael Jordan or LeBron James?',
-    expected: 'Michael Jordan',
-    expectedKind: 'contains',
-    tier: 'awards',
-  },
-  {
-    id: 'new-061',
-    q: 'Who won the NBA MVP award in the 2022-23 season?',
-    expected: 'Joel Embiid',
-    expectedKind: 'contains',
-    tier: 'awards',
-  },
-  {
-    id: 'new-062',
-    q: 'Who won NBA Rookie of the Year in the 2021-22 season?',
-    expected: 'Scottie Barnes',
-    expectedKind: 'contains',
-    tier: 'awards',
-  },
-  {
-    id: 'new-063',
-    q: 'Who won NBA Defensive Player of the Year in the 2017-18 season?',
-    expected: 'Rudy Gobert',
-    expectedKind: 'contains',
-    tier: 'awards',
-  },
-  {
-    id: 'new-064',
-    q: 'Who won NBA MVP in the 2014-15 season?',
-    expected: 'Stephen Curry',
-    expectedKind: 'contains',
-    tier: 'awards',
-  },
-  {
-    id: 'new-065',
-    q: 'Who won NBA MVP in the 2011-12 season?',
-    expected: 'LeBron James',
-    expectedKind: 'contains',
-    tier: 'awards',
-  },
-  {
-    id: 'new-066',
-    q: 'Who won NBA MVP in the 2010-11 season?',
-    expected: 'Derrick Rose',
-    expectedKind: 'contains',
-    tier: 'awards',
-  },
-  {
-    id: 'new-067',
-    q: 'Who won NBA MVP in the 2000-01 season?',
-    expected: 'Allen Iverson',
-    expectedKind: 'contains',
-    tier: 'awards',
-  },
-  {
-    id: 'new-068',
-    q: 'Who won NBA Rookie of the Year in the 2003-04 season?',
-    expected: 'LeBron James',
-    expectedKind: 'contains',
-    tier: 'awards',
-  },
-  {
-    id: 'new-069',
-    q: 'How many NBA MVP awards has LeBron James won?',
-    expected: '4',
-    expectedKind: 'contains',
-    tier: 'awards',
-  },
-  {
-    id: 'new-070',
-    q: 'Who won NBA Defensive Player of the Year in the 2020-21 season?',
-    expected: 'Rudy Gobert',
-    expectedKind: 'contains',
-    tier: 'awards',
-  },
-  {
-    id: 'new-071',
-    q: 'What draft position was Stephen Curry selected in the 2009 NBA draft?',
-    expected: '7',
-    expectedKind: 'contains',
-    tier: 'draft',
-  },
-  {
-    id: 'new-072',
-    q: 'What year was Giannis Antetokounmpo drafted?',
-    expected: '2013',
-    expectedKind: 'contains',
-    tier: 'draft',
-  },
-  {
-    id: 'new-073',
-    q: 'Which team drafted Kevin Durant in the 2007 NBA draft?',
-    expected: 'Seattle',
-    expectedKind: 'contains',
-    tier: 'draft',
-  },
-  {
-    id: 'new-074',
-    q: 'Who was selected second overall in the 2022 NBA draft?',
-    expected: 'Chet Holmgren',
-    expectedKind: 'contains',
-    tier: 'draft',
-  },
-  {
-    id: 'new-075',
-    q: 'Who was the first overall pick in the 2022 NBA draft?',
-    expected: 'Paolo Banchero',
-    expectedKind: 'contains',
-    tier: 'draft',
-  },
-  {
-    id: 'new-076',
-    q: 'How many three-point attempts did Stephen Curry take in the 2015-16 regular season?',
-    expected: '886',
-    expectedKind: 'contains',
-    tier: 'season_leaders',
-  },
-  {
-    id: 'new-077',
-    q: 'How many regular season career points does James Harden have?',
-    expected: 'Harden',
-    expectedKind: 'contains',
-    tier: 'career_leaders',
-  },
-  {
-    id: 'new-078',
-    q: 'How many regular season career points does Giannis Antetokounmpo have?',
-    expected: 'Giannis',
-    expectedKind: 'contains',
-    tier: 'career_leaders',
-  },
-  {
-    id: 'new-079',
-    q: "What percentage of LeBron James's made shots were at the rim in the 2023-24 season?",
-    expected: 'LeBron',
-    expectedKind: 'contains',
-    tier: 'shot_charts',
-  },
-  {
-    id: 'new-080',
-    q: 'How many corner three-pointers did Klay Thompson attempt in the 2015-16 season?',
-    expected: 'Klay',
-    expectedKind: 'contains',
-    tier: 'shot_charts',
-  },
-  {
-    id: 'new-081',
-    q: 'Who won the 2024 NBA Finals MVP?',
-    expected: 'not available',
-    expectedKind: 'not_available',
-    tier: 'data_quality',
-  },
-  {
-    id: 'new-082',
-    q: 'Who won the NBA championship in 2023?',
-    expected: 'not available',
-    expectedKind: 'not_available',
-    tier: 'data_quality',
-  },
-  {
-    id: 'new-083',
-    q: 'How many All-Star selections does LeBron James have?',
-    expected: '22',
-    expectedKind: 'contains',
-    tier: 'data_quality',
-  },
-  {
-    id: 'new-084',
-    q: 'How many regular season career points does Bob Cousy have?',
-    expected: 'Bob Cousy',
-    expectedKind: 'contains',
-    tier: 'career_leaders',
-  },
-  {
-    id: 'new-085',
-    q: 'How many regular season career points does Jerry West have?',
-    expected: 'Jerry West',
-    expectedKind: 'contains',
-    tier: 'career_leaders',
-  },
-  {
-    id: 'new-086',
-    q: 'How many MVP awards did Bill Russell win?',
-    expected: '5',
-    expectedKind: 'contains',
-    tier: 'awards',
-  },
-  {
-    id: 'new-087',
-    q: 'Does the database have a player named John Smith?',
-    expected: 'not',
-    expectedKind: 'contains',
-    tier: 'identity',
-  },
-  {
-    id: 'new-088',
-    q: 'How many regular season career points does Dwyane Wade have?',
-    expected: 'Wade',
-    expectedKind: 'contains',
-    tier: 'career_leaders',
-  },
-  {
-    id: 'new-089',
-    q: 'How many points per game did Michael Jordan average in the 1994-95 regular season?',
-    expected: 'Jordan',
-    expectedKind: 'contains',
-    tier: 'season_leaders',
-  },
-  {
-    id: 'new-090',
-    q: "How many regular season career points does Shaquille O'Neal have?",
-    expected: 'Shaq',
-    expectedKind: 'contains',
-    tier: 'career_leaders',
-  },
-  {
-    id: 'new-091',
-    q: 'Who is the best player in the NBA?',
-    expected: 'clarification',
-    expectedKind: 'clarification',
-    tier: 'data_quality',
-  },
-  {
-    id: 'new-092',
-    q: 'Which team is better?',
-    expected: 'clarification',
-    expectedKind: 'clarification',
-    tier: 'data_quality',
-  },
-  {
-    id: 'new-093',
-    q: 'Tell me about LeBron.',
-    expected: 'clarification',
-    expectedKind: 'clarification',
-    tier: 'data_quality',
-  },
-  {
-    id: 'new-094',
-    q: 'What was the best season ever?',
-    expected: 'clarification',
-    expectedKind: 'clarification',
-    tier: 'data_quality',
-  },
-  {
-    id: 'new-095',
-    q: 'How good was Jordan?',
-    expected: 'clarification',
-    expectedKind: 'clarification',
-    tier: 'data_quality',
-  },
-  {
-    id: 'new-096',
-    q: 'How many points did LeBron James score in the 2023 playoffs?',
-    expected: 'LeBron',
-    expectedKind: 'contains',
-    tier: 'games',
-  },
-  {
-    id: 'new-097',
-    q: 'Who won the NBA MVP award in the 2018-19 season?',
-    expected: 'Giannis Antetokounmpo',
-    expectedKind: 'contains',
-    tier: 'awards',
-  },
-  {
-    id: 'new-098',
-    q: "What is Nikola Jokic's career regular season assist total?",
-    expected: 'Jokic',
-    expectedKind: 'contains',
-    tier: 'career_leaders',
-  },
-  {
-    id: 'new-099',
-    q: "What is Michael Jordan's career regular season free throw percentage?",
-    expected: 'Jordan',
-    expectedKind: 'contains',
-    tier: 'career_leaders',
-  },
-  {
-    id: 'new-100',
-    q: "What is LeBron James's career regular season field goal percentage?",
-    expected: 'LeBron',
-    expectedKind: 'contains',
-    tier: 'career_leaders',
-  },
-];
 
 const TEST_MODE_PROMPT_SUFFIX = `
 You are running in deterministic test mode.
@@ -997,20 +307,6 @@ function toJsonSafe(value: unknown): unknown {
 
 function jsonLine(value: unknown): string {
   return `${JSON.stringify(toJsonSafe(value))}\n`;
-}
-
-function normalizeText(value: string): string {
-  return value
-    .toLowerCase()
-    .replace(/[’‘]/g, "'")
-    .replace(/[“”]/g, '"')
-    .replace(/[^a-z0-9.'"-]+/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-function normalizeNumeric(value: string): string {
-  return value.replace(/[^\d.-]+/g, '');
 }
 
 function compact(value: string, max = 240): string {
@@ -1204,74 +500,55 @@ function classifyToolOutput(
   return {};
 }
 
-function detectDuplicateFinalAnswer(
-  answer: string,
-  expected: string,
-): {
-  duplicate: boolean;
-  evidence?: string;
-} {
-  const normalized = normalizeText(answer);
-  if (!normalized) return { duplicate: false };
-
-  const expectedNorm = normalizeText(expected);
-  if (expectedNorm && expectedNorm !== 'clarification' && expectedNorm !== 'not available') {
-    const expectedMentions = countOccurrences(normalized, expectedNorm);
-    if (expectedMentions >= 4) {
-      return {
-        duplicate: true,
-        evidence: `expected token "${expected}" appears ${expectedMentions} times`,
-      };
-    }
-  }
-
-  const sentences = answer
-    .split(/(?<=[.!?])\s+/)
-    .map((s) => normalizeText(s))
-    .filter((s) => s.length >= 30);
-
-  const counts = new Map<string, number>();
-  for (const sentence of sentences) {
-    const count = (counts.get(sentence) || 0) + 1;
-    counts.set(sentence, count);
-    if (count >= 3) {
-      return {
-        duplicate: true,
-        evidence: `sentence repeated ${count} times: ${sentence.slice(0, 100)}`,
-      };
-    }
-  }
-
-  const paragraphs = answer
-    .split(/\n{2,}/)
-    .map((p) => normalizeText(p))
-    .filter((p) => p.length >= 40);
-
-  const paragraphCounts = new Map<string, number>();
-  for (const paragraph of paragraphs) {
-    const count = (paragraphCounts.get(paragraph) || 0) + 1;
-    paragraphCounts.set(paragraph, count);
-    if (count >= 2) {
-      return {
-        duplicate: true,
-        evidence: `paragraph repeated ${count} times: ${paragraph.slice(0, 100)}`,
-      };
-    }
-  }
-
-  return { duplicate: false };
+function canonicalToString(canonical: ExpectedAnswer['canonical']): string {
+  if (typeof canonical === 'string') return canonical;
+  if (typeof canonical === 'number') return String(canonical);
+  return canonical.join(', ');
 }
 
-function countOccurrences(haystack: string, needle: string): number {
-  if (!needle) return 0;
-  let count = 0;
-  let index = 0;
-  while (true) {
-    const found = haystack.indexOf(needle, index);
-    if (found === -1) return count;
-    count++;
-    index = found + needle.length;
+function stripDiacritics(value: string): string {
+  return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+function answerMatchesEntity(normalizedAnswer: string, expected: ExpectedAnswer): boolean {
+  if (!expected.entity) return true;
+  const candidates = [expected.entity, ...(expected.aliases ?? [])];
+  return candidates.some((e) => normalizedAnswer.includes(normalizeText(e)));
+}
+
+function answerMatchesValue(
+  answer: string,
+  expected: ExpectedAnswer,
+  validation: Question['validation'],
+): boolean {
+  if (expected.value == null) return true;
+  const expectedStr = String(expected.value);
+  const expectedNum = Number(expected.value);
+
+  if (validation.mode === 'numeric_tolerance') {
+    const tolerance = validation.tolerance ?? 0.1;
+    const answerNums = answer.match(/\d+\.?\d*/g) ?? [];
+    return answerNums.some((n) => Math.abs(Number.parseFloat(n) - expectedNum) <= tolerance);
   }
+
+  if (validation.mode === 'numeric_exact') {
+    const answerNumeric = normalizeNumeric(answer);
+    const expectedNumeric = normalizeNumeric(expectedStr);
+    return answerNumeric.includes(expectedNumeric);
+  }
+
+  const answerNumeric = normalizeNumeric(answer);
+  const expectedNumeric = normalizeNumeric(expectedStr);
+  if (answerNumeric.includes(expectedNumeric)) return true;
+
+  if (expected.acceptedAnswers?.length) {
+    const normalizedAnswer = normalizeText(answer);
+    return expected.acceptedAnswers.some((a) =>
+      normalizedAnswer.includes(normalizeText(String(a))),
+    );
+  }
+
+  return false;
 }
 
 function evaluateAnswer(params: {
@@ -1283,9 +560,10 @@ function evaluateAnswer(params: {
   recursionLimitHit: boolean;
 }): RunTrace['evaluator'] {
   const { question, answer, toolCalls, timeout, error, recursionLimitHit } = params;
+  const expectedStr = canonicalToString(question.expected.canonical);
   const normalizedActual = normalizeText(answer);
-  const normalizedExpected = normalizeText(question.expected);
-  const duplicate = detectDuplicateFinalAnswer(answer, question.expected);
+  const normalizedExpected = normalizeText(expectedStr);
+  const duplicate = detectDuplicateFinalAnswer(answer, expectedStr);
 
   if (timeout) {
     return {
@@ -1383,15 +661,20 @@ function evaluateAnswer(params: {
     };
   }
 
-  if (question.expectedKind === 'clarification') {
-    const passed =
-      /\b(clarify|clarification|specific|specify|which|what scope|regular season|playoffs|season|player|team)\b/i.test(
+  if (question.expectedKind === 'clarification_required') {
+    const criteria = question.validation.clarificationCriteria ?? [];
+    const hasQuestionMark = /\?/.test(answer);
+    const hasClarificationKeywords =
+      /\b(clarify|clarification|specific|specify|which|what scope|regular season|playoffs|season|player|team|metric|what do you mean)\b/i.test(
         answer,
-      ) && /\?/.test(answer);
+      );
+    const passed = hasQuestionMark && hasClarificationKeywords;
 
     return {
       passed,
-      verdict: passed ? 'Asked for clarification.' : 'Expected a clarification question.',
+      verdict: passed
+        ? `Asked for clarification.${criteria.length ? ` Criteria: ${criteria.join('; ')}` : ''}`
+        : 'Expected a clarification question.',
       failureCategory: passed ? 'pass' : 'no_clarification',
       duplicateFinalAnswer: false,
       normalizedExpected,
@@ -1417,21 +700,137 @@ function evaluateAnswer(params: {
     };
   }
 
-  if (question.expectedKind === 'numeric_contains') {
-    const actualNumeric = normalizeNumeric(answer);
-    const expectedNumeric = normalizeNumeric(question.expected);
-    const passed = actualNumeric.includes(expectedNumeric);
+  if (question.expectedKind === 'negative_identity_exact') {
+    const hasNegation =
+      /\b(no|not|does not|doesn't|is not|isn't|cannot|can't|could not|couldn't)\b/i.test(answer);
+    const acceptedPhrases = question.expected.acceptedAnswers ?? [
+      'no',
+      'does not',
+      'not found',
+      'no player',
+    ];
+    const hasAccepted = acceptedPhrases.some((p) => lower.includes(String(p).toLowerCase()));
+    const passed = hasNegation || hasAccepted;
 
     return {
       passed,
       verdict: passed
-        ? 'Expected numeric answer found.'
-        : `Expected numeric answer ${question.expected}.`,
+        ? 'Correctly reported negative identity.'
+        : 'Expected negative identity response.',
+      failureCategory: passed ? 'pass' : 'wrong_answer',
+      duplicateFinalAnswer: false,
+      normalizedExpected,
+      normalizedActual,
+    };
+  }
+
+  if (question.expectedKind === 'entity_exact') {
+    const normalizedAnswer = stripDiacritics(normalizedActual);
+    const candidates = [
+      question.expected.entity ?? expectedStr,
+      ...(question.expected.aliases ?? []),
+      ...(question.expected.acceptedAnswers?.map(String) ?? []),
+    ].map((c) => stripDiacritics(normalizeText(c)));
+
+    const passed = candidates.some((c) => normalizedAnswer.includes(c));
+
+    return {
+      passed,
+      verdict: passed
+        ? 'Expected entity found.'
+        : `Expected entity "${question.expected.entity ?? expectedStr}" not found.`,
       failureCategory: passed
         ? 'pass'
         : lower.includes('not available')
           ? 'refused'
           : 'wrong_answer',
+      duplicateFinalAnswer: false,
+      normalizedExpected,
+      normalizedActual,
+    };
+  }
+
+  if (
+    question.expectedKind === 'numeric_exact' ||
+    question.expectedKind === 'numeric_with_tolerance'
+  ) {
+    const passed = answerMatchesValue(answer, question.expected, question.validation);
+
+    return {
+      passed,
+      verdict: passed
+        ? 'Expected numeric answer found.'
+        : `Expected numeric answer ${expectedStr}.`,
+      failureCategory: passed
+        ? 'pass'
+        : lower.includes('not available')
+          ? 'refused'
+          : 'wrong_answer',
+      duplicateFinalAnswer: false,
+      normalizedExpected,
+      normalizedActual,
+    };
+  }
+
+  if (question.expectedKind === 'entity_with_value') {
+    const entityOk = answerMatchesEntity(normalizedActual, question.expected);
+    const valueOk = answerMatchesValue(answer, question.expected, question.validation);
+    const passed = entityOk && valueOk;
+
+    return {
+      passed,
+      verdict: passed
+        ? 'Expected entity and value found.'
+        : !entityOk && !valueOk
+          ? `Expected "${expectedStr}" (entity and value not found).`
+          : !entityOk
+            ? `Expected entity "${question.expected.entity}" not found.`
+            : `Expected value "${question.expected.value}" not found.`,
+      failureCategory: passed
+        ? 'pass'
+        : lower.includes('not available')
+          ? 'refused'
+          : 'wrong_answer',
+      duplicateFinalAnswer: false,
+      normalizedExpected,
+      normalizedActual,
+    };
+  }
+
+  if (question.expectedKind === 'comparison') {
+    const entityOk = answerMatchesEntity(normalizedActual, question.expected);
+    const passed = entityOk;
+
+    return {
+      passed,
+      verdict: passed
+        ? 'Expected comparison winner found.'
+        : `Expected comparison winner "${question.expected.entity}" not found.`,
+      failureCategory: passed
+        ? 'pass'
+        : lower.includes('not available')
+          ? 'refused'
+          : 'wrong_answer',
+      duplicateFinalAnswer: false,
+      normalizedExpected,
+      normalizedActual,
+    };
+  }
+
+  if (question.expectedKind === 'set_exact') {
+    const requiredItems = question.expected.acceptedAnswers?.map(String) ?? [];
+    const normalizedAnswer = stripDiacritics(normalizedActual);
+    const foundCount = requiredItems.filter((item) =>
+      normalizedAnswer.includes(stripDiacritics(normalizeText(item))),
+    ).length;
+    const passed = foundCount === requiredItems.length;
+
+    return {
+      passed,
+      verdict: passed
+        ? 'All expected set items found.'
+        : `Found ${foundCount}/${requiredItems.length} expected set items.`,
+      failureCategory: passed ? 'pass' : 'wrong_answer',
       duplicateFinalAnswer: false,
       normalizedExpected,
       normalizedActual,
@@ -1444,7 +843,7 @@ function evaluateAnswer(params: {
     passed,
     verdict: passed
       ? 'Expected answer found.'
-      : `Expected answer token "${question.expected}" not found.`,
+      : `Expected answer token "${expectedStr}" not found.`,
     failureCategory: passed ? 'pass' : lower.includes('not available') ? 'refused' : 'wrong_answer',
     duplicateFinalAnswer: false,
     normalizedExpected,
@@ -1465,7 +864,7 @@ function makeRunTrace(params: {
     threadId: `iterate-${runId}`,
     questionId: params.q.id,
     question: params.q.q,
-    expected: params.q.expected,
+    expected: canonicalToString(params.q.expected.canonical),
     expectedKind: params.q.expectedKind,
     tier: params.q.tier,
     model: params.model,
@@ -1676,7 +1075,8 @@ async function streamQuestion(params: {
         }
 
         default: {
-          if (event.type) trace.nodeTransitions.push(`event:${event.type}`);
+          const evtType = (event as { type?: string }).type;
+          if (evtType) trace.nodeTransitions.push(`event:${evtType}`);
           break;
         }
       }
@@ -1917,13 +1317,13 @@ async function main(): Promise<void> {
     const modelId = getModel();
 
     writeLine();
-    writeLine(`┌─ ${modelId} — ${RUNS_PER_QUESTION} runs × ${QUESTIONS.length} questions`);
+    writeLine(`┌─ ${modelId} — ${RUNS_PER_QUESTION} runs × ${ACTIVE_QUESTIONS.length} questions`);
     writeLine(`├─ timeout: ${TOTAL_TIMEOUT_MS / 1000}s wall, ${RUN_TIMEOUT_MS / 1000}s per run`);
     writeLine(`├─ max tool calls per run: ${MAX_TOOL_CALLS}`);
     writeLine(`└${'─'.repeat(70)}`);
     writeLine();
 
-    for (const q of QUESTIONS) {
+    for (const q of ACTIVE_QUESTIONS) {
       if (Date.now() >= suiteDeadline) {
         writeLine(`⏰ Wall timeout — stopping before ${q.id}`);
         break;
@@ -1995,7 +1395,7 @@ async function main(): Promise<void> {
     }
 
     const elapsedSec = Math.round((Date.now() - suiteStartMs) / 1000);
-    const totalExpected = QUESTIONS.length * RUNS_PER_QUESTION;
+    const totalExpected = ACTIVE_QUESTIONS.length * RUNS_PER_QUESTION;
     const allPassed = totalAttempted === totalExpected && totalPassed === totalAttempted;
 
     const summary: SuiteSummary = {

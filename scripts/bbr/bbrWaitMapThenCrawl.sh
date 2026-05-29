@@ -58,5 +58,5 @@ if [[ -z "${FIRECRAWL_API_KEY:-}" ]]; then
 fi
 
 export BBR_CRAWL_CONCURRENCY="${BBR_CRAWL_CONCURRENCY:-2}"
-bash scripts/bbrPreflightCrawl.sh
-exec node scripts/takeBbrScreenshots.cjs 2>&1 | tee "${LOG}"
+bash scripts/bbr/bbrPreflightCrawl.sh
+exec node scripts/bbr/takeBbrScreenshots.cjs 2>&1 | tee "${LOG}"

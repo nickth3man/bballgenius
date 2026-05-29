@@ -25,7 +25,7 @@ if [ "${UPDATE_SNAPSHOTS:-}" = "1" ]; then
 fi
 
 # Belt-and-suspenders: fail on any Biome warning even if individual rules are "warn"
-lint_out="$(bunx biome lint src scripts --max-diagnostics=500 2>&1)" || lint_ec=$?
+lint_out="$(bunx biome lint src scripts/bbr scripts/ci scripts/eval scripts/dev --max-diagnostics=500 2>&1)" || lint_ec=$?
 printf '%s\n' "$lint_out"
 if printf '%s\n' "$lint_out" | rg -q 'Found [1-9][0-9]* warning'; then
   echo "::error::Biome reported warnings (CI requires zero warnings)"

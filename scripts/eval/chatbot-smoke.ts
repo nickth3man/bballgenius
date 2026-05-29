@@ -23,11 +23,12 @@
 
 import { existsSync, readFileSync } from 'node:fs';
 import { HumanMessage, SystemMessage } from '@langchain/core/messages';
-import { getChatbotGraph } from '../src/chatbot/agent/graph.js';
-import { closeDb, initDb } from '../src/chatbot/db.js';
-import { NBA_100_QUERIES } from '../src/chatbot/eval/nba-100-queries.js';
-import { setModel } from '../src/chatbot/openrouter.js';
-import { buildSystemPrompt } from '../src/chatbot/systemPrompt.js';
+import { getChatbotGraph } from '../../src/tabs/chatbot/agent/graph.js';
+import { closeDb, initDb } from '../../src/tabs/chatbot/db.js';
+import { NBA_100_QUERIES } from '../../src/tabs/chatbot/eval/nba-100-queries.js';
+import { setModel } from '../../src/tabs/chatbot/openrouter.js';
+import { buildSystemPrompt } from '../../src/tabs/chatbot/systemPrompt.js';
+import { ANSI, normalizeNumbers, withTimeout } from './shared/index.js';
 
 interface RawTestCase {
   id: string;
@@ -56,32 +57,6 @@ interface TestResult {
   passed: boolean;
   reasons: string[];
   error?: string;
-}
-
-const BOLD = '\x1b[1m';
-const GREEN = '\x1b[32m';
-const RED = '\x1b[31m';
-const YELLOW = '\x1b[33m';
-const RESET = '\x1b[0m';
-const DIM = '\x1b[2m';
-
-function withTimeout<T>(promise: Promise<T>, timeoutMs: number, label: string): Promise<T> {
-  return new Promise<T>((resolve, reject) => {
-    const timer = setTimeout(() => {
-      reject(new Error(`${label} timed out after ${timeoutMs}ms`));
-    }, timeoutMs);
-
-    promise.then(
-      (value) => {
-        clearTimeout(timer);
-        resolve(value);
-      },
-      (error: unknown) => {
-        clearTimeout(timer);
-        reject(error);
-      },
-    );
-  });
 }
 
 function extractKeywords(expectedAnswer: Record<string, unknown>): string[] {
@@ -179,10 +154,6 @@ function load100QuerySuite(): TestCase[] {
   }));
 }
 
-function normalizeNumbers(s: string): string {
-  return s.replace(/,/g, '');
-}
-
 function hasLeakedControlText(answer: string): boolean {
   return /<\|(?:channel|message|start|end|call)\|>|to=(?:container\.exec|repo_browser|duckdb)|\{"cmd":\[/i.test(
     answer,
@@ -257,17 +228,21 @@ async function main(): Promise<void> {
   const isDryRun = process.env.DRY_RUN === '1';
   const suite = process.env.CHATBOT_SMOKE_SUITE || 'facts';
   const limit = process.env.CHATBOT_SMOKE_LIMIT ? Number(process.env.CHATBOT_SMOKE_LIMIT) : null;
-  const perCaseTimeoutMs = Number(process.env.CHATBOT_SMOKE_TIMEOUT_MS || 120_000);
+  const perCaseTimeoutMs = Number(
+    process.env.EVAL_TIMEOUT_MS || process.env.CHATBOT_SMOKE_TIMEOUT_MS || 120_000,
+  );
 
   if (!isDryRun && !process.env.OPENROUTER_API_KEY) {
-    console.error(`${RED}${BOLD}ERROR:${RESET} OPENROUTER_API_KEY is not set.`);
-    console.error(`  ${DIM}Set it or use DRY_RUN=1 to validate structure only.${RESET}`);
+    console.error(`${ANSI.RED}${ANSI.BOLD}ERROR:${ANSI.RESET} OPENROUTER_API_KEY is not set.`);
+    console.error(`  ${ANSI.DIM}Set it or use DRY_RUN=1 to validate structure only.${ANSI.RESET}`);
     process.exit(1);
   }
 
-  const jsonPath = 'src/hub/tests/nba-facts-test-cases.json';
+  const jsonPath = 'src/tests/nba-facts-test-cases.json';
   if (suite === 'facts' && !existsSync(jsonPath)) {
-    console.error(`${RED}${BOLD}ERROR:${RESET} Test cases JSON not found at ${jsonPath}`);
+    console.error(
+      `${ANSI.RED}${ANSI.BOLD}ERROR:${ANSI.RESET} Test cases JSON not found at ${jsonPath}`,
+    );
     process.exit(1);
   }
 
@@ -275,7 +250,7 @@ async function main(): Promise<void> {
   const testCases = limit && limit > 0 ? loadedTestCases.slice(0, limit) : loadedTestCases;
 
   console.log();
-  console.log(`${BOLD}=== BBallGenius Chatbot Smoke Test v3 ===${RESET}`);
+  console.log(`${ANSI.BOLD}=== BBallGenius Chatbot Smoke Test v3 ===${ANSI.RESET}`);
   console.log(`Model:   ${modelId}`);
   console.log(`DB:      ${process.env.NBA_DUCKDB_PATH || '(default)'}`);
   console.log(`Suite:   ${suite}`);
@@ -288,7 +263,7 @@ async function main(): Promise<void> {
     await initDb();
   } catch (e: unknown) {
     console.error(
-      `${RED}${BOLD}FAILED${RESET} to init DB: ${e instanceof Error ? e.message : String(e)}`,
+      `${ANSI.RED}${ANSI.BOLD}FAILED${ANSI.RESET} to init DB: ${e instanceof Error ? e.message : String(e)}`,
     );
     process.exit(1);
   }
@@ -296,10 +271,10 @@ async function main(): Promise<void> {
   let systemPrompt: string;
   try {
     systemPrompt = await buildSystemPrompt();
-    console.log(`${DIM}System prompt: ${systemPrompt.length} chars${RESET}\n`);
+    console.log(`${ANSI.DIM}System prompt: ${systemPrompt.length} chars${ANSI.RESET}\n`);
   } catch (e: unknown) {
     console.error(
-      `${RED}${BOLD}FAILED${RESET} to build prompt: ${e instanceof Error ? e.message : String(e)}`,
+      `${ANSI.RED}${ANSI.BOLD}FAILED${ANSI.RESET} to build prompt: ${e instanceof Error ? e.message : String(e)}`,
     );
     await closeDb();
     process.exit(1);
@@ -307,9 +282,9 @@ async function main(): Promise<void> {
 
   if (isDryRun) {
     console.log(
-      `${GREEN}${BOLD}DRY RUN PASSED${RESET} — ${testCases.length} cases loaded, DB ready.`,
+      `${ANSI.GREEN}${ANSI.BOLD}DRY RUN PASSED${ANSI.RESET} — ${testCases.length} cases loaded, DB ready.`,
     );
-    console.log(`${DIM}Run without DRY_RUN=1 to execute API queries.${RESET}\n`);
+    console.log(`${ANSI.DIM}Run without DRY_RUN=1 to execute API queries.${ANSI.RESET}\n`);
     await closeDb();
     return;
   }
@@ -320,7 +295,7 @@ async function main(): Promise<void> {
     const tc = testCases[i];
     const label = `[${i + 1}/${testCases.length}]`;
 
-    process.stdout.write(`${BOLD}${label} ${tc.category} ${RESET}`);
+    process.stdout.write(`${ANSI.BOLD}${label} ${tc.category} ${ANSI.RESET}`);
     process.stdout.write(`${tc.question.slice(0, 70)}${tc.question.length > 70 ? '...' : ''}\n`);
 
     let result: TestResult;
@@ -387,12 +362,14 @@ async function main(): Promise<void> {
 
       const excerpt = trimmed.length > 120 ? `${trimmed.slice(0, 117)}...` : trimmed;
       console.log(`  Answer: ${excerpt}`);
-      const passStr = passed ? `${GREEN}${BOLD}PASS${RESET}` : `${RED}${BOLD}FAIL${RESET}`;
+      const passStr = passed
+        ? `${ANSI.GREEN}${ANSI.BOLD}PASS${ANSI.RESET}`
+        : `${ANSI.RED}${ANSI.BOLD}FAIL${ANSI.RESET}`;
       console.log(`  ${passStr} (${reasons.join('; ') || 'no issues'})`);
     } catch (e: unknown) {
       const errMsg = e instanceof Error ? e.message : String(e);
       result = { testCase: tc, answer: '', passed: false, reasons: [], error: errMsg };
-      console.log(`  ${YELLOW}ERROR${RESET} ${DIM}${errMsg}${RESET}`);
+      console.log(`  ${ANSI.YELLOW}ERROR${ANSI.RESET} ${ANSI.DIM}${errMsg}${ANSI.RESET}`);
     }
 
     results.push(result);
@@ -404,19 +381,21 @@ async function main(): Promise<void> {
 
   const sep = '='.repeat(40);
   console.log(`\n${sep}`);
-  console.log(`${BOLD}Results: ${passCount}/${total} PASS, ${failCount}/${total} FAIL${RESET}`);
+  console.log(
+    `${ANSI.BOLD}Results: ${passCount}/${total} PASS, ${failCount}/${total} FAIL${ANSI.RESET}`,
+  );
   console.log(sep);
 
   for (const r of results) {
     const status =
       r.passed && !r.error
-        ? `${GREEN}PASS${RESET}`
+        ? `${ANSI.GREEN}PASS${ANSI.RESET}`
         : r.error
-          ? `${RED}ERROR${RESET}`
-          : `${RED}FAIL${RESET}`;
+          ? `${ANSI.RED}ERROR${ANSI.RESET}`
+          : `${ANSI.RED}FAIL${ANSI.RESET}`;
     const kwInfo = r.passed
       ? ''
-      : ` ${DIM}expected: "${r.testCase.expectedKeywords.slice(0, 3).join('", "')}"${RESET}`;
+      : ` ${ANSI.DIM}expected: "${r.testCase.expectedKeywords.slice(0, 3).join('", "')}"${ANSI.RESET}`;
     console.log(`  ${status}  ${r.testCase.id} ${kwInfo}`);
   }
 
@@ -428,6 +407,6 @@ async function main(): Promise<void> {
 }
 
 main().catch((err) => {
-  console.error(`${RED}${BOLD}Fatal:${RESET}`, err);
+  console.error(`${ANSI.RED}${ANSI.BOLD}Fatal:${ANSI.RESET}`, err);
   process.exit(1);
 });

@@ -7,8 +7,8 @@
  * tabIndex: 0 Game Center, 1 Time Machine, 2 SQL Sandbox (default 0)
  */
 import { createTestRenderer } from '@opentui/core/testing';
-import { createAppShell } from '../src/hub/core/appShell.js';
-import { closeDb, initDb } from '../src/hub/core/db.js';
+import { createAppShell } from '../../src/core/appShell.js';
+import { closeDb, initDb } from '../../src/core/db.js';
 
 const tabIndex = Number.parseInt(process.argv[2] ?? '0', 10);
 if (Number.isNaN(tabIndex) || tabIndex < 0 || tabIndex > 2) {
