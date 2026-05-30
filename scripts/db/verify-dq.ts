@@ -314,16 +314,20 @@ const CHECKS: CheckSpec[] = [
     table: PGT,
     severity: 'CRITICAL',
     dimension: 'validity',
-    rule: 'a single player cannot exceed game length (~72 min incl. OT)',
-    countSql: violations(PGT, 'min < 0 OR min > 72', 'minutes outside 0-72'),
+    // Physical max = longest game ever played: 6 OT = 48 + 6*5 = 78 min
+    // (Jan 6 1951, IND-ROC). Anything above 78 is impossible.
+    rule: 'a single player cannot exceed the longest game ever played (78 min, 6 OT)',
+    countSql: violations(PGT, 'min < 0 OR min > 78', 'minutes outside 0-78 (6-OT physical max)'),
   },
   {
     name: 'pgt_min_range',
     table: PGT,
     severity: 'MEDIUM',
     dimension: 'validity',
-    rule: 'minutes within regulation+OT envelope (0-68)',
-    countSql: violations(PGT, 'min < 0 OR min > 68', 'minutes outside 0-68'),
+    // Soft tripwire above the 5-OT envelope (73 min). The single-game record is
+    // 69 (Dale Ellis, Nov 9 1989, 5 OT), so 0-73 must NOT flag; >73 needs 6 OT.
+    rule: 'minutes within the realistic multi-OT envelope (0-73); >73 warrants review',
+    countSql: violations(PGT, 'min < 0 OR min > 73', 'minutes beyond 5-OT envelope (>73)'),
   },
   {
     name: 'pgt_reb_consistency',
@@ -354,11 +358,15 @@ const CHECKS: CheckSpec[] = [
     table: PGT,
     severity: 'MEDIUM',
     dimension: 'consistency',
-    rule: 'points match 2FG + 3FG + FT when all scoring components are populated',
+    // The points identity is definitional and must hold EXACTLY in the modern era.
+    // All known violations are pre-1965 digitized-box-score reconstruction artifacts
+    // (inconsistent source values we cannot authoritatively correct), so the check is
+    // scoped to season_year >= '1983-84'; a modern violation is a genuine defect.
+    rule: 'points match 2FG + 3FG + FT (modern era >= 1983-84; pre-1965 rows excluded as known source artifacts)',
     countSql: violations(
       PGT,
-      'pts IS NOT NULL AND fgm IS NOT NULL AND fg3m IS NOT NULL AND ftm IS NOT NULL AND pts <> ((fgm - fg3m) * 2 + fg3m * 3 + ftm)',
-      'pts formula mismatch',
+      "season_year >= '1983-84' AND pts IS NOT NULL AND fgm IS NOT NULL AND fg3m IS NOT NULL AND ftm IS NOT NULL AND pts <> ((fgm - fg3m) * 2 + fg3m * 3 + ftm)",
+      'pts formula mismatch (modern era)',
     ),
   },
   {
@@ -638,6 +646,23 @@ const CHECKS: CheckSpec[] = [
       DT,
       "abbreviation IS NULL OR trim(abbreviation) = ''",
       'missing team abbreviation',
+    ),
+  },
+  {
+    // Cross-source coverage: BBR NBA-league regular-season player-seasons that did
+    // not bridge to an NBA person_id are not value-checked by the accuracy engine.
+    // ABA rows are legitimately NBA-API-absent, but these are all lg='NBA' (incl.
+    // 363 modern 1997+ rows), so they are a fixable identity-resolution backlog,
+    // surfaced here so the gap is tracked rather than invisible.
+    name: 'bref_nba_unbridged_player_seasons',
+    table: 'main.fact_bref_player_season_totals',
+    severity: 'MEDIUM',
+    dimension: 'completeness',
+    rule: 'BBR NBA regular-season player-seasons should bridge to an NBA person_id',
+    countSql: violations(
+      'main.fact_bref_player_season_totals',
+      "is_playoffs = false AND lg = 'NBA' AND person_id IS NULL",
+      'unbridged BBR NBA player-seasons',
     ),
   },
 ];

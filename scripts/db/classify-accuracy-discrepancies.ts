@@ -34,8 +34,13 @@ await conn.run(`
     canonical_stat VARCHAR,
     rule_name VARCHAR,
     reason VARCHAR,
+    season_min INTEGER,
+    season_max INTEGER,
     created_at TIMESTAMP
   );
+  -- Migrate any pre-existing table to the season-scoped schema (NULL = all seasons).
+  ALTER TABLE audit.discrepancy_known_divergence ADD COLUMN IF NOT EXISTS season_min INTEGER;
+  ALTER TABLE audit.discrepancy_known_divergence ADD COLUMN IF NOT EXISTS season_max INTEGER;
 
   CREATE TABLE IF NOT EXISTS audit.metric_discrepancy_classification (
     run_id TIMESTAMP,
@@ -62,6 +67,23 @@ await conn.run(`
   );
 `);
 
+// Documented, season-scoped known divergences (real NBA data-history facts).
+// Offensive/defensive rebounds were not officially tracked before 1973-74, so any
+// BBR<->NBA ORB/DRB disagreement for those seasons is a known source artifact.
+await conn.run(`
+  DELETE FROM audit.discrepancy_known_divergence
+    WHERE rule_name IN ('pre_1974_orb_untracked', 'pre_1974_drb_untracked');
+  INSERT INTO audit.discrepancy_known_divergence
+    (entity, grain, canonical_stat, rule_name, reason, season_min, season_max, created_at)
+  VALUES
+    ('player','season_totals','ORB','pre_1974_orb_untracked',
+     'Offensive rebounds were not officially tracked before 1973-74; source reconstructions diverge.',
+     NULL, 1973, now()),
+    ('player','season_totals','DRB','pre_1974_drb_untracked',
+     'Defensive rebounds were not officially tracked before 1973-74; source reconstructions diverge.',
+     NULL, 1973, now());
+`);
+
 await conn.run(`
   DELETE FROM audit.metric_discrepancy_classification WHERE run_id = TIMESTAMP '${runId}';
   DELETE FROM audit.accuracy_run_summary WHERE run_id = TIMESTAMP '${runId}';
@@ -85,6 +107,8 @@ await conn.run(`
     ON k.entity = d.entity
    AND k.grain = d.grain
    AND k.canonical_stat = d.canonical_stat
+   AND (k.season_min IS NULL OR d.season >= k.season_min)
+   AND (k.season_max IS NULL OR d.season <= k.season_max)
   WHERE d.beyond_tolerance;
 
   INSERT INTO audit.accuracy_run_summary
