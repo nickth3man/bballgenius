@@ -2,7 +2,7 @@
 # CI guardrails: fail on patterns that weaken the test suite in automation.
 set -euo pipefail
 
-root="$(cd "$(dirname "$0")/.." && pwd)"
+root="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$root"
 
 fail=0

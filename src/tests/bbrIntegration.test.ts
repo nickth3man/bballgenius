@@ -1,10 +1,17 @@
 import { describe, expect, test } from 'bun:test';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { cleanMarkdownText, parseBbrMarkdown } from '../tabs/timeMachine/utils/bbr/bbrParser.js';
 
 describe('Basketball-Reference Integration Parser', () => {
   const firecrawlDir = join(import.meta.dirname, '..', '..', '.firecrawl');
+
+  // These tests replay locally-crawled Basketball-Reference fixtures under
+  // .firecrawl/ (gitignored). When that crawl output is absent — CI runners and
+  // fresh clones — skip them so the suite stays green. They run in full locally
+  // after `bun run bbr:crawl`.
+  const hasFirecrawlFixtures = existsSync(join(firecrawlDir, 'bbr-player-lebron.md'));
+  const fixtureTest = test.skipIf(!hasFirecrawlFixtures);
 
   test('cleanMarkdownText removes markdown formatting', () => {
     expect(cleanMarkdownText('[LeBron James](https://url)')).toBe('LeBron James');
@@ -13,7 +20,7 @@ describe('Basketball-Reference Integration Parser', () => {
     expect(cleanMarkdownText('6-5,\u00a0245lb')).toBe('6-5, 245lb');
   });
 
-  test('parses LeBron James player profile perfectly', () => {
+  fixtureTest('parses LeBron James player profile perfectly', () => {
     const filePath = join(firecrawlDir, 'bbr-player-lebron.md');
     const content = readFileSync(filePath, 'utf-8');
     const data = parseBbrMarkdown(content);
@@ -33,7 +40,7 @@ describe('Basketball-Reference Integration Parser', () => {
     }
   });
 
-  test('parses P.J. Tucker game logs, splits, and shooting', () => {
+  fixtureTest('parses P.J. Tucker game logs, splits, and shooting', () => {
     // 1. Gamelog
     const gamelogPath = join(firecrawlDir, 'bbr-tucker-gamelog-2024.md');
     const gamelogContent = readFileSync(gamelogPath, 'utf-8');
@@ -67,7 +74,7 @@ describe('Basketball-Reference Integration Parser', () => {
     expect(shootingTable!.rows.length).toBeGreaterThan(0);
   });
 
-  test('parses other dynamic categories', () => {
+  fixtureTest('parses other dynamic categories', () => {
     // Career Leaders PTS
     const leadersPath = join(firecrawlDir, 'bbr-leaders-career-pts.md');
     const leadersContent = readFileSync(leadersPath, 'utf-8');
@@ -117,7 +124,7 @@ describe('Basketball-Reference Integration Parser', () => {
     expect(pbpData.title).toContain('Play-By-Play');
   });
 
-  test('bbrScraper builds URLs and fetches cached files offline', async () => {
+  fixtureTest('bbrScraper builds URLs and fetches cached files offline', async () => {
     const { getBbrUrl, fetchBbrPage, fetchBbrGeneralPage, fetchMirroredPage } = await import(
       '../tabs/timeMachine/utils/bbr/bbrScraper.js'
     );
@@ -151,7 +158,7 @@ describe('Basketball-Reference Integration Parser', () => {
     expect(teamsIndex.toLowerCase()).toContain('team');
   });
 
-  test('mirrored store indexes screenshot JSON catalog', async () => {
+  fixtureTest('mirrored store indexes screenshot JSON catalog', async () => {
     const { listMirroredPages, clearMirroredPageCache } = await import(
       '../tabs/timeMachine/utils/bbr/bbrMirroredStore.js'
     );
@@ -180,7 +187,7 @@ describe('Basketball-Reference Integration Parser', () => {
     expect(ordered.some((page) => page.relativePath === 'awards/awards_1977.html')).toBe(true);
   });
 
-  test('parseBbrPlayerSublinks extracts playoff log categories', async () => {
+  fixtureTest('parseBbrPlayerSublinks extracts playoff log categories', async () => {
     const { readFileSync } = await import('node:fs');
     const { join } = await import('node:path');
     const { parseBbrPlayerSublinks } = await import('../tabs/timeMachine/utils/bbr/bbrParser.js');

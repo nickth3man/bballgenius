@@ -1,5 +1,5 @@
 /**
- * Regenerates src/hub/shared/utils/keyboard-map.json from KEYBOARD_MAP in keyboardHelp.ts.
+ * Regenerates src/shared/utils/keyboard-map.json from KEYBOARD_MAP in keyboardHelp.ts.
  */
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';

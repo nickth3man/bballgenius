@@ -1,9 +1,10 @@
 import { tool } from '@langchain/core/tools';
 import { z } from 'zod/v4';
-import { getColumns, getTableRefs } from '../db.js';
+import { getColumns, getTableRefs, query } from '../db.js';
 import { checkSql, executeSql } from '../utils/sql.js';
 import {
   TOOL_CHECK_NBA_SQL,
+  TOOL_FIND_STAT_COLUMNS,
   TOOL_GET_SCHEMA_INFO,
   TOOL_LIST_NBA_TABLES,
   TOOL_QUERY_NBA_DB,
@@ -151,4 +152,139 @@ export const listNbaTables = tool(
   },
 );
 
-export const nbaTools = [queryNbaDb, getSchemaInfo, listNbaTables, checkNbaSql] as const;
+export const findStatColumns = tool(
+  async ({
+    canonicalName,
+    family,
+    limit,
+  }: {
+    canonicalName: string;
+    family?: string;
+    limit?: number;
+  }) => {
+    const effectiveLimit = Math.min(limit ?? 10, 50);
+    const upper = canonicalName.toUpperCase();
+
+    const conditions = ["(x.canonical_stat = $1 OR UPPER(x.canonical_stat) LIKE '%' || $1 || '%')"];
+    const params: string[] = [upper];
+
+    if (family) {
+      conditions.push('COALESCE(x.family, $2) = $2');
+      params.push(family);
+    }
+
+    const whereClause = conditions.join(' AND ');
+
+    const sql = `
+      SELECT
+        c.schema_name AS schema,
+        c.table_name AS table,
+        c.column_name AS column,
+        c.data_type,
+        x.canonical_stat,
+        COALESCE(x.family, 'unclassified') AS family,
+        x.definition
+      FROM meta.v_column_semantic_catalog c
+      JOIN meta.stat_crosswalk x
+        ON x.schema = c.schema_name
+        AND x."table" = c.table_name
+        AND x.column = c.column_name
+      WHERE ${whereClause}
+      ORDER BY
+        CASE c.schema_name
+          WHEN 'main' THEN 0
+          WHEN 'nbadb' THEN 1
+          WHEN 'unified_star' THEN 2
+          WHEN 'stg_nba_api_sqlite' THEN 3
+          WHEN 'stg_bref' THEN 4
+          ELSE 5
+        END,
+        c.table_name,
+        c.column_index
+      LIMIT ${effectiveLimit}
+    `;
+
+    const rows = await query<
+      Record<
+        string,
+        | string
+        | number
+        | boolean
+        | null
+        | Record<string, string | number | boolean | null>
+        | Array<Record<string, string | number | boolean | null>>
+      >
+    >(sql, params);
+
+    if (rows.length === 0) {
+      const fallbackSql = `
+        SELECT
+          c.schema_name AS schema,
+          c.table_name AS table,
+          c.column_name AS column,
+          c.data_type
+        FROM meta.v_column_semantic_catalog c
+        WHERE UPPER(c.column_name) LIKE '%' || $1 || '%'
+          AND c.is_mapped = false
+        ORDER BY c.schema_name, c.table_name, c.column_index
+        LIMIT 5
+      `;
+      const fallbackRows = await query<Record<string, string | null>>(fallbackSql, [upper]);
+      if (fallbackRows.length > 0) {
+        const lines = fallbackRows.map(
+          (r) => `  ${r.schema}.${r.table}.${r.column} (${r.data_type})`,
+        );
+        return (
+          `No canonical stat matching "${canonicalName}" found in the crosswalk.\n` +
+          `Similar column names (not yet mapped):\n${lines.join('\n')}\n` +
+          'Try using get_schema_info to explore these columns.'
+        );
+      }
+      return (
+        `No canonical stat matching "${canonicalName}" found. ` +
+        'Try a different name or use get_schema_info to explore tables.'
+      );
+    }
+
+    const lines = rows.map((r) => {
+      const def = r.definition ? ` — ${r.definition}` : '';
+      return `  ${r.schema}.${r.table}.${r.column} (${r.data_type}) [${r.family}]${def}`;
+    });
+
+    const header =
+      `Found ${rows.length} column(s) for canonical stat "${canonicalName}"` +
+      (family ? ` in family "${family}"` : '') +
+      ':';
+    const hint = `Use these fully-qualified column names in your SQL (e.g., ${rows[0]!.schema}.${rows[0]!.table}.${rows[0]!.column}).`;
+
+    return `${header}\n${lines.join('\n')}\n${hint}`;
+  },
+  {
+    name: TOOL_FIND_STAT_COLUMNS,
+    description:
+      'Find all database columns mapped to a canonical stat name (e.g. "PTS", "REB", "AST"). ' +
+      'Returns schema.table.column paths, data types, stat families, and definitions. ' +
+      'Use this when you know which stat you need but are unsure which table/column has it. ' +
+      'Prefer this over get_schema_info when you know the stat name but not the table.',
+    schema: z.object({
+      canonicalName: z
+        .string()
+        .describe(
+          'Canonical stat name to search for (e.g. "PTS", "REB", "AST", "FG_PCT"). Case-insensitive.',
+        ),
+      family: z
+        .string()
+        .optional()
+        .describe('Optional stat family filter (e.g. "box", "advanced", "per_game", "shooting").'),
+      limit: z.number().optional().describe('Max results to return (default 10, max 50).'),
+    }),
+  },
+);
+
+export const nbaTools = [
+  queryNbaDb,
+  getSchemaInfo,
+  listNbaTables,
+  checkNbaSql,
+  findStatColumns,
+] as const;

@@ -5,21 +5,30 @@ import { Command, END, MemorySaver, START, StateGraph } from '@langchain/langgra
 import { ToolNode, toolsCondition } from '@langchain/langgraph/prebuilt';
 import { invalidateSchemaCache } from '../db.js';
 import { ERROR_PREFIX } from '../utils/retry.js';
+import { getAbortSignal, setAbortSignal } from './abort.js';
 import { createModel } from './model.js';
+import { getOrchestratorGraph, resetOrchestratorGraph } from './orchestrator.js';
+import { invalidateSchemaCatalogCache } from './schemaCatalog.js';
 import { buildIntentSchemaPrompt } from './schemaFilter.js';
 import { ChatbotState, type ChatbotStateType } from './state.js';
 import { nbaTools } from './tools.js';
+
+// Re-export so existing importers (streaming.ts, tests) keep their import path.
+export { setAbortSignal };
+
+/**
+ * Whether the multi-agent SQL orchestration pipeline is active. Defaults ON;
+ * set CHATBOT_ORCHESTRATION=0 to fall back to the single-agent worker graph.
+ */
+export function isOrchestrationEnabled(): boolean {
+  return process.env['CHATBOT_ORCHESTRATION'] !== '0';
+}
 
 const MAX_SQL_RETRIES = 3;
 const MAX_TOTAL_TOOL_CALLS = 10;
 const LOOP_DETECTION_THRESHOLD = 3;
 const HALLUCINATION_NUMBER_THRESHOLD = 500;
 const MAX_VALIDATE_ANSWER_RETRIES = 2;
-
-let _abortSignal: AbortSignal | undefined;
-export function setAbortSignal(signal: AbortSignal | undefined): void {
-  _abortSignal = signal;
-}
 
 const INTENT_PATTERNS: Array<{ pattern: RegExp; category: string }> = [
   {
@@ -161,7 +170,8 @@ function buildGraph() {
   const model = createModel().bindTools([...nbaTools]);
 
   async function callModel(state: ChatbotStateType): Promise<Partial<ChatbotStateType>> {
-    const options = _abortSignal ? { signal: _abortSignal } : {};
+    const signal = getAbortSignal();
+    const options = signal ? { signal } : {};
     const response = await model.invoke(trimMessagesForModel(state), options);
     return { messages: [response] };
   }
@@ -330,14 +340,35 @@ function buildGraph() {
 
 let _graph: ReturnType<typeof buildGraph> | undefined;
 
-export function getChatbotGraph() {
+/**
+ * The single-agent worker graph (LLM + tools with budget/loop/SQL/hallucination
+ * guards). Used directly as the SQL worker inside the orchestrator's workers,
+ * and as the whole pipeline when orchestration is disabled.
+ */
+export function getWorkerGraph() {
   if (!_graph) {
     _graph = buildGraph();
   }
   return _graph;
 }
 
+/**
+ * The chatbot's active graph. Defaults to the multi-agent orchestrator; falls
+ * back to the single-agent worker graph when CHATBOT_ORCHESTRATION=0.
+ */
+export function getChatbotGraph(): ReturnType<typeof getOrchestratorGraph> {
+  if (isOrchestrationEnabled()) {
+    return getOrchestratorGraph();
+  }
+  // Both graphs compile over ChatbotState and expose the same streamEvents /
+  // getState / invoke surface used by the streaming layer; the node-name
+  // generics differ, so bridge them through a structural cast.
+  return getWorkerGraph() as unknown as ReturnType<typeof getOrchestratorGraph>;
+}
+
 export function resetGraph() {
   _graph = undefined;
+  resetOrchestratorGraph();
   invalidateSchemaCache();
+  invalidateSchemaCatalogCache();
 }

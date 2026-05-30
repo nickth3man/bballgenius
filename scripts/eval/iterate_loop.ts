@@ -80,10 +80,30 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-const ACTIVE_QUESTIONS = shuffle(QUESTIONS).slice(
-  0,
-  envInt('EVAL_QUESTION_LIMIT', QUESTIONS.length),
-);
+/**
+ * Select the questions to run.
+ *
+ * - EVAL_QUESTION_IDS=new-004,new-079,... pins an exact, ordered set (no
+ *   shuffle). Use this for reproducible iteration where you want the same set
+ *   every run so prompt improvements are measurable.
+ * - Otherwise: shuffle and take EVAL_QUESTION_LIMIT (default: all).
+ */
+function selectQuestions(): Question[] {
+  const idsEnv = (process.env.EVAL_QUESTION_IDS ?? '').trim();
+  if (idsEnv) {
+    const byId = new Map(QUESTIONS.map((q) => [q.id, q]));
+    const selected = idsEnv
+      .split(',')
+      .map((id) => id.trim())
+      .filter(Boolean)
+      .map((id) => byId.get(id))
+      .filter((q): q is Question => q != null);
+    if (selected.length > 0) return selected;
+  }
+  return shuffle(QUESTIONS).slice(0, envInt('EVAL_QUESTION_LIMIT', QUESTIONS.length));
+}
+
+const ACTIVE_QUESTIONS = selectQuestions();
 
 const TAB = '  ';
 
@@ -233,6 +253,21 @@ Career stat queries (CRITICAL):
   Read the FIRST row of the results, not the second.
 - For "second on the all-time list" queries, use LIMIT 1 OFFSET 1 — this returns exactly ONE row
   which is the second-place player. Report that single row as the answer.
+
+Season leaders — totals vs per game (CRITICAL):
+- "Who led the NBA in [blocks/rebounds/assists/steals/points] in {season}?" with NO "per game"
+  wording means the SEASON TOTAL leader. Rank by SUM(stat) in fact_bref_player_season_totals
+  (team NOT LIKE '%TM%', is_playoffs = false), ORDER BY total DESC LIMIT 1.
+- Only use the per-game table (e.g. blk_per_game) when the question says "per game" or "average".
+- Do NOT report a per-game leader for a "led the NBA in X" question.
+
+Team season queries (CRITICAL):
+- Team win/loss totals are in main.fact_bref_team_season_summary.
+- Columns are team (full name like 'Milwaukee Bucks'), w (wins), l (losses), srs.
+  There is NO team_name, wins, losses, or win_loss_pct column.
+- Query: SELECT team, w, l FROM main.fact_bref_team_season_summary WHERE team = 'Milwaukee Bucks' AND season_end_year = 2020.
+- Do NOT add an is_playoffs filter on this table — the stored row holds the regular-season w/l.
+- season_end_year is the season's ending year (2020 for the 2019-20 season).
 
 Award queries (CRITICAL):
 - Use main.fact_player_award_vote with winner = true.

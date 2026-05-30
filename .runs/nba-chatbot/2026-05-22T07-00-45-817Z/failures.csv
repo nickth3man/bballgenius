@@ -1,3 +1,0 @@
-run_id,question_id,question,expected,actual,category,reason,tools,stop_reason
-"no-data-003-r2-1779434977396","no-data-003","Who won the NBA Finals MVP in 2024?","NOT_AVAILABLE","The winner of the 2024 NBA Finals MVP is **Nikola Jokić**.","not_available_expected","Expected unavailable-data response.","1","done_event"
-"playoff-001-r1-1779435010443","playoff-001","Who is the all-time NBA playoff scoring leader?","LeBron","","timeout","Run timed out.","5","timeout"

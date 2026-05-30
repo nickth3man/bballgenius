@@ -2,7 +2,7 @@
 # Waits for bbr-map-full.txt then runs bbr:crawl (do not run while map is active).
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 MAP="${ROOT}/.firecrawl/bbr-map-full.txt"
 PROGRESS="${ROOT}/.firecrawl/bbr-map-progress.json"
 LOG="${ROOT}/.firecrawl/scratchpad/bbr-crawl-run.log"

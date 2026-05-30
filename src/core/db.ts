@@ -36,7 +36,12 @@ export async function initDb(): Promise<DuckDBConnection> {
   if (!connecting) {
     connecting = (async () => {
       const dbPath = resolveDbPath();
-      instance = await DuckDBInstance.fromCache(dbPath);
+      // Open read-only: the hub is a pure analytics viewer that never writes to
+      // the database at runtime (all ETL happens in offline scripts/ which open
+      // their own write connections). This is defense-in-depth for the chatbot's
+      // LLM-generated SQL path — even if the read-only-statement guard in
+      // utils/sql.ts were bypassed, the connection itself cannot mutate data.
+      instance = await DuckDBInstance.fromCache(dbPath, { access_mode: 'READ_ONLY' });
       const conn = await instance.connect();
       // Resolve unqualified table names against the canonical star schema first,
       // falling back to main. Guarded so a fixture without unified_star still works.

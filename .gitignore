@@ -8,6 +8,9 @@ dist/
 data/nba.duckdb
 data/nba.duckdb.bak*
 data/**/*.wal
+# Corrupted / temp WAL spill-over files (e.g. nba.duckdb.wal.bad-<ts>)
+data/**/*.wal.bad*
+data/**/*.wal.tmp*
 data/chatbot-metrics.ndjson
 data/test-metrics/
 

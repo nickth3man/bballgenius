@@ -13,6 +13,12 @@ import { DuckDBInstance } from '@duckdb/node-api';
 const SOURCE_DB = resolve(process.env.SOURCE_DB ?? 'data/nba.duckdb');
 const OUT_DB = resolve(process.env.OUT_DB ?? 'data/fixtures/nba.ci.duckdb');
 
+// Schema in the source database that holds the canonical, fully-populated star
+// tables. The hub resolves unqualified names against `unified_star` first (see
+// src/core/db.ts), and `main` only carries a partial subset, so the fixture must
+// be sourced from `unified_star` to find every table below.
+const SRC_SCHEMA = 'unified_star';
+
 const FIXTURE_PLAYER_IDS = ['2544', '77']; // LeBron + Bob Cousy (null advanced metrics in tests)
 /** Game where undeduped dim_team join inflates row count (mutation.test.ts). */
 const DEDUP_GAME_ID = '0022000619';
@@ -66,7 +72,7 @@ async function main() {
 
   const recentGames = await query(
     conn,
-    'SELECT game_id FROM src.dim_game ORDER BY game_date DESC LIMIT 25',
+    `SELECT game_id FROM src.${SRC_SCHEMA}.dim_game ORDER BY game_date DESC LIMIT 25`,
   );
   const gameIds = new Set<string>([
     DEDUP_GAME_ID,
@@ -81,11 +87,11 @@ async function main() {
     conn,
     `
     SELECT DISTINCT team_id FROM (
-      SELECT home_team_id AS team_id FROM src.dim_game WHERE game_id IN (${gameIdList})
+      SELECT home_team_id AS team_id FROM src.${SRC_SCHEMA}.dim_game WHERE game_id IN (${gameIdList})
       UNION
-      SELECT away_team_id FROM src.dim_game WHERE game_id IN (${gameIdList})
+      SELECT away_team_id FROM src.${SRC_SCHEMA}.dim_game WHERE game_id IN (${gameIdList})
       UNION
-      SELECT team_id FROM src.fact_player_game_boxscore WHERE game_id IN (${gameIdList})
+      SELECT team_id FROM src.${SRC_SCHEMA}.fact_player_game_boxscore WHERE game_id IN (${gameIdList})
     )
   `,
   );
@@ -95,9 +101,9 @@ async function main() {
     conn,
     `
     SELECT DISTINCT player_id FROM (
-      SELECT player_id FROM src.fact_player_game_boxscore WHERE game_id IN (${gameIdList})
-      UNION SELECT player_id FROM src.fact_player_awards WHERE player_id IN (${FIXTURE_PLAYER_IDS.map(sqlString).join(', ')})
-      UNION SELECT player_id FROM src.fact_player_season_stats WHERE player_id IN (${FIXTURE_PLAYER_IDS.map(sqlString).join(', ')})
+      SELECT player_id FROM src.${SRC_SCHEMA}.fact_player_game_boxscore WHERE game_id IN (${gameIdList})
+      UNION SELECT player_id FROM src.${SRC_SCHEMA}.fact_player_awards WHERE player_id IN (${FIXTURE_PLAYER_IDS.map(sqlString).join(', ')})
+      UNION SELECT player_id FROM src.${SRC_SCHEMA}.fact_player_season_stats WHERE player_id IN (${FIXTURE_PLAYER_IDS.map(sqlString).join(', ')})
     )
   `,
   );
@@ -118,7 +124,10 @@ async function main() {
   };
 
   for (const table of TABLES) {
-    await run(conn, `CREATE TABLE ${table} AS SELECT * FROM src.${table} WHERE ${filters[table]}`);
+    await run(
+      conn,
+      `CREATE TABLE ${table} AS SELECT * FROM src.${SRC_SCHEMA}.${table} WHERE ${filters[table]}`,
+    );
     const [{ n }] = await query(conn, `SELECT COUNT(*)::BIGINT AS n FROM ${table}`);
     console.log(`  ${table}: ${n} rows`);
   }

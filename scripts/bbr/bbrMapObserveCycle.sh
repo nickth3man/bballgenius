@@ -3,7 +3,7 @@
 # Usage: bash scripts/bbrMapObserveCycle.sh [cycles]   (default 5)
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 CYCLES="${1:-5}"
 WAIT_SEC="${BBR_OBSERVE_WAIT_SEC:-15}"
 DELAY="${BBR_MAP_DELAY_SEC:-6}"

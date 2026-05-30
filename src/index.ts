@@ -1,33 +1,10 @@
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import { createCliRenderer } from '@opentui/core';
 import { createAppShell } from './core/appShell.js';
 import { closeDb, initDb } from './core/db.js';
 import { getErrorMessage } from './core/errors.js';
 
-function loadDotEnvOverrides(): void {
-  try {
-    const envPath = join(process.cwd(), '.env');
-    const content = readFileSync(envPath, 'utf8');
-    for (const line of content.split('\n')) {
-      const trimmed = line.trim();
-      if (!trimmed || trimmed.startsWith('#')) continue;
-      const eqIdx = trimmed.indexOf('=');
-      if (eqIdx === -1) continue;
-      const key = trimmed.slice(0, eqIdx).trim();
-      let value = trimmed.slice(eqIdx + 1).trim();
-      if (
-        (value.startsWith('"') && value.endsWith('"')) ||
-        (value.startsWith("'") && value.endsWith("'"))
-      ) {
-        value = value.slice(1, -1);
-      }
-      if (key && value) process.env[key] = value;
-    }
-  } catch {}
-}
-
-loadDotEnvOverrides();
+// Bun automatically loads .env into process.env at startup, so no manual
+// dotenv parsing is needed here.
 
 async function main() {
   try {

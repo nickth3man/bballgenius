@@ -3,13 +3,13 @@
 
 ────────────────────────────────────────────────────────────────────────────────
 ╭─Database Schema──╮ ╭─SQL Input (Ctrl+R / Ctrl+E Execute)─────────────────────╮
-│dim_player        │ │SELECT * FROM dim_team LIMIT 10;
-│ ▶ ▶ dim_player   │ │                                                         │
-│                  │ │Tip: Enter any standard DuckDB SQL statement.            │
-│                  │ │Keys: [Ctrl+R] or [Ctrl+E] Run, [Enter] Execute/Auto-    │
+│ dim_player       │ │ SELECT * FROM dim_team LIMIT 10;                        │
+│  ▶ ▶ dim_player  │ │                                                         │
+│                  │ │ Tip: Enter any standard DuckDB SQL statement.           │
+│                  │ │ Keys: [Ctrl+R] or [Ctrl+E] Run, [Enter] Execute/Auto-   │
 │                  │ ╰─────────────────────────────────────────────────────────╯
 │                  │ ╭─Query Results───────────────────────────────────────────╮
-│                  │ │No query has been executed yet.                          │
+│                  │ │ Loading query results...                                │
 │                  │ │                                                         │
 │                  │ │                                                         │
 │                  │ │                                                         │
@@ -21,4 +21,4 @@
 │                  │ │                                                         │
 │                  │ │                                                         │
 ╰──────────────────╯ ╰─────────────────────────────────────────────────────────╯
-         [SQL Sandbox] Focus:lSF1-4nNavuTaba?lEscbridge_game_main_line
+                [SQL Sandbox]lFF1-4:NavLTabp?tEscTable: dim_game

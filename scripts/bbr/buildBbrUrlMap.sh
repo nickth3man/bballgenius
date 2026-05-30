@@ -5,7 +5,7 @@
 # Progress: .firecrawl/bbr-map-progress.json — check with: bun run bbr:status
 set -uo pipefail
 
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 SCRATCH="${ROOT}/.firecrawl/scratchpad"
 BBR="https://www.basketball-reference.com"
 # Firecrawl allows 2 concurrent jobs — default: use both, no extra delay between OK calls.

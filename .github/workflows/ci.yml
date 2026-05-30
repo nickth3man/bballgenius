@@ -147,7 +147,7 @@ jobs:
       - name: Run full test suite against CI fixture
         env:
           NBA_DUCKDB_PATH: data/fixtures/nba.ci.duckdb
-        run: bun test src/hub/tests --concurrency=1
+        run: bun test src/tests --concurrency=1
 
   chatbot:
     name: Chatbot tests (CI fixture)
@@ -172,7 +172,7 @@ jobs:
       - name: Run chatbot test suite
         env:
           NBA_DUCKDB_PATH: data/fixtures/nba.ci.duckdb
-        run: bun test src/chatbot/__tests__ --concurrency=1
+        run: bun test src/tabs/chatbot/__tests__ src/tabs/chatbot/eval/__tests__ --concurrency=1
 
   dq-fixture:
     name: DQ gate smoke (CI fixture)
@@ -266,7 +266,7 @@ jobs:
           fi
 
       - name: Run full test suite
-        run: bun test src/hub/tests --concurrency=1
+        run: bun test src/tests --concurrency=1
 
       - name: Run full-database DQ and accuracy gate
         run: bun run dq:full

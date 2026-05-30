@@ -31,13 +31,13 @@ const INTENT_SQL_TEMPLATES: Record<string, string[]> = {
   ],
   awards: [
     "-- Award winner: SELECT player_name FROM main.fact_player_award_vote WHERE lower(award) = '{award}' AND winner = true AND season_end_year = {season_int}",
-    "-- Award votes: SELECT player_name, vote_points_share FROM main.fact_player_award_vote WHERE lower(award) = '{award}' AND season_end_year = {season_int} ORDER BY vote_points_share DESC",
+    "-- Award votes (vote share column is `share`, not vote_points_share): SELECT player_name, share FROM main.fact_player_award_vote WHERE lower(award) = '{award}' AND season_end_year = {season_int} ORDER BY share DESC",
     "-- Award count per player: SELECT player_name, COUNT(*) as wins FROM main.fact_player_award_vote WHERE lower(award) = '{award}' AND winner = true GROUP BY player_name HAVING COUNT(*) >= {n} ORDER BY wins DESC",
-    "-- Honors: SELECT player_name, honor FROM main.fact_player_honor WHERE honor = '{honor}' AND season_end_year = {season_int}",
+    "-- Honors (the honor name column is `type`, e.g. 'All-NBA'): SELECT player_name, type FROM main.fact_player_honor WHERE type = '{honor}' AND season_end_year = {season_int}",
   ],
   team_seasons: [
-    "-- Team record: SELECT team_name, wins, losses, srs FROM main.fact_bref_team_season_summary WHERE season_end_year = {season_int} AND team_name = '{team}'",
-    '-- Season standings: SELECT team_name, wins, losses, win_loss_pct FROM main.fact_bref_team_season_summary WHERE season_end_year = {season_int} ORDER BY wins DESC',
+    "-- Team record (columns are team/w/l, NOT team_name/wins/losses; do NOT filter is_playoffs): SELECT team, w, l, srs FROM main.fact_bref_team_season_summary WHERE season_end_year = {season_int} AND team = '{team}'",
+    '-- Season standings: SELECT team, w, l, srs FROM main.fact_bref_team_season_summary WHERE season_end_year = {season_int} ORDER BY w DESC',
   ],
   games: [
     "-- Box score: SELECT player_name, points, reb, assists, steals, blocks, num_minutes FROM main.fact_player_game_stats WHERE game_id = '{game_id}'",

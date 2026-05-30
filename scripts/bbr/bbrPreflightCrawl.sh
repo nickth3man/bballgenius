@@ -2,7 +2,7 @@
 # Wipes bbr-screenshots and verifies Firecrawl auth before crawl.
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 SHOTS="${ROOT}/bbr-screenshots"
 
 cd "$ROOT"

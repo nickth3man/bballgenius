@@ -160,8 +160,8 @@ describe.serial('chatbotGraph', () => {
 
   test('processes a question without tool calls', async () => {
     forceToolCalls = false;
-    const { getChatbotGraph } = await import('../agent/graph.js');
-    const chatbotGraph = getChatbotGraph();
+    const { getWorkerGraph } = await import('../agent/graph.js');
+    const chatbotGraph = getWorkerGraph();
 
     const result = await chatbotGraph.invoke(
       { messages: [new HumanMessage('How many points?')] },
@@ -175,8 +175,8 @@ describe.serial('chatbotGraph', () => {
   test('handles tool calls and returns final answer', async () => {
     forceToolCalls = true;
     nextToolResponse = 'The database has LeBron James.';
-    const { getChatbotGraph } = await import('../agent/graph.js');
-    const chatbotGraph = getChatbotGraph();
+    const { getWorkerGraph } = await import('../agent/graph.js');
+    const chatbotGraph = getWorkerGraph();
 
     const result = await chatbotGraph.invoke(
       { messages: [new HumanMessage('Who is in the DB?')] },
@@ -192,8 +192,8 @@ describe.serial('chatbotGraph', () => {
   test('handles SQL execution error gracefully', async () => {
     forceToolCalls = true;
     nextToolResponse = 'I could not find that table.';
-    const { getChatbotGraph } = await import('../agent/graph.js');
-    const chatbotGraph = getChatbotGraph();
+    const { getWorkerGraph } = await import('../agent/graph.js');
+    const chatbotGraph = getWorkerGraph();
 
     const result = await chatbotGraph.invoke(
       { messages: [new HumanMessage('Query a bad table')] },
@@ -206,9 +206,9 @@ describe.serial('chatbotGraph', () => {
 
   test('maintains conversation state across turns', async () => {
     forceToolCalls = false;
-    const { getChatbotGraph, resetGraph } = await import('../agent/graph.js');
+    const { getWorkerGraph, resetGraph } = await import('../agent/graph.js');
     resetGraph();
-    const chatbotGraph = getChatbotGraph();
+    const chatbotGraph = getWorkerGraph();
 
     const config = { configurable: { thread_id: 'multi-turn' } };
 
@@ -231,9 +231,9 @@ describe.serial('chatbotGraph', () => {
     process.env['CHATBOT_PERSIST_DIR'] = '.chatbot-test-checkpoints';
 
     try {
-      const { getChatbotGraph, resetGraph } = await import('../agent/graph.js');
+      const { getWorkerGraph, resetGraph } = await import('../agent/graph.js');
       resetGraph();
-      const chatbotGraph = getChatbotGraph();
+      const chatbotGraph = getWorkerGraph();
 
       const result = await chatbotGraph.invoke(
         { messages: [new HumanMessage('Can you still answer?')] },
@@ -257,9 +257,9 @@ describe.serial('chatbotGraph', () => {
     forceToolCalls = false;
     forceParallelCalls = true;
     nextToolResponse = 'Both players found in the database.';
-    const { getChatbotGraph, resetGraph } = await import('../agent/graph.js');
+    const { getWorkerGraph, resetGraph } = await import('../agent/graph.js');
     resetGraph();
-    const chatbotGraph = getChatbotGraph();
+    const chatbotGraph = getWorkerGraph();
 
     const result = await chatbotGraph.invoke(
       { messages: [new HumanMessage('Compare LeBron and MJ stats')] },
@@ -277,9 +277,9 @@ describe.serial('chatbotGraph', () => {
     forceToolCalls = false;
     forceMixedParallelError = true;
     nextToolResponse = 'I corrected the failed query after reviewing schema.';
-    const { getChatbotGraph, resetGraph } = await import('../agent/graph.js');
+    const { getWorkerGraph, resetGraph } = await import('../agent/graph.js');
     resetGraph();
-    const chatbotGraph = getChatbotGraph();
+    const chatbotGraph = getWorkerGraph();
 
     const result = await chatbotGraph.invoke(
       { messages: [new HumanMessage('Compare with one bad query')] },
@@ -299,9 +299,9 @@ describe.serial('chatbotGraph', () => {
     forceToolCalls = false;
     forceNeedsSchemaTools = true;
     nextToolResponse = 'The schema and query check succeeded.';
-    const { getChatbotGraph, resetGraph } = await import('../agent/graph.js');
+    const { getWorkerGraph, resetGraph } = await import('../agent/graph.js');
     resetGraph();
-    const chatbotGraph = getChatbotGraph();
+    const chatbotGraph = getWorkerGraph();
 
     const result = await chatbotGraph.invoke(
       { messages: [new HumanMessage('Find player schema before querying')] },
@@ -320,9 +320,9 @@ describe.serial('chatbotGraph', () => {
     forceToolCalls = true;
     forceQueryError = true;
     nextToolResponse = 'SQL Error: table not found';
-    const { getChatbotGraph, resetGraph } = await import('../agent/graph.js');
+    const { getWorkerGraph, resetGraph } = await import('../agent/graph.js');
     resetGraph();
-    const chatbotGraph = getChatbotGraph();
+    const chatbotGraph = getWorkerGraph();
 
     const result = await chatbotGraph.invoke(
       { messages: [new HumanMessage('Query a bad table')] },
@@ -341,9 +341,9 @@ describe.serial('chatbotGraph', () => {
     forceToolCalls = true;
     forceQueryError = false;
     nextToolResponse = 'Query returned 5 rows.';
-    const { getChatbotGraph, resetGraph } = await import('../agent/graph.js');
+    const { getWorkerGraph, resetGraph } = await import('../agent/graph.js');
     resetGraph();
-    const chatbotGraph = getChatbotGraph();
+    const chatbotGraph = getWorkerGraph();
 
     const result = await chatbotGraph.invoke(
       { messages: [new HumanMessage('Query something valid')], sqlRetryCount: 2 },
@@ -357,9 +357,9 @@ describe.serial('chatbotGraph', () => {
     forceToolCalls = true;
     forceQueryError = false;
     nextToolResponse = 'Query returned after a fresh turn budget.';
-    const { getChatbotGraph, resetGraph } = await import('../agent/graph.js');
+    const { getWorkerGraph, resetGraph } = await import('../agent/graph.js');
     resetGraph();
-    const chatbotGraph = getChatbotGraph();
+    const chatbotGraph = getWorkerGraph();
 
     const result = await chatbotGraph.invoke(
       { messages: [new HumanMessage('Query something valid')], totalToolCalls: 10 },
@@ -376,9 +376,9 @@ describe.serial('chatbotGraph', () => {
     forceToolCalls = true;
     forceQueryError = true;
     forceRepeatedSqlError = true;
-    const { getChatbotGraph, resetGraph } = await import('../agent/graph.js');
+    const { getWorkerGraph, resetGraph } = await import('../agent/graph.js');
     resetGraph();
-    const chatbotGraph = getChatbotGraph();
+    const chatbotGraph = getWorkerGraph();
 
     const result = await chatbotGraph.invoke(
       { messages: [new HumanMessage('Query a bad table')] },

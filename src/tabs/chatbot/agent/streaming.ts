@@ -18,7 +18,11 @@ export type ChainStageName =
   | 'tool_budget_guard'
   | 'sql_error_guard'
   | 'validate_answer'
-  | 'finalize_turn';
+  | 'finalize_turn'
+  // Multi-agent orchestrator stages.
+  | 'orch_plan'
+  | 'orch_workers'
+  | 'orch_synthesize';
 
 export type StreamEvent =
   | { type: 'token'; content: string }
@@ -47,6 +51,9 @@ const GRAPH_NODE_NAMES = new Set<string>([
   'sql_error_guard',
   'validate_answer',
   'finalize_turn',
+  'orch_plan',
+  'orch_workers',
+  'orch_synthesize',
 ]);
 
 interface ActiveTool {
