@@ -54,3 +54,7 @@ one thing that would unblock you. In every other case, complete Section 5.
 ---
 
 create coding agent agnostic AGENTS.md files mirroring each CLAUDE.md file
+
+---
+
+commit and push all pending changes
