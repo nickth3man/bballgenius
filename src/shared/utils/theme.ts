@@ -1,24 +1,24 @@
 /**
  * BBallGenius Terminal Hub Theme Settings
- * Consistent TokyoNight style colors and borders.
+ * Consistent TokyoNight style colors and borders with polished contrast.
  */
 
 export const Theme = {
   // Brand colors (Hex values)
-  primary: '#7aa2f7',
-  secondary: '#bb9af7',
-  accent: '#2ac3de',
-  success: '#9ece6a',
-  error: '#f7768e',
-  warning: '#e0af68',
-  foreground: '#a9b1d6',
-  foregroundMuted: '#565f89',
-  background: '#1a1b26',
-  surface: '#16161e',
-  surfaceAlt: '#1f2231',
-  inputBg: '#222530',
-  borderFocused: '#bb9af7',
-  borderNormal: '#383e5a',
+  primary: '#7aa2f7', // TokyoNight Blue
+  secondary: '#bb9af7', // TokyoNight Purple
+  accent: '#2ac3de', // TokyoNight Cyan
+  success: '#9ece6a', // TokyoNight Green
+  error: '#f7768e', // TokyoNight Red
+  warning: '#e0af68', // TokyoNight Orange
+  foreground: '#a9b1d6', // Default text
+  foregroundMuted: '#565f89', // Subdued text / labels
+  background: '#1a1b26', // Deep layout background
+  surface: '#16161e', // Contrasting panels / headers
+  surfaceAlt: '#1f2231', // Active workspace areas
+  inputBg: '#24283b', // Darker typing fields
+  borderFocused: '#2ac3de', // Cyan for sharp focus indication
+  borderNormal: '#383e5a', // Subdued panel split lines
 
   borderStyle: 'rounded' as const,
   titleAlignment: 'left' as const,
@@ -41,7 +41,8 @@ export type ThemeFgRole =
   | 'success'
   | 'error'
   | 'warning'
-  | 'foreground';
+  | 'foreground'
+  | 'foregroundMuted';
 
 const THEME_FG_RGB: Record<ThemeFgRole, [number, number, number]> = {
   primary: [122, 162, 247],
@@ -51,6 +52,7 @@ const THEME_FG_RGB: Record<ThemeFgRole, [number, number, number]> = {
   error: [247, 118, 142],
   warning: [224, 175, 104],
   foreground: [169, 177, 214],
+  foregroundMuted: [86, 95, 137],
 };
 
 function ansiReset(): string {

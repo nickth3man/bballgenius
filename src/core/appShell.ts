@@ -68,10 +68,10 @@ function createHelpOverlay(renderer: CliRenderer): BoxRenderable {
     visible: false,
     border: true,
     borderStyle: Theme.borderStyle,
-    borderColor: Theme.secondary,
-    backgroundColor: Theme.background,
-    paddingX: 2,
-    paddingY: 1,
+    borderColor: Theme.borderFocused,
+    backgroundColor: Theme.surface,
+    paddingX: 4,
+    paddingY: 2,
   });
 
   const helpText = new TextRenderable(renderer, {
@@ -97,8 +97,10 @@ function createFooterBox(
     backgroundColor: Theme.surface,
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingX: 1,
+    paddingX: 2,
     flexGrow: 0,
+    border: ['top'],
+    borderColor: Theme.borderNormal,
   });
 
   footerBox.add(footerLeftText);
@@ -127,12 +129,12 @@ export function createAppShell(renderer: CliRenderer): AppShell {
     height: 4,
     options: [],
     tabWidth: 26,
-    selectedBackgroundColor: Theme.secondary,
-    selectedTextColor: '#ffffff',
-    textColor: '#888888',
+    selectedBackgroundColor: Theme.primary,
+    selectedTextColor: Theme.surface,
+    textColor: Theme.foregroundMuted,
     backgroundColor: Theme.surface,
-    showUnderline: false,
-    showDescription: false,
+    showUnderline: true,
+    showDescription: true,
   });
 
   const headerBox = createHeaderBox(renderer, tabSelect);
@@ -143,6 +145,9 @@ export function createAppShell(renderer: CliRenderer): AppShell {
     width: '100%',
     flexGrow: 1,
     flexDirection: 'column',
+    backgroundColor: Theme.surfaceAlt,
+    paddingX: 1,
+    paddingY: 1,
   });
 
   rootBox.add(workspaceBox);
