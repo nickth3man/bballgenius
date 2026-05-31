@@ -3,9 +3,12 @@
   "checkpoint_id": "2d059b4dc7e5",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 1,
+  "checkpoints_count": 3,
   "files_touched": [
-    "package.json"
+    "AGENTS.md",
+    "README.md",
+    "package.json",
+    "scripts/db/accuracy-candidates.generated.json"
   ],
   "sessions": [
     {
@@ -13,13 +16,19 @@
       "transcript": "/2d/059b4dc7e5/0/full.jsonl",
       "content_hash": "/2d/059b4dc7e5/0/content_hash.txt",
       "prompt": ""
+    },
+    {
+      "metadata": "/2d/059b4dc7e5/1/metadata.json",
+      "transcript": "/2d/059b4dc7e5/1/full.jsonl",
+      "content_hash": "/2d/059b4dc7e5/1/content_hash.txt",
+      "prompt": "/2d/059b4dc7e5/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 37178,
+    "input_tokens": 129380,
     "cache_creation_tokens": 350810,
-    "cache_read_tokens": 22367321,
-    "output_tokens": 117907,
-    "api_call_count": 124
+    "cache_read_tokens": 23634521,
+    "output_tokens": 127575,
+    "api_call_count": 146
   }
 }
