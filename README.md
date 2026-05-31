@@ -29,6 +29,23 @@ bun start
 
 By default, the app looks for `data/nba.duckdb`. Set `NBA_DUCKDB_PATH` to override the database path.
 
+## Data Quality & Accuracy
+
+The repo uses a **three-tier DQ system**:
+
+1. **Internal Consistency** (`bun run dq`) — Uniqueness, referential integrity, validity checks
+2. **Cross-Source Reconciliation** (`bun run dq:accuracy`) — BBR ↔ NBA-API merge and discrepancy classification
+3. **Fact-Check Verification** (`bun run accuracy:full`) — Firecrawl-backed external truth validation
+
+Quick start:
+```bash
+bun run dq:gate          # Internal consistency gate (HIGH+ severity)
+bun run dq:accuracy      # Cross-source reconciliation pipeline
+bun run accuracy:full    # Refresh + verify Firecrawl fact-checks
+```
+
+See [AGENTS.md](./AGENTS.md#data-warehouse-schema--data-quality) for full documentation.
+
 ### Hub
 
 ```bash

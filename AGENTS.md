@@ -269,6 +269,34 @@ Cross-source **accuracy** reconciliation (separate from internal consistency) ha
 - History is **retained** for trend tracking (one shared `checked_at` per run) — query the latest run with `WHERE checked_at = (SELECT max(checked_at) FROM audit.dq_results)`.
 - Accuracy-vs-reality (cross-source agreement) is intentionally **out of scope** for this file; it lives in `scripts/db/build-canonical-merge.ts` + the `metric_discrepancy` / `player_identity_bridge` pipeline.
 
+### Firecrawl-Backed Fact-Check Verification
+
+Separate from cross-source reconciliation, this layer uses Firecrawl to validate database values against external sources (e.g., Basketball-Reference player career totals).
+
+**Commands:**
+```bash
+bun run accuracy:refresh    # Fetch BBR sources, generate accuracy-candidates.generated.json
+bun run accuracy:verify     # Run fact-checks from accuracy-checks.json, report pass/fail
+bun run accuracy:full       # Refresh then verify
+```
+
+**Files:**
+- `scripts/db/fetch-accuracy-sources.ts` — Firecrawl CLI-backed BBR source fetcher
+- `scripts/db/verify-accuracy.ts` — Fact-check verification suite
+- `scripts/db/accuracy-checks.json` — Registry of accuracy test cases (expected values)
+- `scripts/db/accuracy-candidates.generated.json` — Generated candidates (pre-validation)
+
+**Workflow:**
+1. `accuracy:refresh` fetches BBR player pages, parses career totals, builds SQL queries, validates candidates
+2. Passing candidates written to `accuracy-candidates.generated.json`
+3. Use `--append` flag to merge passing candidates into `accuracy-checks.json`
+4. `accuracy:verify` executes all checks from `accuracy-checks.json` and reports outcomes
+
+**Relationship to dq:accuracy:**
+- `dq:accuracy` = Cross-source reconciliation (BBR vs NBA-API agreement)
+- `accuracy:refresh/verify` = External truth validation (DB vs BBR ground truth)
+- Both write to `audit` schema for visibility but serve different purposes
+
 ### DuckDB scripting conventions (`scripts/db/*`)
 
 - `const db = await DuckDBInstance.fromCache(DB_PATH); const conn = await db.connect();` — read with `(await conn.runAndReadAll(sql)).getRowObjectsJson()`, write with `await conn.run(sql)`.
