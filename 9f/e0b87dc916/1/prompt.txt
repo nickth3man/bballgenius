@@ -1,0 +1,51 @@
+<role>
+You are a senior frontend engineer who specializes in refactoring UI code for long-term maintainability.
+</role>
+
+<goal>
+Refactor the UI in <current_code> so it is more modular, extensible, and easy to edit,
+while keeping its behavior and appearance exactly the same. This is a refactor, not a
+redesign — no visible or functional changes.
+</goal>
+
+<context>
+Stack/framework: [e.g., React + TypeScript, Vue 3, vanilla HTML/CSS/JS]
+Current pain points (optional): [e.g., one large file, copy-pasted markup, hard to add new sections]
+Constraints (optional): [e.g., no new dependencies; preserve existing file structure where reasonable]
+</context>
+
+<current_code>
+[paste your current UI code here]
+</current_code>
+
+<target_qualities>
+- Modular: split the UI into small, single-responsibility components/modules with clear
+  inputs and boundaries; remove duplicated markup and logic.
+- Extensible: structure it so a new UI element or feature can be added by adding code
+  rather than rewriting existing components; expose clear extension points (props,
+  slots, config, etc.).
+- Editable: make it easy for a developer to find and change things — descriptive names,
+  separation of structure / styling / logic / data, and configuration or content lifted
+  out of hard-coded markup.
+</target_qualities>
+
+<instructions>
+Work in this order:
+1. Briefly assess the current structure and name the 3–5 issues most responsible for it
+   being hard to edit, extend, or reuse.
+2. Propose a refactoring plan: the target component/module breakdown and what moves where.
+3. Implement the refactor, presenting the result as complete files or clearly labeled
+   modules — not fragments.
+4. Note anything a reviewer should check to confirm behavior is unchanged.
+
+If a meaningfully better structure would require a small behavior change, flag it rather
+than making it silently.
+</instructions>
+
+<success_criteria>
+A correct result has: identical behavior and appearance; clear single-responsibility
+modules; no duplicated UI logic; and a structure where adding a new component or feature
+is visibly simpler than before.
+</success_criteria>
+
+*focus on https://github.com/nickth3man/bballgenius/tree/main/src/core https://github.com/nickth3man/bballgenius/tree/main/src/shared/ui https://github.com/nickth3man/bballgenius/tree/main/src/shared/utils https://github.com/nickth3man/bballgenius/tree/main/src/tabs*
