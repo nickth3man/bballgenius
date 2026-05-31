@@ -1,4 +1,8 @@
-# AGENTS.md — hub
+# AGENTS.md
+
+This file provides guidance to coding agents working with code in this repository. It is the canonical, tool-agnostic source; `CLAUDE.md` imports it.
+
+Scope: the `src/` hub package. See the repository-root `AGENTS.md` for monorepo-wide commands, CI, and the data warehouse.
 
 ## Package Purpose
 
@@ -67,6 +71,13 @@ src/
 │   ├── errors.ts           # Error types
 │   └── types.ts            # Shared types
 ├── shared/
+│   ├── dbPath.ts           # resolveDbPath() — CI-safe DuckDB path (shared with chatbot)
+│   ├── errors.ts           # Shared error types
+│   ├── ui/                 # Reusable TUI building blocks (barrel: index.ts re-exports all)
+│   │   ├── panels.ts       # createPanel, createScrollPanel, resetBorderColors
+│   │   ├── focus.ts        # FocusManager, PaneFocusGroup, scrollIntoView, focusScroll
+│   │   ├── keyDispatch.ts  # dispatchKey(event, handlers[]) ordered key handling
+│   │   └── statusLine.ts   # StatusLine builder (per-tab separator)
 │   └── utils/
 │       ├── formatters.ts   # Table formatting, ANSI stripping, half-court drawing
 │       ├── theme.ts        # TokyoNight palette + 24-bit RGB + NO_COLOR support
@@ -98,6 +109,31 @@ src/
 ```
 
 ## Key Patterns
+
+### Tab Folder Convention
+
+Each `src/tabs/<tabId>/` folder follows the same layout so a tab is editable without
+re-learning a bespoke structure:
+
+| File | Responsibility |
+|------|----------------|
+| `tab.ts` | Implements `AppShellTab`; owns panel construction + wiring. **No SQL.** |
+| `index.ts` | Re-export of the tab class |
+| `queries.ts` | SQL + typed row interfaces (see "SQL Queries per Tab") |
+| `types.ts` | Tab-local types; for multi-controller tabs, the `*Host` interface |
+| `<mode>.ts` | Mode/feature controllers for multi-mode tabs (e.g. `playerMode.ts`) |
+| `utils/` | Tab-local helpers (e.g. `timeMachine/utils/bbr/`) |
+
+Shared concerns use `src/shared/ui` rather than per-tab reimplementations:
+- **Focus** — `PaneFocusGroup` (panel + inner `activate()` + status metadata) for
+  multi-pane focus; `FocusManager` for simple panel-only cycling.
+- **Key dispatch** — `dispatchKey(event, handlers[])` runs an ordered handler list,
+  returning at the first that handles the event (replaces `if (h) return true;` ladders).
+- **Status line** — `new StatusLine(sep).add(...).toString()`; pass the tab's separator
+  (`' | '` for most tabs, `' \xb7 '` for Time Machine).
+
+`timeMachine/` is the reference implementation of all three. (Game Center, SQL Sandbox,
+and Chatbot still carry older per-tab variants pending migration.)
 
 ### ANSI at the Boundary
 

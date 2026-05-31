@@ -1,5 +1,7 @@
 # AGENTS.md
 
+This file provides guidance to coding agents working with code in this repository. It is the canonical, tool-agnostic source; `CLAUDE.md` imports it.
+
 ## Project Overview
 
 BBallGenius is a **Bun monorepo** with a single unified NBA analytics application under `src/`:
@@ -31,7 +33,7 @@ bballgenius/
 └── src/
     ├── index.ts           # TUI bootstrap
     ├── core/              # appShell, db, dbHonors, errors, types
-    ├── shared/            # Shared utilities (formatters, theme, keyboardHelp, dbPath)
+    ├── shared/            # dbPath, errors + ui/ (panels, focus, keyDispatch, statusLine) + utils/ (formatters, theme, keyboardHelp)
     ├── tabs/              # registry + gameCenter/, timeMachine/, sqlSandbox/, chatbot/
     │   └── chatbot/       # Chatbot tab (LangGraph agent + UI)
     │       ├── tab.ts     # AppShellTab adapter
@@ -48,9 +50,10 @@ bballgenius/
 ```
 
 - **`src/shared/dbPath.ts`** — Single shared DB path resolver.
+- **`src/shared/ui/`** — Reusable TUI primitives shared across tabs (`panels`, `focus`, `keyDispatch`, `statusLine`); barrel-exported via `index.ts`. Time Machine is the reference consumer.
 - **`src/tabs/chatbot/agent/`** — LangGraph agent: graph definition, state schema, tools, model binding, streaming.
-- **`src/chatbot/utils/`** — SQL validation/extraction/execution, retry with backoff, metrics logger, ANSI parser, theme.
-- **`src/chatbot/eval/`** — 100 categorized NBA test questions across 17 categories.
+- **`src/tabs/chatbot/utils/`** — SQL validation/extraction/execution, retry with backoff, metrics logger, ANSI parser, theme.
+- **`src/tabs/chatbot/eval/`** — 100 categorized NBA test questions across 17 categories.
 - **`scripts/`** — Automation, organized into topical subdirs:
   - **`scripts/ci/`** — `ci-guards.sh`, `build-ci-fixture.ts`, `agent-smoke.sh`, branch protection.
   - **`scripts/db/`** — DuckDB warehouse tooling: `verify-dq.ts` (data-quality suite), canonical views/merge, entity xref, source registry, crosswalk sync (`@duckdb/node-api`).
@@ -251,11 +254,16 @@ One-stop store for DQ + reconciliation. Key tables: **`dq_results`** (one row pe
 Declarative `CHECKS` registry across **uniqueness, referential integrity, consistency, validity, completeness** over the `nbadb` star tier. Writes one row per check to `audit.dq_results` and doubles as a CI gate (non-zero exit when any check at/above the gate severity has violations).
 
 ```bash
-bun run scripts/db/verify-dq.ts                 # run all, persist, gate on CRITICAL
-bun run scripts/db/verify-dq.ts --dry-run       # print only, do not persist
-bun run scripts/db/verify-dq.ts --gate=HIGH     # also fail on HIGH violations
-bun run scripts/db/verify-dq.ts --filter=orphan # subset by check-name substring
+bun run dq                                       # alias → verify-dq.ts: run all, persist, gate on CRITICAL
+bun run dq:gate                                  # alias → verify-dq.ts --gate=HIGH
+bun run scripts/db/verify-dq.ts --dry-run        # print only, do not persist
+bun run scripts/db/verify-dq.ts --filter=orphan  # subset by check-name substring
+bun run dq:fixture                               # internal-consistency checks against the CI fixture
 ```
+
+Cross-source **accuracy** reconciliation (separate from internal consistency) has its own aliases:
+`bun run dq:accuracy` (build canonical metric registry + merge + classify discrepancies),
+`bun run dq:oracle` (Firecrawl oracle resolution), and `bun run dq:full` (`dq:accuracy` then `dq:gate`).
 
 - Severity ladder **CRITICAL > HIGH > MEDIUM > LOW > INFO**; CRITICAL = physically impossible / breaks grain (must be zero).
 - History is **retained** for trend tracking (one shared `checked_at` per run) — query the latest run with `WHERE checked_at = (SELECT max(checked_at) FROM audit.dq_results)`.
