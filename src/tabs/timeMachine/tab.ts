@@ -7,7 +7,13 @@ import {
 } from '@opentui/core';
 import type { AppKeyEvent } from '../../core/input.js';
 import type { DbRow } from '../../core/types.js';
-import { createPanel, createScrollPanel } from '../../shared/ui/index.js';
+import {
+  createPanel,
+  createScrollPanel,
+  dispatchKey,
+  PaneFocusGroup,
+  StatusLine,
+} from '../../shared/ui/index.js';
 import { ansiToStyledText } from '../../shared/utils/formatters.js';
 import { ansiMagenta, ansiYellow, Theme } from '../../shared/utils/theme.js';
 import { BbrViewController } from './bbrView.js';
@@ -24,9 +30,6 @@ import type {
 import type { BbrPlayerLinks } from './utils/bbr/bbrParser.js';
 import type { BbrPlayerPageType } from './utils/bbr/bbrSiteCatalog.js';
 import { buildSiteCatalog } from './utils/bbr/bbrSiteCatalog.js';
-
-const PLAYER_FOCUS_PANELS = 3;
-const TEAM_FOCUS_PANELS = 3;
 
 function panelLabel(idx: number, mode: 'player' | 'team', teamFocusIdx: number): string {
   const playerLabels = ['Search', 'Dossier', 'Career stats'];
@@ -101,9 +104,28 @@ export class TimeMachineTab implements TimeMachineHost {
   teamAData: TeamComparisonData | null = null;
   teamBData: TeamComparisonData | null = null;
 
-  focusIndex = 0;
-  teamFocusIndex = 0;
-  readonly focusablePanels: BoxRenderable[] = [];
+  private playerGroup!: PaneFocusGroup;
+  private teamGroup!: PaneFocusGroup;
+
+  /** Player-mode focus index, backed by {@link playerGroup}; read/written by the mode controllers. */
+  get focusIndex(): number {
+    return this.playerGroup.index;
+  }
+  set focusIndex(value: number) {
+    this.playerGroup.index = value;
+  }
+
+  /** Team-mode focus index, backed by {@link teamGroup}; read/written by the mode controllers. */
+  get teamFocusIndex(): number {
+    return this.teamGroup.index;
+  }
+  set teamFocusIndex(value: number) {
+    this.teamGroup.index = value;
+  }
+
+  private activeGroup(): PaneFocusGroup {
+    return this.mode === 'player' ? this.playerGroup : this.teamGroup;
+  }
 
   constructor(renderer: CliRenderer) {
     this.bbrView = new BbrViewController(this);
@@ -219,6 +241,17 @@ export class TimeMachineTab implements TimeMachineHost {
     this.container.add(this.leftColumn);
     this.container.add(this.statsPanel);
 
+    this.playerGroup = new PaneFocusGroup([
+      { panel: this.searchPanel, activate: () => this.searchInput.focus() },
+      { panel: this.dossierPanel, activate: () => this.dossierScroll.focus() },
+      { panel: this.statsPanel, activate: () => this.statsScroll.focus() },
+    ]);
+    this.teamGroup = new PaneFocusGroup([
+      { panel: this.teamSearchPanel, activate: () => this.teamAInput.focus() },
+      { panel: this.teamSearchPanel, activate: () => this.teamBInput.focus() },
+      { panel: this.statsPanel, activate: () => this.statsScroll.focus() },
+    ]);
+
     this.searchInput.on('input', () => {
       this.searchQuery = this.searchInput.value;
       void this.playerMode.searchPlayers();
@@ -262,12 +295,7 @@ export class TimeMachineTab implements TimeMachineHost {
 
   focus(): void {
     this.blurAllInputs();
-
-    if (this.mode === 'player') {
-      this.applyPlayerFocus();
-    } else {
-      this.applyTeamFocus();
-    }
+    this.activeGroup().focusActive();
     this.requestRender();
   }
 
@@ -279,108 +307,65 @@ export class TimeMachineTab implements TimeMachineHost {
     this.dossierScroll.blur();
   }
 
-  private applyPlayerFocus(): void {
-    const panels = [this.searchPanel, this.dossierPanel, this.statsPanel];
-    this.blurAndFocusPanel(panels, this.focusIndex);
-
-    if (this.focusIndex === 0) this.searchInput.focus();
-    else if (this.focusIndex === 1) this.dossierScroll.focus();
-    else this.statsScroll.focus();
-  }
-
-  private applyTeamFocus(): void {
-    this.teamSearchPanel.blur();
-    this.statsPanel.blur();
-
-    if (this.teamFocusIndex === 0 || this.teamFocusIndex === 1) {
-      this.teamSearchPanel.focus();
-    } else {
-      this.statsPanel.focus();
-    }
-
-    if (this.teamFocusIndex === 0) this.teamAInput.focus();
-    else if (this.teamFocusIndex === 1) this.teamBInput.focus();
-    else this.statsScroll.focus();
-  }
-
-  private blurAndFocusPanel(panels: BoxRenderable[], targetIdx: number): void {
-    panels.forEach((panel, idx) => {
-      if (idx === targetIdx) {
-        panel.focus();
-      } else {
-        panel.blur();
-      }
-    });
-  }
-
   cycleFocus(): void {
-    if (this.mode === 'player') {
-      this.focusIndex = (this.focusIndex + 1) % PLAYER_FOCUS_PANELS;
-    } else {
-      this.teamFocusIndex = (this.teamFocusIndex + 1) % TEAM_FOCUS_PANELS;
-    }
+    this.activeGroup().next();
     this.focus();
   }
 
   cycleFocusBackward(): void {
-    if (this.mode === 'player') {
-      this.focusIndex = (this.focusIndex - 1 + PLAYER_FOCUS_PANELS) % PLAYER_FOCUS_PANELS;
-    } else {
-      this.teamFocusIndex = (this.teamFocusIndex - 1 + TEAM_FOCUS_PANELS) % TEAM_FOCUS_PANELS;
-    }
+    this.activeGroup().prev();
     this.focus();
   }
 
   getStatusLine(): string {
-    const parts: string[] = [];
-    const mode = this.mode;
+    const line = new StatusLine(' \xb7 ');
 
-    if (mode === 'player') {
-      this.buildPlayerStatusLine(parts);
+    if (this.mode === 'player') {
+      this.buildPlayerStatusLine(line);
     } else {
-      this.buildTeamStatusLine(parts);
+      this.buildTeamStatusLine(line);
     }
 
-    return parts.join(' \xb7 ');
+    return line.toString();
   }
 
-  private buildPlayerStatusLine(parts: string[]): void {
-    parts.push(panelLabel(this.focusIndex, 'player', 0));
+  private buildPlayerStatusLine(line: StatusLine): void {
+    line.add(panelLabel(this.focusIndex, 'player', 0));
 
     const q = this.searchQuery.trim();
     if (this.focusIndex === 0) {
-      if (q.length > 0) parts.push(`query: "${q}"`);
+      if (q.length > 0) line.add(`query: "${q}"`);
       if (this.suggestions.length > 0) {
-        parts.push(`suggestion ${this.selectedSuggestIdx + 1}/${this.suggestions.length}`);
+        line.add(`suggestion ${this.selectedSuggestIdx + 1}/${this.suggestions.length}`);
         const highlighted = this.suggestions[this.selectedSuggestIdx];
-        if (highlighted?.full_name) parts.push(highlighted.full_name);
+        if (highlighted?.full_name) line.add(highlighted.full_name);
       } else if (q.length < 2) {
-        parts.push('type 2+ chars to search');
+        line.add('type 2+ chars to search');
       }
     }
 
     if (this.activePlayer?.full_name) {
       const loaded = this.activePlayer.full_name;
-      if (!parts.some((p) => p.includes(loaded))) {
-        parts.push(`loaded: ${loaded}`);
+      if (!line.includes(loaded)) {
+        line.add(`loaded: ${loaded}`);
       }
     }
 
-    parts.push(moveHint(this.focusIndex, 'player', 0));
+    line.add(moveHint(this.focusIndex, 'player', 0));
   }
 
-  private buildTeamStatusLine(parts: string[]): void {
-    parts.push('Team Compare');
+  private buildTeamStatusLine(line: StatusLine): void {
+    line.add('Team Compare');
 
     if (this.teamFocusIndex === 0) {
-      parts.push(`Team A: "${this.teamAQuery}"`);
+      line.add(`Team A: "${this.teamAQuery}"`);
     } else if (this.teamFocusIndex === 1) {
-      parts.push(`Team B: "${this.teamBQuery}"`);
+      line.add(`Team B: "${this.teamBQuery}"`);
     } else {
-      parts.push('Comparison list');
+      line.add('Comparison list');
     }
 
-    parts.push(moveHint(this.teamFocusIndex, 'team', this.teamFocusIndex));
+    line.add(moveHint(this.teamFocusIndex, 'team', this.teamFocusIndex));
   }
 
   isInputFocused(): boolean {
@@ -405,23 +390,32 @@ export class TimeMachineTab implements TimeMachineHost {
   handleKeyPress(event: AppKeyEvent): boolean {
     const key = (event.sequence || event.name || '').toLowerCase();
 
-    if (this.tryBbrKeys(event, key)) return true;
+    return dispatchKey(event, [
+      (e) => this.tryBbrKeys(e, key),
+      (e) => this.tryToggleMode(e),
+      (e) => this.tryCycleFocus(e),
+      (e) =>
+        this.mode === 'player'
+          ? this.playerMode.handleKeyPress(e)
+          : this.teamMode.handleKeyPress(e),
+    ]);
+  }
 
+  private tryToggleMode(event: AppKeyEvent): boolean {
     if (!this.isInputFocused() && (event.name === 'c' || event.sequence === 'c')) {
       this.toggleMode();
       return true;
     }
+    return false;
+  }
 
-    if (event.name === 'tab') {
-      if (this.isInputFocused()) {
-        if (event.shift) this.cycleFocusBackward();
-        else this.cycleFocus();
-        return true;
-      }
+  private tryCycleFocus(event: AppKeyEvent): boolean {
+    if (event.name === 'tab' && this.isInputFocused()) {
+      if (event.shift) this.cycleFocusBackward();
+      else this.cycleFocus();
+      return true;
     }
-
-    if (this.mode === 'player') return this.playerMode.handleKeyPress(event);
-    return this.teamMode.handleKeyPress(event);
+    return false;
   }
 
   private tryBbrKeys(_event: AppKeyEvent, key: string): boolean {

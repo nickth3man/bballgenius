@@ -86,7 +86,6 @@ export interface TimeMachineHost {
   teamBData: TeamComparisonData | null;
   focusIndex: number;
   teamFocusIndex: number;
-  focusablePanels: BoxRenderable[];
 
   requestRender(): void;
   focus(): void;
