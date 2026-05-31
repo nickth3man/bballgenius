@@ -21,7 +21,7 @@ export type ChainStageName =
   | 'finalize_turn'
   // Multi-agent orchestrator stages.
   | 'orch_plan'
-  | 'orch_workers'
+  | 'orch_worker'
   | 'orch_synthesize';
 
 export type StreamEvent =
@@ -52,7 +52,7 @@ const GRAPH_NODE_NAMES = new Set<string>([
   'validate_answer',
   'finalize_turn',
   'orch_plan',
-  'orch_workers',
+  'orch_worker',
   'orch_synthesize',
 ]);
 

@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const https = require('https');
 const {
+  assertFirecrawlConcurrency,
   getDiscoveryHubUrls,
   getMirroredRelativePath,
   getUrlDepth,
@@ -20,6 +21,7 @@ const STATUS_INTERVAL_MS = Number.parseInt(process.env.BBR_STATUS_INTERVAL_MS ||
 const DISCOVERY_COOLDOWN_MS = Number.parseInt(process.env.BBR_DISCOVERY_COOLDOWN_MS || '1500', 10);
 const SCRAPE_TIMEOUT_MS = Number.parseInt(process.env.BBR_SCRAPE_TIMEOUT_MS || '120000', 10);
 const CRAWL_CONCURRENCY = Number.parseInt(process.env.BBR_CRAWL_CONCURRENCY || '2', 10);
+assertFirecrawlConcurrency('bbr:crawl', CRAWL_CONCURRENCY);
 const SCRAPE_RATE_LIMIT_MS = Number.parseInt(process.env.BBR_SCRAPE_RATE_LIMIT_MS || '1500', 10);
 const VERBOSE_PATHS = process.env.BBR_VERBOSE_PATHS !== '0';
 const BBR_URL_PATTERN = /https?:\/\/(?:www\.)?basketball-reference\.com[^\s)\]"'<>]*/gi;

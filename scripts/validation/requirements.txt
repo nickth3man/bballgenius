@@ -1,0 +1,4 @@
+nba_api>=1.11.4
+fake-useragent>=1.5.0
+requests>=2.31.0
+PySocks>=1.7.1

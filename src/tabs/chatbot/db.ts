@@ -6,23 +6,35 @@ import { resolveDbPath } from '../../shared/dbPath.js';
 export type { DbRow, SqlParam };
 export { resolveDbPath };
 
+const SEARCH_PATH = 'unified_star,main';
+
 let instance: DuckDBInstance | null = null;
 let connection: DuckDBConnection | null = null;
+let connecting: Promise<DuckDBConnection> | null = null;
 
 export async function initDb(): Promise<DuckDBConnection> {
   if (connection) {
-    try {
-      await connection.runAndReadAll('SELECT 1');
-      return connection;
-    } catch {
-      connection = null;
-      instance = null;
-    }
+    return connection;
   }
-  const dbPath = resolveDbPath();
-  instance = await DuckDBInstance.fromCache(dbPath);
-  connection = await instance.connect();
-  return connection;
+  if (!connecting) {
+    connecting = (async () => {
+      const dbPath = resolveDbPath();
+      instance = await DuckDBInstance.fromCache(dbPath, { access_mode: 'READ_ONLY' });
+      const conn = await instance.connect();
+      try {
+        await conn.run(`SET search_path = '${SEARCH_PATH}'`);
+      } catch {
+        // CI fixture may expose only main.
+      }
+      connection = conn;
+      return conn;
+    })().catch((err) => {
+      connecting = null;
+      instance = null;
+      throw err;
+    });
+  }
+  return connecting;
 }
 
 export async function query<T = DbRow>(sql: string, params?: SqlParam[]): Promise<T[]> {
@@ -114,5 +126,6 @@ export async function closeDb() {
     connection.disconnectSync();
     connection = null;
   }
+  connecting = null;
   instance = null;
 }

@@ -44,7 +44,7 @@ export function formatChainStageStatus(stage: ChainStageName): string {
       return 'Finalizing answer...';
     case 'orch_plan':
       return 'Planning sub-queries...';
-    case 'orch_workers':
+    case 'orch_worker':
       return 'Running SQL agents...';
     case 'orch_synthesize':
       return 'Synthesizing answer...';

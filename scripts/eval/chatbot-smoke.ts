@@ -17,18 +17,28 @@
  *   OPENROUTER_PROVIDER Optional (default: google-vertex)
  *   DRY_RUN             Optional (skip API calls, just parse + init)
  *   CHATBOT_SMOKE_SUITE Optional: facts or 100 (default: facts)
+ *   CHATBOT_SMOKE_TIER  Optional: free | baseline | all (default: single MODEL)
  *   CHATBOT_SMOKE_LIMIT Optional number of cases to run
+ *   CHATBOT_SMOKE_DELAY_MS Optional delay between cases on free tier (default: 3000)
  *   CHATBOT_SMOKE_TIMEOUT_MS Optional per-case timeout (default: 120000)
  */
 
 import { existsSync, readFileSync } from 'node:fs';
 import { HumanMessage, SystemMessage } from '@langchain/core/messages';
-import { getChatbotGraph } from '../../src/tabs/chatbot/agent/graph.js';
+import { getChatbotGraph, resetGraph } from '../../src/tabs/chatbot/agent/graph.js';
 import { closeDb, initDb } from '../../src/tabs/chatbot/db.js';
 import { NBA_100_QUERIES } from '../../src/tabs/chatbot/eval/nba-100-queries.js';
 import { setModel } from '../../src/tabs/chatbot/openrouter.js';
 import { buildSystemPrompt } from '../../src/tabs/chatbot/systemPrompt.js';
-import { ANSI, normalizeNumbers, withTimeout } from './shared/index.js';
+import {
+  ANSI,
+  normalizeNumbers,
+  resolveSmokeModels,
+  type SmokeModelTier,
+  smokeTierDelayMs,
+  warnFreeTierModel,
+  withTimeout,
+} from './shared/index.js';
 
 interface RawTestCase {
   id: string;
@@ -221,78 +231,24 @@ function checkAnswer(answer: string, testCase: TestCase): Pick<TestResult, 'pass
   return { passed, reasons };
 }
 
-async function main(): Promise<void> {
-  const modelId = process.env.MODEL || 'openai/gpt-oss-120b';
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function runSmokeCases(
+  modelId: string,
+  testCases: TestCase[],
+  systemPrompt: string,
+  perCaseTimeoutMs: number,
+  caseDelayMs: number,
+): Promise<TestResult[]> {
   setModel(modelId);
-
-  const isDryRun = process.env.DRY_RUN === '1';
-  const suite = process.env.CHATBOT_SMOKE_SUITE || 'facts';
-  const limit = process.env.CHATBOT_SMOKE_LIMIT ? Number(process.env.CHATBOT_SMOKE_LIMIT) : null;
-  const perCaseTimeoutMs = Number(
-    process.env.EVAL_TIMEOUT_MS || process.env.CHATBOT_SMOKE_TIMEOUT_MS || 120_000,
-  );
-
-  if (!isDryRun && !process.env.OPENROUTER_API_KEY) {
-    console.error(`${ANSI.RED}${ANSI.BOLD}ERROR:${ANSI.RESET} OPENROUTER_API_KEY is not set.`);
-    console.error(`  ${ANSI.DIM}Set it or use DRY_RUN=1 to validate structure only.${ANSI.RESET}`);
-    process.exit(1);
-  }
-
-  const jsonPath = 'src/tests/nba-facts-test-cases.json';
-  if (suite === 'facts' && !existsSync(jsonPath)) {
-    console.error(
-      `${ANSI.RED}${ANSI.BOLD}ERROR:${ANSI.RESET} Test cases JSON not found at ${jsonPath}`,
-    );
-    process.exit(1);
-  }
-
-  const loadedTestCases = suite === '100' ? load100QuerySuite() : loadTestCases(jsonPath);
-  const testCases = limit && limit > 0 ? loadedTestCases.slice(0, limit) : loadedTestCases;
-
-  console.log();
-  console.log(`${ANSI.BOLD}=== BBallGenius Chatbot Smoke Test v3 ===${ANSI.RESET}`);
-  console.log(`Model:   ${modelId}`);
-  console.log(`DB:      ${process.env.NBA_DUCKDB_PATH || '(default)'}`);
-  console.log(`Suite:   ${suite}`);
-  console.log(`Cases:   ${testCases.length}${suite === 'facts' ? ' (high-confidence only)' : ''}`);
-  console.log(`Mode:    ${isDryRun ? 'DRY RUN (no API calls)' : 'LIVE'}`);
-  console.log('========================================');
-  console.log();
-
-  try {
-    await initDb();
-  } catch (e: unknown) {
-    console.error(
-      `${ANSI.RED}${ANSI.BOLD}FAILED${ANSI.RESET} to init DB: ${e instanceof Error ? e.message : String(e)}`,
-    );
-    process.exit(1);
-  }
-
-  let systemPrompt: string;
-  try {
-    systemPrompt = await buildSystemPrompt();
-    console.log(`${ANSI.DIM}System prompt: ${systemPrompt.length} chars${ANSI.RESET}\n`);
-  } catch (e: unknown) {
-    console.error(
-      `${ANSI.RED}${ANSI.BOLD}FAILED${ANSI.RESET} to build prompt: ${e instanceof Error ? e.message : String(e)}`,
-    );
-    await closeDb();
-    process.exit(1);
-  }
-
-  if (isDryRun) {
-    console.log(
-      `${ANSI.GREEN}${ANSI.BOLD}DRY RUN PASSED${ANSI.RESET} — ${testCases.length} cases loaded, DB ready.`,
-    );
-    console.log(`${ANSI.DIM}Run without DRY_RUN=1 to execute API queries.${ANSI.RESET}\n`);
-    await closeDb();
-    return;
-  }
+  resetGraph();
 
   const results: TestResult[] = [];
 
   for (let i = 0; i < testCases.length; i++) {
-    const tc = testCases[i];
+    const tc = testCases[i]!;
     const label = `[${i + 1}/${testCases.length}]`;
 
     process.stdout.write(`${ANSI.BOLD}${label} ${tc.category} ${ANSI.RESET}`);
@@ -306,14 +262,14 @@ async function main(): Promise<void> {
           {
             messages: [new SystemMessage(systemPrompt), new HumanMessage(tc.question)],
           },
-          { configurable: { thread_id: tc.id } },
+          { configurable: { thread_id: `${modelId}::${tc.id}` } },
         ),
         perCaseTimeoutMs,
         tc.id,
       );
 
       const messages = graphResult.messages;
-      const lastMsg = messages[messages.length - 1];
+      const lastMsg = messages[messages.length - 1]!;
       const answer =
         typeof lastMsg.content === 'string' ? lastMsg.content : String(lastMsg.content);
       const trimmed = answer.trim();
@@ -362,7 +318,7 @@ async function main(): Promise<void> {
 
       const excerpt = trimmed.length > 120 ? `${trimmed.slice(0, 117)}...` : trimmed;
       console.log(`  Answer: ${excerpt}`);
-      const passStr = passed
+      const passStr = finalPassed
         ? `${ANSI.GREEN}${ANSI.BOLD}PASS${ANSI.RESET}`
         : `${ANSI.RED}${ANSI.BOLD}FAIL${ANSI.RESET}`;
       console.log(`  ${passStr} (${reasons.join('; ') || 'no issues'})`);
@@ -373,37 +329,145 @@ async function main(): Promise<void> {
     }
 
     results.push(result);
+
+    if (caseDelayMs > 0 && i < testCases.length - 1) {
+      await sleep(caseDelayMs);
+    }
   }
 
-  const passCount = results.filter((r) => r.passed).length;
-  const total = results.length;
-  const failCount = total - passCount;
+  return results;
+}
 
-  const sep = '='.repeat(40);
-  console.log(`\n${sep}`);
-  console.log(
-    `${ANSI.BOLD}Results: ${passCount}/${total} PASS, ${failCount}/${total} FAIL${ANSI.RESET}`,
+async function main(): Promise<void> {
+  const smokeTier = process.env.CHATBOT_SMOKE_TIER?.trim() as SmokeModelTier | undefined;
+  const models = resolveSmokeModels();
+  const caseDelayMs = smokeTierDelayMs(smokeTier);
+
+  const isDryRun = process.env.DRY_RUN === '1';
+  const suite = process.env.CHATBOT_SMOKE_SUITE || 'facts';
+  const limit = process.env.CHATBOT_SMOKE_LIMIT ? Number(process.env.CHATBOT_SMOKE_LIMIT) : null;
+  const perCaseTimeoutMs = Number(
+    process.env.EVAL_TIMEOUT_MS || process.env.CHATBOT_SMOKE_TIMEOUT_MS || 120_000,
   );
-  console.log(sep);
 
-  for (const r of results) {
-    const status =
-      r.passed && !r.error
-        ? `${ANSI.GREEN}PASS${ANSI.RESET}`
-        : r.error
-          ? `${ANSI.RED}ERROR${ANSI.RESET}`
-          : `${ANSI.RED}FAIL${ANSI.RESET}`;
-    const kwInfo = r.passed
-      ? ''
-      : ` ${ANSI.DIM}expected: "${r.testCase.expectedKeywords.slice(0, 3).join('", "')}"${ANSI.RESET}`;
-    console.log(`  ${status}  ${r.testCase.id} ${kwInfo}`);
+  if (!isDryRun && !process.env.OPENROUTER_API_KEY) {
+    console.error(`${ANSI.RED}${ANSI.BOLD}ERROR:${ANSI.RESET} OPENROUTER_API_KEY is not set.`);
+    console.error(`  ${ANSI.DIM}Set it or use DRY_RUN=1 to validate structure only.${ANSI.RESET}`);
+    process.exit(1);
+  }
+
+  const jsonPath = 'src/tests/nba-facts-test-cases.json';
+  if (suite === 'facts' && !existsSync(jsonPath)) {
+    console.error(
+      `${ANSI.RED}${ANSI.BOLD}ERROR:${ANSI.RESET} Test cases JSON not found at ${jsonPath}`,
+    );
+    process.exit(1);
+  }
+
+  const loadedTestCases = suite === '100' ? load100QuerySuite() : loadTestCases(jsonPath);
+  const testCases = limit && limit > 0 ? loadedTestCases.slice(0, limit) : loadedTestCases;
+
+  console.log();
+  console.log(`${ANSI.BOLD}=== BBallGenius Chatbot Smoke Test v3 ===${ANSI.RESET}`);
+  console.log(`Models:  ${models.join(', ')}`);
+  console.log(`DB:      ${process.env.NBA_DUCKDB_PATH || '(default)'}`);
+  console.log(`Suite:   ${suite}`);
+  console.log(`Cases:   ${testCases.length}${suite === 'facts' ? ' (high-confidence only)' : ''}`);
+  console.log(`Tier:    ${smokeTier ?? '(single MODEL)'}`);
+  if (caseDelayMs > 0) {
+    console.log(`Delay:   ${caseDelayMs}ms between cases (free-tier rate limit)`);
+  }
+  console.log(`Mode:    ${isDryRun ? 'DRY RUN (no API calls)' : 'LIVE'}`);
+  console.log('========================================');
+  console.log();
+
+  try {
+    await initDb();
+  } catch (e: unknown) {
+    console.error(
+      `${ANSI.RED}${ANSI.BOLD}FAILED${ANSI.RESET} to init DB: ${e instanceof Error ? e.message : String(e)}`,
+    );
+    process.exit(1);
+  }
+
+  let systemPrompt: string;
+  try {
+    systemPrompt = await buildSystemPrompt();
+    console.log(`${ANSI.DIM}System prompt: ${systemPrompt.length} chars${ANSI.RESET}\n`);
+  } catch (e: unknown) {
+    console.error(
+      `${ANSI.RED}${ANSI.BOLD}FAILED${ANSI.RESET} to build prompt: ${e instanceof Error ? e.message : String(e)}`,
+    );
+    await closeDb();
+    process.exit(1);
+  }
+
+  if (isDryRun) {
+    console.log(
+      `${ANSI.GREEN}${ANSI.BOLD}DRY RUN PASSED${ANSI.RESET} — ${testCases.length} cases × ${models.length} model(s), DB ready.`,
+    );
+    console.log(`${ANSI.DIM}Run without DRY_RUN=1 to execute API queries.${ANSI.RESET}\n`);
+    await closeDb();
+    return;
+  }
+
+  const modelSummaries: { modelId: string; passCount: number; failCount: number }[] = [];
+  let anyFailed = false;
+
+  for (const modelId of models) {
+    warnFreeTierModel(modelId, smokeTier);
+    console.log(`\n${ANSI.BOLD}--- Model: ${modelId} ---${ANSI.RESET}\n`);
+    const results = await runSmokeCases(
+      modelId,
+      testCases,
+      systemPrompt,
+      perCaseTimeoutMs,
+      caseDelayMs,
+    );
+
+    const passCount = results.filter((r) => r.passed).length;
+    const failCount = results.length - passCount;
+    modelSummaries.push({ modelId, passCount, failCount });
+    if (failCount > 0) {
+      anyFailed = true;
+    }
+
+    const sep = '='.repeat(40);
+    console.log(`\n${sep}`);
+    console.log(
+      `${ANSI.BOLD}${modelId}: ${passCount}/${results.length} PASS, ${failCount}/${results.length} FAIL${ANSI.RESET}`,
+    );
+    console.log(sep);
+
+    for (const r of results) {
+      const status =
+        r.passed && !r.error
+          ? `${ANSI.GREEN}PASS${ANSI.RESET}`
+          : r.error
+            ? `${ANSI.RED}ERROR${ANSI.RESET}`
+            : `${ANSI.RED}FAIL${ANSI.RESET}`;
+      const kwInfo = r.passed
+        ? ''
+        : ` ${ANSI.DIM}expected: "${r.testCase.expectedKeywords.slice(0, 3).join('", "')}"${ANSI.RESET}`;
+      console.log(`  ${status}  ${r.testCase.id} ${kwInfo}`);
+    }
+  }
+
+  if (models.length > 1) {
+    console.log(`\n${ANSI.BOLD}=== Model summary ===${ANSI.RESET}`);
+    for (const row of modelSummaries) {
+      const ok = row.failCount === 0;
+      console.log(
+        `  ${ok ? ANSI.GREEN : ANSI.RED}${row.modelId}: ${row.passCount}/${row.passCount + row.failCount} PASS${ANSI.RESET}`,
+      );
+    }
   }
 
   console.log();
 
   await closeDb();
 
-  if (failCount > 0) process.exit(1);
+  if (anyFailed) process.exit(1);
 }
 
 main().catch((err) => {

@@ -94,6 +94,8 @@ bun run hub:start      # Terminal analytics TUI
 ```bash
 bun test src/tabs/chatbot/__tests__ --concurrency=1   # Run chatbot tests (DB + mocked LLM)
 bun run chatbot:smoke                                   # Smoke test with fact-checked NBA questions
+bun run chatbot:smoke:free                              # Free-tier model matrix (10 cases)
+bun run chatbot:smoke:baseline                          # Paid baseline model matrix (10 cases)
 bun run chatbot:smoke:100                               # Full 100-query smoke suite
 ```
 
@@ -153,7 +155,7 @@ Mirrors [Basketball-Reference](https://www.basketball-reference.com) into repo-r
 bun run bbr:map      # multi-pass firecrawl map → .firecrawl/bbr-map-full.txt + bbr-depth-index.json
 bun run bbr:crawl    # wipes bbr-screenshots/*, then node scripts/bbr/takeBbrScreenshots.cjs
 bun run bbr:verify   # map + per-directory 2 PNG / 2 JSON checks
-bun run bbr:verify:map
+bun run bbr:verify:map  # fails if players scope lacks enough /players/x/id.html profiles (see BBR_MIN_PLAYER_PROFILES)
 bun run bbr:status   # heartbeat + progress JSON (no full log tailing)
 bun run bbr:watch    # refresh status every 3s
 bun run bbr:map:cancel
@@ -216,6 +218,20 @@ const activePath = resolveDbPath(); // e.g. 'data/fixtures/nba.ci.duckdb'
 ## Data Warehouse, Schema & Data Quality
 
 `data/nba.duckdb` is a medallion-architecture DuckDB warehouse: **509 tables/views across 12 schemas, ~414M rows, ~21.7 GB**. Ingesting/building it is out of repo scope, but the curated tiers, canonical views, entity reconciliation, and data-quality checks are operated from `scripts/db/`. The generated full column reference is `NBA_DB_SCHEMA_REFERENCE.md`.
+
+### Warehouse boundary (nbadb vs BBallGenius)
+
+The curated **`nbadb`** star tier matches the public contract at [nbadb.w4w.dev](https://nbadb.w4w.dev/docs/schema) (built by [wyattowalsh/nbadb](https://github.com/wyattowalsh/nbadb) from stats.nba.com / nba_api). BBallGenius **operates** on an existing `nba.duckdb` and adds cross-source layers this repo maintains:
+
+| Layer | Primary source | In nbadb.w4w.dev? | In BBallGenius |
+|-------|----------------|-------------------|----------------|
+| `nbadb` star tier | wyattowalsh/nbadb / NBA API | Yes (18 dim, 198 fact, …) | Yes — 1:1 public contract |
+| `raw_bref` / `stg_bref` | Basketball-Reference | No | BBallGenius extension |
+| `unified_star`, `api`, `xref` | Cross-source merge | No | `scripts/db/` |
+| `audit` | DQ + reconciliation | No | `scripts/db/verify-dq.ts`, merge pipeline |
+| BBR mirror (Time Machine) | Firecrawl offline cache | No | `scripts/bbr/`, `bbr-screenshots/` |
+
+Fork used locally: [nickth3man/nbadb](https://github.com/nickth3man/nbadb). BBR ingestion, crosswalk, and accuracy reconciliation are **not** part of the upstream nbadb pipeline.
 
 ### Schemas (medallion tiers)
 
@@ -414,6 +430,8 @@ START → classify_intent → llm → [toolsCondition] → tools → sql_critic 
 | Full hub suite | `bun test src/tests --concurrency=1` or `bun run ci:integration` | CI fixture |
 | Full chatbot suite | `bun test src/tabs/chatbot/__tests__ --concurrency=1` | Mocked LLM |
 | Chatbot smoke | `OPENROUTER_API_KEY=... bun run chatbot:smoke` | Real API, fact-checked |
+| Chatbot smoke (free tier) | `CHATBOT_SMOKE_TIER=free bun run chatbot:smoke:free` | Multi-model free matrix |
+| Chatbot smoke (baseline) | `CHATBOT_SMOKE_TIER=baseline bun run chatbot:smoke:baseline` | Paid accuracy baseline |
 
 - **Agent smoke:** `NBA_DUCKDB_PATH=data/fixtures/nba.ci.duckdb bash scripts/ci/agent-smoke.sh` (~30s).
 - **Keyboard map:** `src/shared/utils/keyboard-map.json` ← `keyboardHelp.ts`; see `docs/agent-tui.md`.
@@ -423,6 +441,7 @@ START → classify_intent → llm → [toolsCondition] → tools → sql_critic 
 
 - `--changed` requires Bun 1.3.13+. It infers affected tests from git diff; freshly created files may not be detected until staged.
 - `--concurrency=1` is still needed for full suite runs due to DuckDB singleton and snapshot ordering.
+- Hub and chatbot both open DuckDB **read-only** at runtime (`src/core/db.ts`, `src/tabs/chatbot/db.ts`). Read-only allows multiple processes to read the same file; parallel hub tests on the CI fixture remain future work (snapshot ordering still requires `--concurrency=1` today).
 
 ## Chatbot Environment Variables
 

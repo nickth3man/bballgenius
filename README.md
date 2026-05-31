@@ -82,7 +82,7 @@ mkdir -p data
 # copy/build nba.duckdb into data/nba.duckdb
 ```
 
-Typical source: build from the [`nickth3man/nbadb`](https://github.com/nickth3man/nbadb) pipeline or another compatible DuckDB dataset with tables such as `dim_player`, `dim_game`, `fact_player_game_boxscore`, and `fact_pbp_events`.
+Typical source: build from the [`wyattowalsh/nbadb`](https://github.com/wyattowalsh/nbadb) pipeline (local fork: [`nickth3man/nbadb`](https://github.com/nickth3man/nbadb)) or another compatible DuckDB dataset. Public star-schema contract: [nbadb.w4w.dev](https://nbadb.w4w.dev/docs/schema). BBR tiers, cross-source merge, and offline BBR mirrors are maintained in **this repo**, not upstream nbadb.
 
 ### Optional Honors Database
 
@@ -215,7 +215,7 @@ Run `bbr:map` before `bbr:crawl`. Do not run map and crawl simultaneously becaus
 
 ## Related Projects
 
-- [`nickth3man/nbadb`](https://github.com/nickth3man/nbadb) — NBA data extraction and DuckDB build pipeline
+- [`wyattowalsh/nbadb`](https://github.com/wyattowalsh/nbadb) — upstream NBA data extraction and DuckDB build pipeline ([fork](https://github.com/nickth3man/nbadb)); schema docs at [nbadb.w4w.dev](https://nbadb.w4w.dev)
 - [`anomalyco/opentui`](https://github.com/anomalyco/opentui) — Terminal UI framework
 - [`langchain-ai/langgraph`](https://github.com/langchain-ai/langgraph) — Agent graph runtime
 

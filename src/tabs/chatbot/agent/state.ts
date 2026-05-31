@@ -1,4 +1,4 @@
-import { MessagesValue, StateSchema } from '@langchain/langgraph';
+import { MessagesValue, Overwrite, ReducedValue, StateSchema } from '@langchain/langgraph';
 import { z } from 'zod/v4';
 
 export type IntentCategory =
@@ -40,12 +40,20 @@ export const ChatbotState = new StateSchema({
   intentCategory: z.string().optional(),
   totalToolCalls: z.number().optional(),
   validateAnswerRetries: z.number().optional(),
-  // Multi-agent orchestration channels. Each is written by exactly one node
-  // per run, so the default last-value semantics are sufficient (no reducer).
   originalQuestion: z.string().optional(),
   planMode: z.enum(['single', 'multi', 'clarify']).optional(),
   subtasks: z.array(SubtaskSchema).optional(),
-  workerFindings: z.array(WorkerFindingSchema).optional(),
+  workerBasePrompt: z.string().optional(),
+  /** Set by Send dispatch; one sub-task per parallel worker invocation. */
+  activeSubtask: SubtaskSchema.optional(),
+  workerFindings: new ReducedValue(z.array(WorkerFindingSchema).default([]), {
+    reducer: (existing, update) => {
+      if (update instanceof Overwrite) {
+        return update.value;
+      }
+      return [...(existing ?? []), ...(update ?? [])];
+    },
+  }),
 });
 
 export type ChatbotStateType = (typeof ChatbotState)['State'];

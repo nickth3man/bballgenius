@@ -268,6 +268,35 @@ const CHECKS: CheckSpec[] = [
     countSql: orphans(DP, 'team_id', DT, 'team_id', true),
   },
 
+  // ── Unified star referential integrity ──────────────────────────────────
+  {
+    name: 'unified_fact_player_season_orphan_player',
+    table: 'unified_star.fact_player_season_stats',
+    severity: 'HIGH',
+    dimension: 'referential',
+    rule: 'every player_id exists in unified_star.dim_player',
+    countSql: orphans(
+      'unified_star.fact_player_season_stats',
+      'player_id',
+      'unified_star.dim_player',
+      'player_id',
+      true,
+    ),
+  },
+  {
+    name: 'unified_fact_player_season_orphan_team',
+    table: 'unified_star.fact_player_season_stats',
+    severity: 'HIGH',
+    dimension: 'referential',
+    rule: 'every team_id exists in unified_star.dim_team',
+    countSql: orphans(
+      'unified_star.fact_player_season_stats',
+      'team_id',
+      'unified_star.dim_team',
+      'team_id',
+      true,
+    ),
+  },
   // ── Consistency (physically impossible = CRITICAL) ──────────────────────
   {
     name: 'pgt_fg_consistency',
@@ -559,6 +588,19 @@ const CHECKS: CheckSpec[] = [
     ),
   },
 
+  // ── Temporal integrity ──────────────────────────────────────────────────
+  {
+    name: 'dim_player_career_year_consistency',
+    table: 'unified_star.dim_player',
+    severity: 'HIGH',
+    dimension: 'validity',
+    rule: 'from_year <= to_year when both are populated',
+    countSql: `SELECT count(*) AS n,
+      CASE WHEN count(*) > 0 THEN 'from_year > to_year: ' || count(*) END AS details
+      FROM unified_star.dim_player
+      WHERE from_year IS NOT NULL AND to_year IS NOT NULL AND from_year > to_year`,
+  },
+
   // ── Completeness ─────────────────────────────────────────────────────────
   {
     name: 'dim_game_required_keys',
@@ -664,6 +706,19 @@ const CHECKS: CheckSpec[] = [
       "is_playoffs = false AND lg = 'NBA' AND person_id IS NULL",
       'unbridged BBR NBA player-seasons',
     ),
+  },
+  {
+    name: 'unified_dim_player_bref_coverage',
+    table: 'unified_star.dim_player',
+    severity: 'LOW',
+    dimension: 'completeness',
+    rule: 'count of dim_player rows with bref_player_id populated vs total',
+    countSql: `SELECT count(*) FILTER (WHERE bref_player_id IS NULL) AS n,
+      CASE WHEN count(*) > 0
+        THEN 'bref_player_id coverage: ' || count(*) FILTER (WHERE bref_player_id IS NOT NULL)
+          || '/' || count(*)
+      END AS details
+      FROM unified_star.dim_player`,
   },
 ];
 

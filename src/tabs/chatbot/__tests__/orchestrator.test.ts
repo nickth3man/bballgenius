@@ -134,5 +134,74 @@ describe.serial('orchestrator', () => {
       const last = result.messages[result.messages.length - 1]!;
       expect(last._getType()).toBe('ai');
     });
+
+    test('multi-subtask Send fan-out merges worker findings', async () => {
+      planJson =
+        '{"mode":"multi","subtasks":[' +
+        '{"id":"a","focus":"LeBron MVPs","question":"How many MVPs does LeBron James have?"},' +
+        '{"id":"b","focus":"Kareem MVPs","question":"How many MVPs does Kareem Abdul-Jabbar have?"}]}';
+
+      mock.module('../db.js', () => ({
+        query: async () => [{ player_name: 'Joel Embiid', pts: 2183 }],
+        getTables: async () => ['fact_bref_player_season_totals'],
+        getColumns: async () => [{ name: 'pts', type: 'BIGINT' }],
+        getTableRefs: async () => [],
+        invalidateSchemaCache: () => {},
+      }));
+
+      mock.module('@langchain/openai', () => ({
+        ChatOpenAI: class {
+          bindTools() {
+            return this;
+          }
+          async invoke(messages: { content?: unknown }[]) {
+            const system = String(messages[0]?.content ?? '');
+            const human = String(
+              messages.find((m) => String(m?.content ?? '').includes('Worker findings'))?.content ??
+                messages.at(-1)?.content ??
+                '',
+            );
+            if (system.includes('PLANNER')) {
+              return new AIMessage(planJson);
+            }
+            if (system.includes('SQL WORKER')) {
+              if (human.includes('LeBron')) {
+                return new AIMessage('LeBron James has 4 MVP awards.');
+              }
+              if (human.includes('Kareem')) {
+                return new AIMessage('Kareem Abdul-Jabbar has 6 MVP awards.');
+              }
+              return new AIMessage('No finding produced.');
+            }
+            if (system.includes('SYNTHESIZER')) {
+              return new AIMessage(
+                'LeBron James has 4 MVP awards; Kareem Abdul-Jabbar has 6 MVP awards.',
+              );
+            }
+            return new AIMessage('Unexpected mock path.');
+          }
+        },
+      }));
+
+      const { getOrchestratorGraph, resetOrchestratorGraph } = await import(
+        '../agent/orchestrator.js'
+      );
+      resetOrchestratorGraph();
+      const graph = getOrchestratorGraph();
+      const result = await graph.invoke(
+        {
+          messages: [new HumanMessage('Who has more MVPs, LeBron James or Kareem Abdul-Jabbar?')],
+        },
+        { configurable: { thread_id: 'orch-test-3' } },
+      );
+
+      expect(result.planMode).toBe('multi');
+      expect(result.workerFindings).toHaveLength(2);
+      expect(result.workerFindings?.some((f) => f.finding.includes('LeBron'))).toBe(true);
+      expect(result.workerFindings?.some((f) => f.finding.includes('Kareem'))).toBe(true);
+      const last = result.messages[result.messages.length - 1]!;
+      expect(String(last.content)).toContain('4');
+      expect(String(last.content)).toContain('6');
+    });
   });
 });

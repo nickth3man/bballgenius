@@ -3,12 +3,12 @@
  *
  * Pipeline (LangGraph StateGraph over ChatbotState):
  *
- *   orch_plan  ─►  orch_workers  ─►  orch_synthesize
+ *   orch_plan  ─►  Send('orch_worker') × N  ─►  orch_synthesize
  *
  * - orch_plan       A planner agent reads the question plus a catalog of EVERY
  *                   schema/table in the database and decomposes it into 1..N
  *                   focused sub-tasks (or flags it as needing clarification).
- * - orch_workers    One SQL specialist agent runs per sub-task, in parallel.
+ * - orch_worker     One SQL specialist agent per sub-task (LangGraph Send fan-out).
  *                   Each worker has its own message history and the full NBA SQL
  *                   toolset, and may query ANY schema/table in the database.
  * - orch_synthesize A synthesizer agent merges the workers' findings into one
@@ -21,12 +21,18 @@
 
 import type { BaseMessage } from '@langchain/core/messages';
 import { AIMessage, HumanMessage, SystemMessage, ToolMessage } from '@langchain/core/messages';
-import { END, MemorySaver, START, StateGraph } from '@langchain/langgraph';
+import { END, MemorySaver, Overwrite, Send, START, StateGraph } from '@langchain/langgraph';
 import { buildSystemPrompt } from '../systemPrompt.js';
 import { getAbortSignal } from './abort.js';
 import { createModel } from './model.js';
 import { buildSchemaCatalog } from './schemaCatalog.js';
-import { ChatbotState, type ChatbotStateType, type Subtask, type WorkerFinding } from './state.js';
+import {
+  ChatbotState,
+  type ChatbotStateType,
+  type ChatbotUpdateType,
+  type Subtask,
+  type WorkerFinding,
+} from './state.js';
 import { nbaTools } from './tools.js';
 
 const MAX_SUBTASKS = 4;
@@ -150,9 +156,10 @@ function parsePlan(raw: string, question: string): ParsedPlan {
   return { mode, subtasks };
 }
 
-async function planNode(state: ChatbotStateType): Promise<Partial<ChatbotStateType>> {
+async function planNode(state: ChatbotStateType): Promise<ChatbotUpdateType> {
   const question = lastHumanQuestion(state.messages);
   const catalog = await buildSchemaCatalog();
+  const workerBasePrompt = (await buildSystemPrompt()).trim();
 
   let plan: ParsedPlan;
   try {
@@ -165,7 +172,13 @@ async function planNode(state: ChatbotStateType): Promise<Partial<ChatbotStateTy
     plan = { mode: 'single', subtasks: [{ id: 't1', focus: 'primary lookup', question }] };
   }
 
-  return { originalQuestion: question, planMode: plan.mode, subtasks: plan.subtasks };
+  return {
+    originalQuestion: question,
+    planMode: plan.mode,
+    subtasks: plan.subtasks,
+    workerBasePrompt,
+    workerFindings: new Overwrite([] as WorkerFinding[]),
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -261,16 +274,22 @@ async function runWorker(subtask: Subtask, basePrompt: string): Promise<WorkerFi
   };
 }
 
-async function workersNode(state: ChatbotStateType): Promise<Partial<ChatbotStateType>> {
-  if (state.planMode === 'clarify' || !state.subtasks || state.subtasks.length === 0) {
+async function workerNode(state: ChatbotStateType): Promise<ChatbotUpdateType> {
+  const subtask = state.activeSubtask;
+  if (!subtask) {
     return { workerFindings: [] };
   }
 
-  const basePrompt = (await buildSystemPrompt()).trim();
-  const findings = await Promise.all(
-    state.subtasks.map((subtask) => runWorker(subtask, basePrompt)),
-  );
-  return { workerFindings: findings };
+  const basePrompt = state.workerBasePrompt ?? (await buildSystemPrompt()).trim();
+  const finding = await runWorker(subtask, basePrompt);
+  return { workerFindings: [finding] };
+}
+
+function dispatchWorkers(state: ChatbotStateType): Send[] | 'orch_synthesize' {
+  if (state.planMode === 'clarify' || !state.subtasks || state.subtasks.length === 0) {
+    return 'orch_synthesize';
+  }
+  return state.subtasks.map((subtask) => new Send('orch_worker', { activeSubtask: subtask }));
 }
 
 // ---------------------------------------------------------------------------
@@ -310,7 +329,7 @@ function buildSynthInput(state: ChatbotStateType): string {
   return `User question: ${question}\n\nWorker findings:\n${findingLines}`;
 }
 
-async function synthesizeNode(state: ChatbotStateType): Promise<Partial<ChatbotStateType>> {
+async function synthesizeNode(state: ChatbotStateType): Promise<ChatbotUpdateType> {
   const response = await createModel().invoke(
     [new SystemMessage(SYNTH_PROMPT), new HumanMessage(buildSynthInput(state))],
     getAbortSignal() ? { signal: getAbortSignal() } : {},
@@ -326,11 +345,11 @@ async function synthesizeNode(state: ChatbotStateType): Promise<Partial<ChatbotS
 function buildOrchestratorGraph() {
   return new StateGraph(ChatbotState)
     .addNode('orch_plan', planNode)
-    .addNode('orch_workers', workersNode)
+    .addNode('orch_worker', workerNode)
     .addNode('orch_synthesize', synthesizeNode)
     .addEdge(START, 'orch_plan')
-    .addEdge('orch_plan', 'orch_workers')
-    .addEdge('orch_workers', 'orch_synthesize')
+    .addConditionalEdges('orch_plan', dispatchWorkers, ['orch_worker', 'orch_synthesize'])
+    .addEdge('orch_worker', 'orch_synthesize')
     .addEdge('orch_synthesize', END)
     .compile({ checkpointer: new MemorySaver() });
 }

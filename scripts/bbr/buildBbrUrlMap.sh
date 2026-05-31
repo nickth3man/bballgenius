@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Builds bbr-map-full.txt from scratch via multi-pass Firecrawl map.
 # Scope: players, teams, leagues (seasons), leaders, awards, player gamelogs.
+# Pass C uses targeted gamelog/index searches — generic --search "players" alone
+# under-discovers profile URLs (/players/x/id.html); see verify:map profile guard.
 # Requires: firecrawl CLI, FIRECRAWL_API_KEY
 # Progress: .firecrawl/bbr-map-progress.json — check with: bun run bbr:status
 set -uo pipefail
@@ -12,6 +14,7 @@ BBR="https://www.basketball-reference.com"
 MAP_DELAY="${BBR_MAP_DELAY_SEC:-0}"
 MAP_PARALLEL="${BBR_MAP_PARALLEL:-2}"
 cd "$ROOT"
+MAP_PARALLEL="${MAP_PARALLEL}" node -e "require('./scripts/bbr/bbrUrlUtils.cjs').assertFirecrawlConcurrency('bbr:map', process.env.MAP_PARALLEL)" || exit 1
 
 readarray -t SECTIONS < <(node -e "for (const s of require('./scripts/bbr/bbrUrlUtils.cjs').BBR_SCOPE_SECTIONS) console.log(s)")
 SCOPE_LABEL="${SECTIONS[*]// /,}"

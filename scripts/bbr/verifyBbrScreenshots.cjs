@@ -1,6 +1,14 @@
 const fs = require('fs');
 const path = require('path');
-const { BBR_SECTIONS, normalizeBbrUrl, sectionRootUrl } = require('./bbrUrlUtils.cjs');
+const {
+  BBR_SECTIONS,
+  BBR_SCOPE_SECTIONS,
+  countPlayerGamelogs,
+  countPlayerProfiles,
+  normalizeBbrUrl,
+  sectionHistogram,
+  sectionRootUrl,
+} = require('./bbrUrlUtils.cjs');
 
 const ROOT = path.join(__dirname, '..');
 const SCREENSHOT_DIR = path.join(ROOT, 'bbr-screenshots');
@@ -26,6 +34,24 @@ function verifyMap() {
     failed = true;
   } else {
     console.log(`[verify:map] ${lines.length} URLs in map`);
+    const histogram = sectionHistogram(lines);
+    console.log(`[verify:map] section histogram: ${JSON.stringify(histogram)}`);
+
+    if (BBR_SCOPE_SECTIONS.includes('players')) {
+      const profiles = countPlayerProfiles(lines);
+      const gamelogs = countPlayerGamelogs(lines);
+      const minProfiles = Number.parseInt(process.env.BBR_MIN_PLAYER_PROFILES || '10', 10);
+      console.log(
+        `[verify:map] player profiles=${profiles} gamelogs=${gamelogs} (min profiles=${minProfiles})`,
+      );
+      if (profiles < minProfiles) {
+        console.error(
+          `[verify:map] only ${profiles} player profile URLs (need >= ${minProfiles}); ` +
+            'generic map --search "players" under-discovers profiles — rerun bbr:map with Pass C gamelog/index searches',
+        );
+        failed = true;
+      }
+    }
   }
 
   const urlSet = new Set(lines.map((l) => normalizeBbrUrl(l)).filter(Boolean));

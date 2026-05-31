@@ -14,6 +14,8 @@
     "test:quick": "bun test --changed --bail",
     "snapshots:update": "UPDATE_SNAPSHOTS=1 NBA_DUCKDB_PATH=data/fixtures/nba.ci.duckdb bun test src/tests/golden_snapshot.test.ts src/tests/visual_frame.test.ts --concurrency=1",
     "chatbot:smoke": "bun run scripts/eval/chatbot-smoke.ts",
+    "chatbot:smoke:free": "CHATBOT_SMOKE_TIER=free CHATBOT_SMOKE_LIMIT=10 bun run scripts/eval/chatbot-smoke.ts",
+    "chatbot:smoke:baseline": "CHATBOT_SMOKE_TIER=baseline CHATBOT_SMOKE_LIMIT=10 bun run scripts/eval/chatbot-smoke.ts",
     "chatbot:matrix": "bun run src/tabs/chatbot/eval/matrixHarness.ts",
     "chatbot:iterate": "bun run scripts/eval/iterate_loop.ts",
     "chatbot:smoke:100": "CHATBOT_SMOKE_SUITE=100 bun run scripts/eval/chatbot-smoke.ts",
