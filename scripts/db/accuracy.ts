@@ -96,13 +96,19 @@ export function compareActual(check: AccuracyCheck, actual: number | null): bool
 }
 
 export function formatExpected(check: ExpectedShape): string {
-  return check.mode === 'gte'
-    ? `>=${check.expected}`
-    : check.mode === 'lte'
-      ? `<=${check.expected}`
-      : check.mode === 'approx'
-        ? `${check.expected}±${check.tolerance}`
-        : String(check.expected);
+  const tolerance = check.tolerance ?? 0;
+
+  switch (check.mode) {
+    case 'gte':
+      return `>=${check.expected}`;
+    case 'lte':
+      return `<=${check.expected}`;
+    case 'approx':
+    case 'range':
+      return `${check.expected}±${tolerance}`;
+    case 'exact':
+      return String(check.expected);
+  }
 }
 
 export function parseBbrCareerTotals(rawHtml: string): BbrCareerTotals {

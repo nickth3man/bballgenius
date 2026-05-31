@@ -24,6 +24,8 @@ describe('accuracy check loader', () => {
     expect(formatExpected({ mode: 'gte', expected: 10 })).toBe('>=10');
     expect(formatExpected({ mode: 'lte', expected: 10 })).toBe('<=10');
     expect(formatExpected({ mode: 'approx', expected: 10, tolerance: 0.5 })).toBe('10±0.5');
+    expect(formatExpected({ mode: 'approx', expected: 10 })).toBe('10±0');
+    expect(formatExpected({ mode: 'range', expected: 10, tolerance: 2 })).toBe('10±2');
   });
 
   test('parses BBR career totals from rawHtml tables', () => {

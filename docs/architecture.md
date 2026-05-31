@@ -2,43 +2,40 @@
 
 ## System Overview
 
-BBallGenius is a Bun monorepo with two production packages that share only a database path resolver.
+BBallGenius is a single Bun application for a terminal NBA analytics hub (OpenTUI + DuckDB). The app has four tabs under a unified `src/` tree.
 
 ```text
 ┌─────────────────────────────────────────────────────────────────┐
 │                        bballgenius                               │
 │                                                                  │
 │  ┌──────────────────────┐     ┌──────────────────────────────┐  │
-│  │     Hub (TUI)        │     │     Chatbot (TUI)            │  │
-│  │  src/hub/            │     │  src/chatbot/                │  │
-│  │                      │     │                              │  │
-│  │  ┌────────────────┐  │     │  ┌────────────────────────┐  │  │
-│  │  │  App Shell      │  │     │  │  Chat App              │  │  │
-│  │  │  (key router,   │  │     │  │  (OpenTUI, streaming,  │  │  │
-│  │  │   tab headers)  │  │     │  │   metrics)             │  │  │
-│  │  └───────┬────────┘  │     │  └───────────┬────────────┘  │  │
-│  │          │            │     │              │               │  │
-│  │  ┌───────▼────────┐  │     │  ┌───────────▼────────────┐  │  │
-│  │  │  Tab Registry   │  │     │  │  LangGraph Agent       │  │  │
-│  │  │  ┌────────────┐ │  │     │  │  ┌──────────────────┐  │  │  │
-│  │  │  │Game Center │ │  │     │  │  │ llm → tools →    │  │  │  │
-│  │  │  │Time Machine│ │  │     │  │  │ sql_critic → llm │  │  │  │
-│  │  │  │SQL Sandbox │ │  │     │  │  └──────────────────┘  │  │  │
-│  │  │  └────────────┘ │  │     │  └────────────────────────┘  │  │
-│  │  └───────┬────────┘  │     │              │               │  │
-│  │          │            │     │  ┌───────────▼────────────┐  │  │
-│  │  ┌───────▼────────┐  │     │  │  Tools                 │  │  │
-│  │  │  Per-Tab SQL    │  │     │  │  query_nba_db          │  │  │
-│  │  │  (queries.ts)   │  │     │  │  get_schema_info       │  │  │
-│  │  └───────┬────────┘  │     │  └───────────┬────────────┘  │  │
-│  │          │            │     │              │               │  │
-│  │  ┌───────▼────────┐  │     │  ┌───────────▼────────────┐  │  │
-│  │  │  Hub DB         │  │     │  │  Chatbot DB            │  │  │
-│  │  │  (core/db.ts)   │  │     │  │  (db.ts)               │  │  │
-│  │  └───────┬────────┘  │     │  └───────────┬────────────┘  │  │
-│  └──────────┼───────────┘     └──────────────┼───────────────┘  │
-│             │                                │                   │
-│  ┌──────────▼────────────────────────────────▼───────────────┐  │
+│  │     App Shell         │     │     Chatbot (TUI)            │  │
+│  │  src/core/            │     │  src/tabs/chatbot/           │  │
+│  │    appShell.ts        │     │                              │  │
+│  │    db.ts              │     │  ┌────────────────────────┐  │  │
+│  │    types.ts           │     │  │  Chat App              │  │  │
+│  │    errors.ts          │     │  │  (OpenTUI, streaming,  │  │  │
+│  │                       │     │  │   metrics)             │  │  │
+│  │  ┌─────────────────┐  │     │  └───────────┬────────────┘  │  │
+│  │  │  Tab Registry    │  │     │              │               │  │
+│  │  │  src/tabs/       │  │     │  ┌───────────▼────────────┐  │  │
+│  │  │  ┌─────────────┐ │  │     │  │  LangGraph Agent       │  │  │
+│  │  │  │Game Center  │ │  │     │  │  (llm → tools →       │  │  │
+│  │  │  │Time Machine │ │  │     │  │   sql_critic → llm)   │  │  │
+│  │  │  │SQL Sandbox  │ │  │     │  └───────────┬────────────┘  │  │
+│  │  │  └─────────────┘ │  │     │              │               │  │
+│  │  └────────┬────────┘  │     │  ┌───────────▼────────────┐  │  │
+│  │           │            │     │  │  Tools                 │  │  │
+│  │  ┌────────▼────────┐  │     │  │  query_nba_db          │  │  │
+│  │  │  Shared utilities│  │     │  │  get_schema_info       │  │  │
+│  │  │  src/shared/     │  │     │  └───────────┬────────────┘  │  │
+│  │  │   formatters.ts  │  │     │              │               │  │
+│  │  │   dbPath.ts      │  │     │  ┌───────────▼────────────┐  │  │
+│  │  │   theme.ts       │  │     │  │  Chatbot DB            │  │  │
+│  │  └────────┬────────┘  │     │  │  (db.ts)               │  │  │
+│  └───────────┼───────────┘     └──────────────┼───────────────┘  │
+│              │                                │                   │
+│  ┌───────────▼────────────────────────────────▼───────────────┐  │
 │  │              src/shared/dbPath.ts                          │  │
 │  │              (shared DB path resolver)                     │  │
 │  └──────────────────────────┬────────────────────────────────┘  │
@@ -54,13 +51,39 @@ BBallGenius is a Bun monorepo with two production packages that share only a dat
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-## Hub Architecture
+## Repository Structure
+
+```text
+src/
+├── index.ts           # TUI bootstrap
+├── core/              # AppShell, DB, DB honors, errors, types
+├── shared/            # Shared utilities (formatters, theme, keyboardHelp, dbPath)
+├── tabs/              # Tab registry + four tabs
+│   ├── registry.ts
+│   ├── gameCenter/    # F1: Game directory, box scores, shot charts
+│   ├── timeMachine/   # F2: Player/team search, BBR mirror, dossier, honors
+│   ├── sqlSandbox/    # F3: Schema browser, SQL editor, autocomplete
+│   └── chatbot/       # F4: LangGraph-powered conversational NBA agent
+│       ├── tab.ts     # AppShellTab adapter
+│       ├── chatApp.ts # Chat UI controller (OpenTUI, streaming, metrics)
+│       ├── db.ts      # DuckDB access + schema introspection
+│       ├── openrouter.ts # OpenRouter API client
+│       ├── systemPrompt.ts
+│       ├── agent/     # LangGraph agent (graph, state, tools, model, streaming)
+│       ├── utils/     # SQL, retry, metrics, ansi, theme
+│       ├── features/  # Model selector
+│       ├── eval/      # 100 categorized NBA test queries
+│       └── __tests__/ # Bun tests with LangChain mocking
+└── tests/             # Hub tests + snapshots/
+```
+
+## App Shell (src/core/)
 
 ### Rendering Pipeline
 
 ```text
 index.ts
-  ├── initDb()                    # DuckDB connection
+  ├── initDb()                    # DuckDB connection (read-only)
   ├── CliRenderer (30 FPS)        # OpenTUI rendering
   └── createAppShell()
         ├── keypress handler      # Global key routing
@@ -73,22 +96,25 @@ index.ts
               │     ├── tab.ts
               │     ├── queries.ts
               │     └── utils/bbr/    # BBR mirror views
-              └── sql-sandbox/
+              ├── sql-sandbox/
+              │     ├── tab.ts
+              │     └── queries.ts
+              └── chatbot/
                     ├── tab.ts
-                    └── queries.ts
+                    └── agent/        # LangGraph ReAct agent
 ```
 
 ### Tab Isolation
 
-Each tab lives in `src/hub/tabs/<tabId>/` and may only import from:
+Each tab lives in `src/tabs/<tabId>/` and may only import from:
 
-- `src/hub/core/*` (app shell, DB, types, errors)
-- `src/hub/shared/*` (formatters, theme, keyboard help)
+- `src/core/*` (app shell, DB, types, errors)
+- `src/shared/*` (formatters, theme, keyboard help, dbPath)
 - Its own folder
 
-Tabs must never import from sibling tabs. This is enforced by `scripts/ci-guards.sh`.
+Tabs must never import from sibling tabs. This is enforced by `scripts/ci/ci-guards.sh`.
 
-## Chatbot Architecture
+## Chatbot Architecture (src/tabs/chatbot/)
 
 ### Agent Graph
 
@@ -104,21 +130,21 @@ llm ◄────────────────────────�
   ├──► [no tool calls] ──► END             │
   │                                         │
   └──► [tool calls] ──► tools              │
-                           │                │
-                           ▼                │
-                       sql_critic           │
-                           │                │
-                    ┌──────┴──────┐         │
-                    │             │         │
-               [success]    [SQL error]     │
-                    │             │         │
-                    │        retries < 3?   │
-                    │         │      │      │
-                    │        yes    no      │
-                    │         │      │      │
-                    ▼         ▼      ▼      │
-                   END      llm ────┘  END  │
-                                    (retry) │
+                            │                │
+                            ▼                │
+                        sql_critic           │
+                            │                │
+                     ┌──────┴──────┐         │
+                     │             │         │
+                [success]    [SQL error]     │
+                     │             │         │
+                     │        retries < 3?   │
+                     │         │      │      │
+                     │        yes    no      │
+                     │         │      │      │
+                     ▼         ▼      ▼      │
+                    END      llm ────┘  END  │
+                                     (retry) │
 ```
 
 ### State
@@ -147,7 +173,7 @@ Do not add state fields unless a graph node reads/writes them.
 
 ### Error Classification
 
-`src/chatbot/utils/retry.ts` classifies SQL errors:
+`src/tabs/chatbot/utils/retry.ts` classifies SQL errors:
 
 | Category | Action |
 |----------|--------|
@@ -173,36 +199,44 @@ User message → classify_intent → LLM (OpenRouter) → Tool call → DuckDB
 
 ## CI/CD Pipeline
 
+See `docs/ci.md` for the full pipeline description.
+
 ```text
 PR opened / push to main
   │
-  ├── guards          (static checks, no deps)
-  ├── lint            (Biome)
-  ├── format          (Biome format check)
-  ├── typecheck       (tsc full repo)
-  ├── unit            (hub formatters, no DB)
-  ├── regression      (hub regression on CI fixture)
-  ├── integration     (hub full suite on CI fixture)
-  ├── chatbot         (strict typecheck + chatbot tests)
-  └── audit           (bun audit --audit-level=moderate)
+  ├── guards             (static checks, Biome belt-and-suspenders)
+  ├── lint               (Biome ci)
+  ├── format             (Biome format check)
+  ├── typecheck          (tsc src/)
+  ├── typecheck-scripts  (tsc scripts/)
+  ├── unit               (hub formatters, no DB)
+  ├── regression         (hub regression + snapshots, CI fixture)
+  ├── integration        (hub full suite, CI fixture)
+  ├── chatbot            (chatbot tests, CI fixture)
+  ├── test-scripts       (script tests, CI fixture)
+  ├── dq-fixture         (DQ gate, CI fixture)
+  ├── docs               (markdown lint)
+  ├── audit              (bun audit --audit-level=moderate)
         │
         ▼
-    ci-success        (aggregate: all must pass)
+    ci-success           (aggregate: all must pass)
         │
         ▼
-    integration-full  (manual: full database, workflow_dispatch only)
+    integration-full     (manual: full database, workflow_dispatch only)
 ```
 
 ## Key Design Decisions
 
-1. **Separate DuckDB connections**: Hub and chatbot each have their own DB connection. The hub uses a simpler connection; the chatbot has richer introspection (`getTableRefs()`, `getColumns()`).
+1. **Unified src/ tree**: A single application with four tabs under `src/tabs/`. No separate packages — tabs share `src/core/*` and `src/shared/*` but never import each other.
 
-2. **CI fixture**: A pruned ~2.8 MB DuckDB committed to the repo enables integration tests in CI without the 1.5 GB full database.
+2. **Separate DuckDB connections**: Hub and chatbot each have their own read-only DB connection. The hub uses a simpler connection; the chatbot has richer introspection (`getTableRefs()`, `getColumns()`).
 
-3. **Tab isolation**: Enforced by CI guards to prevent circular dependencies and keep tabs independently testable.
+3. **CI fixture**: A pruned ~2.8 MB DuckDB committed to the repo enables integration tests in CI without the ~21.7 GB full database.
 
-4. **Strict chatbot typecheck**: A separate `tsconfig.chatbot.json` with stricter options catches bugs that the base config misses, without slowing down hub development.
+4. **Tab isolation**: Enforced by CI guards to prevent circular dependencies and keep tabs independently testable.
 
-5. **LangGraph ReAct pattern**: The agent uses a ReAct loop with a SQL critic node for error correction, allowing up to 3 retries before giving up.
+5. **LangGraph ReAct pattern**: The chatbot agent uses a ReAct loop with a SQL critic node for error correction, allowing up to 3 retries before giving up.
 
 6. **Biome over ESLint + Prettier**: Single tool for linting and formatting reduces config complexity and ensures consistency.
+
+7. **Data warehouse tiering**: Medallion architecture (`raw_*` → `stg_*` → `nbadb` star tier → `unified_star`/`api`) with cross-source BBR reconciliation. Data-quality checks in `audit` schema via `scripts/db/verify-dq.ts`.

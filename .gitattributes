@@ -11,4 +11,5 @@
 *.jpeg binary
 *.gif binary
 *.ico binary
-*.lock binary
+# bun.lock is a text file (Bun binary lockfile format); keep diffable.
+# Dependabot also needs text diff for Bun lockfile updates.
