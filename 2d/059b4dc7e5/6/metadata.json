@@ -1,0 +1,37 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "2d059b4dc7e5",
+  "session_id": "ses_18def04e4ffeJOz36WzgQu2zq6",
+  "strategy": "manual-commit",
+  "created_at": "2026-05-31T23:54:01.1336366Z",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "package.json"
+  ],
+  "agent": "OpenCode",
+  "model": "deepseek-v4-flash",
+  "turn_id": "757f7cf9b72c",
+  "token_usage": {
+    "input_tokens": 59849,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 118400,
+    "output_tokens": 666,
+    "api_call_count": 3
+  },
+  "session_metrics": {
+    "turn_count": 1
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-05-31T23:54:01.1056632Z",
+    "agent_lines": 3,
+    "agent_removed": 0,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 3,
+    "total_lines_changed": 66,
+    "agent_percentage": 4.545454545454546,
+    "metric_version": 2
+  }
+}
