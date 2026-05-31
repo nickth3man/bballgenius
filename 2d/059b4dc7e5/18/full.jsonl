@@ -1,0 +1,462 @@
+{
+  "info": {
+    "id": "ses_18f986b3bffe1wOMEPSL7RTD0D",
+    "slug": "silent-cactus",
+    "projectID": "0c46fb5d797641591d2c0443a46971182cb21aee",
+    "directory": "C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius",
+    "path": "",
+    "parentID": "ses_18f9abccfffe3Fmdls5loVvOrW",
+    "title": "Explore theme and db files (@explore subagent)",
+    "agent": "explore",
+    "model": {
+      "id": "qwen3.7-max",
+      "providerID": "opencode-go",
+      "variant": "default"
+    },
+    "version": "1.15.12",
+    "summary": {
+      "additions": 0,
+      "deletions": 0,
+      "files": 0
+    },
+    "cost": 0.0806205,
+    "tokens": {
+      "input": 18,
+      "output": 4057,
+      "reasoning": 0,
+      "cache": {
+        "read": 39471,
+        "write": 9732
+      }
+    },
+    "permission": [
+      {
+        "permission": "todowrite",
+        "action": "deny",
+        "pattern": "*"
+      },
+      {
+        "permission": "task",
+        "action": "deny",
+        "pattern": "*"
+      }
+    ],
+    "time": {
+      "created": 1780002297028,
+      "updated": 1780002366348
+    }
+  },
+  "messages": [
+    {
+      "info": {
+        "role": "user",
+        "time": {
+          "created": 1780002297036
+        },
+        "tools": {
+          "todowrite": false,
+          "task": false
+        },
+        "agent": "explore",
+        "model": {
+          "providerID": "opencode-go",
+          "modelID": "qwen3.7-max"
+        },
+        "summary": {
+          "diffs": []
+        },
+        "id": "msg_e706794cb001rwfxLbgV8t3GNw",
+        "sessionID": "ses_18f986b3bffe1wOMEPSL7RTD0D"
+      },
+      "parts": [
+        {
+          "type": "text",
+          "text": "Thoroughly explore the following files and return their full contents and key observations:\n\n1. src/hub/shared/utils/theme.ts - theme colors and isNoColor function\n2. src/chatbot/utils/theme.ts - chatbot theme colors and isNoColor function\n3. src/hub/core/db.ts - hub DuckDB connection (especially lines 6-71 for resolveDbPath duplication and initDb/query/closeDb)\n4. src/chatbot/db.ts - chatbot DuckDB connection (especially lines 14-38 for initDb/query/closeDb)\n\nFor each file, report:\n- Full file path and line count\n- Key function signatures and exports\n- Any imports/dependencies\n- Notable patterns or conventions used\n\nThis is a READ-ONLY exploration task. Do not modify any files.",
+          "snippetsProcessed": true,
+          "id": "prt_e706794ce002hab8XBRSPNrsNO",
+          "sessionID": "ses_18f986b3bffe1wOMEPSL7RTD0D",
+          "messageID": "msg_e706794cb001rwfxLbgV8t3GNw"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_e706794cb001rwfxLbgV8t3GNw",
+        "role": "assistant",
+        "mode": "explore",
+        "agent": "explore",
+        "path": {
+          "cwd": "C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius",
+          "root": "C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius"
+        },
+        "cost": 0.00723425,
+        "tokens": {
+          "total": 10381,
+          "input": 6,
+          "output": 225,
+          "reasoning": 0,
+          "cache": {
+            "write": 174,
+            "read": 9976
+          }
+        },
+        "modelID": "qwen3.7-max",
+        "providerID": "opencode-go",
+        "time": {
+          "created": 1780002297337,
+          "completed": 1780002302731
+        },
+        "finish": "tool-calls",
+        "id": "msg_e706795f9001Hvgdo7rA2r1AzW",
+        "sessionID": "ses_18f986b3bffe1wOMEPSL7RTD0D"
+      },
+      "parts": [
+        {
+          "snapshot": "5577677ef0e81b484f2f4f305bbee1c0788ac518",
+          "type": "step-start",
+          "id": "prt_e70679cc7001JKNEeQCt1GbZPm",
+          "sessionID": "ses_18f986b3bffe1wOMEPSL7RTD0D",
+          "messageID": "msg_e706795f9001Hvgdo7rA2r1AzW"
+        },
+        {
+          "type": "reasoning",
+          "text": "The user wants me to thoroughly explore 4 specific files and report their contents and key observations. Let me read all 4 files in parallel since they're independent reads.",
+          "time": {
+            "start": 1780002299080,
+            "end": 1780002299639
+          },
+          "metadata": {
+            "anthropic": {
+              "signature": ""
+            }
+          },
+          "id": "prt_e70679cc8001wg2gpjFV7BHvuc",
+          "sessionID": "ses_18f986b3bffe1wOMEPSL7RTD0D",
+          "messageID": "msg_e706795f9001Hvgdo7rA2r1AzW"
+        },
+        {
+          "type": "tool",
+          "tool": "read",
+          "callID": "toolu_b748d3d93c984141b0d440f8",
+          "state": {
+            "status": "completed",
+            "input": {
+              "filePath": "C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\hub\\shared\\utils\\theme.ts"
+            },
+            "output": "<path>C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\hub\\shared\\utils\\theme.ts</path>\n<type>file</type>\n<content>\n1: /**\n2:  * BBallGenius Terminal Hub Theme Settings\n3:  * Consistent TokyoNight style colors and borders.\n4:  */\n5: \n6: export const Theme = {\n7:   // Brand colors (Hex values)\n8:   primary: '#7aa2f7', // Accent Blue\n9:   secondary: '#bb9af7', // Accent Purple/Magenta\n10:   accent: '#2ac3de', // Cyan\n11:   success: '#9ece6a', // Green\n12:   error: '#f7768e', // Red\n13:   warning: '#e0af68', // Yellow/Orange\n14:   foreground: '#a9b1d6', // Soft white/gray\n15:   background: '#1a1b26', // Dark Blue/Gray background\n16:   borderFocused: '#bb9af7', // Highlight border on focus\n17:   borderNormal: '#383e5a', // Subtle border normally\n18: \n19:   // Layout and components\n20:   borderStyle: 'rounded' as const,\n21:   titleAlignment: 'left' as const,\n22:   gap: 1 as const,\n23: };\n24: \n25: /** True when `NO_COLOR` is set to any non-empty value (https://no-color.org/). */\n26: export function isNoColor(): boolean {\n27:   const value = process.env.NO_COLOR;\n28:   return value !== undefined && value !== '';\n29: }\n30: \n31: /** Snapshot at module load; use `isNoColor()` when env may change (e.g. tests). */\n32: export const noColor: boolean = isNoColor();\n33: \n34: export type ThemeFgRole =\n35:   | 'primary'\n36:   | 'secondary'\n37:   | 'accent'\n38:   | 'success'\n39:   | 'error'\n40:   | 'warning'\n41:   | 'foreground';\n42: \n43: const THEME_FG_RGB: Record<ThemeFgRole, [number, number, number]> = {\n44:   primary: [122, 162, 247],\n45:   secondary: [187, 154, 247],\n46:   accent: [42, 195, 222],\n47:   success: [158, 206, 106],\n48:   error: [247, 118, 142],\n49:   warning: [224, 175, 104],\n50:   foreground: [169, 177, 214],\n51: };\n52: \n53: function ansiReset(): string {\n54:   return isNoColor() ? '' : '\\x1b[0m';\n55: }\n56: \n57: function ansiWrap(openSequence: string, text: string): string {\n58:   if (isNoColor()) return text;\n59:   return `${openSequence}${text}${ansiReset()}`;\n60: }\n61: \n62: /** 24-bit foreground using theme hex roles. */\n63: export function themeFg(role: ThemeFgRole, text: string): string {\n64:   if (isNoColor()) return text;\n65:   const [r, g, b] = THEME_FG_RGB[role];\n66:   return ansiWrap(`\\x1b[38;2;${r};${g};${b}m`, text);\n67: }\n68: \n69: export function ansiBold(text: string): string {\n70:   return ansiWrap('\\x1b[1m', text);\n71: }\n72: \n73: export function ansiDim(text: string): string {\n74:   return ansiWrap('\\x1b[2m', text);\n75: }\n76: \n77: export function ansiItalic(text: string): string {\n78:   return ansiWrap('\\x1b[3m', text);\n79: }\n80: \n81: export function ansiUnderline(text: string): string {\n82:   return ansiWrap('\\x1b[4m', text);\n83: }\n84: \n85: export function ansiGreen(text: string): string {\n86:   return ansiWrap('\\x1b[32m', text);\n87: }\n88: \n89: export function ansiRed(text: string): string {\n90:   return ansiWrap('\\x1b[31m', text);\n91: }\n92: \n93: export function ansiYellow(text: string): string {\n94:   return ansiWrap('\\x1b[33m', text);\n95: }\n96: \n97: export function ansiCyan(text: string): string {\n98:   return ansiWrap('\\x1b[36m', text);\n99: }\n100: \n101: export function ansiMagenta(text: string): string {\n102:   return ansiWrap('\\x1b[35m', text);\n103: }\n104: \n105: export function ansiBrightGreen(text: string): string {\n106:   return ansiWrap('\\x1b[1;32;40m', text);\n107: }\n108: \n109: export function ansiBrightRed(text: string): string {\n110:   return ansiWrap('\\x1b[1;31;40m', text);\n111: }\n\n(End of file - total 111 lines)\n</content>",
+            "metadata": {
+              "preview": "/**\n * BBallGenius Terminal Hub Theme Settings\n * Consistent TokyoNight style colors and borders.\n */\n\nexport const Theme = {\n  // Brand colors (Hex values)\n  primary: '#7aa2f7', // Accent Blue\n  secondary: '#bb9af7', // Accent Purple/Magenta\n  accent: '#2ac3de', // Cyan\n  success: '#9ece6a', // Green\n  error: '#f7768e', // Red\n  warning: '#e0af68', // Yellow/Orange\n  foreground: '#a9b1d6', // Soft white/gray\n  background: '#1a1b26', // Dark Blue/Gray background\n  borderFocused: '#bb9af7', // Highlight border on focus\n  borderNormal: '#383e5a', // Subtle border normally\n\n  // Layout and components\n  borderStyle: 'rounded' as const,",
+              "truncated": false,
+              "loaded": []
+            },
+            "title": "src\\hub\\shared\\utils\\theme.ts",
+            "time": {
+              "start": 1780002302410,
+              "end": 1780002302448
+            }
+          },
+          "id": "prt_e70679ef8001WQVfeRDcna7naW",
+          "sessionID": "ses_18f986b3bffe1wOMEPSL7RTD0D",
+          "messageID": "msg_e706795f9001Hvgdo7rA2r1AzW"
+        },
+        {
+          "type": "tool",
+          "tool": "read",
+          "callID": "toolu_8ba49303d7274dba801ddc9b",
+          "state": {
+            "status": "completed",
+            "input": {
+              "filePath": "C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\utils\\theme.ts"
+            },
+            "output": "<path>C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\utils\\theme.ts</path>\n<type>file</type>\n<content>\n1: export function isNoColor(): boolean {\n2:   const value = process.env['NO_COLOR'];\n3:   return value !== undefined && value !== '';\n4: }\n5: \n6: export const Theme = {\n7:   primary: '#7aa2f7',\n8:   secondary: '#bb9af7',\n9:   accent: '#2ac3de',\n10:   success: '#9ece6a',\n11:   error: '#f7768e',\n12:   warning: '#e0af68',\n13:   foreground: '#a9b1d6',\n14:   background: '#1a1b26',\n15:   borderFocused: '#bb9af7',\n16:   borderNormal: '#383e5a',\n17:   borderStyle: 'rounded' as const,\n18:   titleAlignment: 'left' as const,\n19: };\n20: \n21: export function dimOrPlain(text: string): string {\n22:   if (isNoColor()) return text;\n23:   return `\\x1b[2m${text}\\x1b[0m`;\n24: }\n25: \n26: export function statusText(text: string): string {\n27:   return dimOrPlain(text);\n28: }\n29: \n30: export function bold(text: string): string {\n31:   if (isNoColor()) return text;\n32:   return `\\x1b[1m${text}\\x1b[0m`;\n33: }\n34: \n35: export function label(text: string, colorCode: string): string {\n36:   if (isNoColor()) return text;\n37:   return `\\x1b[1;${colorCode}m${text}\\x1b[0m`;\n38: }\n39: \n40: export function youLabel(): string {\n41:   return label('[You]', '34');\n42: }\n43: \n44: export function aiLabel(): string {\n45:   return label('[AI]', '32');\n46: }\n47: \n48: export function sqlLabel(): string {\n49:   if (isNoColor()) return '[SQL]';\n50:   return '\\x1b[36m[SQL]\\x1b[0m';\n51: }\n52: \n53: export function errorLabel(): string {\n54:   return label('[Error]', '31');\n55: }\n\n(End of file - total 55 lines)\n</content>",
+            "metadata": {
+              "preview": "export function isNoColor(): boolean {\n  const value = process.env['NO_COLOR'];\n  return value !== undefined && value !== '';\n}\n\nexport const Theme = {\n  primary: '#7aa2f7',\n  secondary: '#bb9af7',\n  accent: '#2ac3de',\n  success: '#9ece6a',\n  error: '#f7768e',\n  warning: '#e0af68',\n  foreground: '#a9b1d6',\n  background: '#1a1b26',\n  borderFocused: '#bb9af7',\n  borderNormal: '#383e5a',\n  borderStyle: 'rounded' as const,\n  titleAlignment: 'left' as const,\n};\n",
+              "truncated": false,
+              "loaded": []
+            },
+            "title": "src\\chatbot\\utils\\theme.ts",
+            "time": {
+              "start": 1780002302414,
+              "end": 1780002302430
+            }
+          },
+          "id": "prt_e7067a0f9001TkPQj4C0b7hgQv",
+          "sessionID": "ses_18f986b3bffe1wOMEPSL7RTD0D",
+          "messageID": "msg_e706795f9001Hvgdo7rA2r1AzW"
+        },
+        {
+          "type": "tool",
+          "tool": "read",
+          "callID": "toolu_f679de5cb0ea4bab99d59c29",
+          "state": {
+            "status": "completed",
+            "input": {
+              "filePath": "C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\hub\\core\\db.ts"
+            },
+            "output": "<path>C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\hub\\core\\db.ts</path>\n<type>file</type>\n<content>\n1: import { existsSync } from 'node:fs';\n2: import type { DuckDBConnection } from '@duckdb/node-api';\n3: import { DuckDBInstance } from '@duckdb/node-api';\n4: import type { DbRow, SqlParam } from './types.js';\n5: \n6: const DEFAULT_DB_PATH = 'data/nba.duckdb';\n7: const CI_FIXTURE_PATH = 'data/fixtures/nba.ci.duckdb';\n8: \n9: /**\n10:  * Schema search path for unqualified table names.\n11:  *\n12:  * The full database keeps its canonical star schema under `unified_star` (every\n13:  * dim_/fact_ table the hub queries, fully populated), while `main` holds only a\n14:  * partial subset. Listing `unified_star` first lets the hub's unqualified queries\n15:  * (e.g. `FROM dim_game`) resolve against the complete schema, with `main` retained\n16:  * as a fallback. The CI fixture places its tables in `main`, which stays reachable.\n17:  */\n18: const SEARCH_PATH = 'unified_star,main';\n19: \n20: /** Schema the SQL Sandbox browser introspects for table/column metadata. */\n21: export const BROWSE_SCHEMAS = ['unified_star', 'main'] as const;\n22: \n23: let instance: DuckDBInstance | null = null;\n24: let connection: DuckDBConnection | null = null;\n25: \n26: /** Resolves DuckDB path: explicit env, CI fixture when present, else local full database. */\n27: export function resolveDbPath(): string {\n28:   if (process.env.NBA_DUCKDB_PATH) {\n29:     return process.env.NBA_DUCKDB_PATH;\n30:   }\n31:   if (\n32:     (process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true') &&\n33:     existsSync(CI_FIXTURE_PATH)\n34:   ) {\n35:     return CI_FIXTURE_PATH;\n36:   }\n37:   return DEFAULT_DB_PATH;\n38: }\n39: \n40: /**\n41:  * Initializes and returns the cached DuckDB database connection.\n42:  */\n43: export async function initDb(): Promise<DuckDBConnection> {\n44:   if (!connection) {\n45:     const dbPath = resolveDbPath();\n46:     instance = await DuckDBInstance.fromCache(dbPath);\n47:     connection = await instance.connect();\n48:     // Resolve unqualified table names against the canonical star schema first,\n49:     // falling back to main. Guarded so a fixture without unified_star still works.\n50:     try {\n51:       await connection.run(`SET search_path = '${SEARCH_PATH}'`);\n52:     } catch {\n53:       // Older fixtures expose only `main`; default search_path already covers it.\n54:     }\n55:   }\n56:   return connection;\n57: }\n58: \n59: /**\n60:  * Executes a SQL query against the DuckDB database and returns an array of row objects.\n61:  * Values are converted to JSON-safe formats (e.g. bigints to strings).\n62:  */\n63: export async function query<T = DbRow>(sql: string, params?: SqlParam[]): Promise<T[]> {\n64:   const conn = await initDb();\n65:   if (params && params.length > 0) {\n66:     const reader = await conn.runAndReadAll(sql, params);\n67:     return reader.getRowObjectsJson() as T[];\n68:   }\n69:   const reader = await conn.runAndReadAll(sql);\n70:   return reader.getRowObjectsJson() as T[];\n71: }\n72: \n73: interface TableNameRow {\n74:   table_name: string;\n75: }\n76: \n77: interface ColumnMetaRow {\n78:   column_name: string;\n79:   data_type: string;\n80: }\n81: \n82: /**\n83:  * Retrieves user table names across the browsable schemas (search-path order),\n84:  * deduplicated so the same logical table appears once. This mirrors how the hub's\n85:  * unqualified queries resolve, so the SQL Sandbox browser shows the real schema.\n86:  */\n87: export async function getTables(): Promise<string[]> {\n88:   const placeholders = BROWSE_SCHEMAS.map((_, i) => `$${i + 1}`).join(', ');\n89:   const rows = await query<TableNameRow>(\n90:     `SELECT DISTINCT table_name FROM information_schema.tables\n91:      WHERE table_schema IN (${placeholders}) ORDER BY table_name`,\n92:     [...BROWSE_SCHEMAS],\n93:   );\n94:   return rows.map((r) => r.table_name);\n95: }\n96: \n97: /**\n98:  * Retrieves column metadata (name and type) for a table, resolving it against the\n99:  * browsable schemas in search-path order (first match wins, matching query resolution).\n100:  */\n101: export async function getColumns(table: string): Promise<{ name: string; type: string }[]> {\n102:   for (const schema of BROWSE_SCHEMAS) {\n103:     const rows = await query<ColumnMetaRow>(\n104:       'SELECT column_name, data_type FROM information_schema.columns WHERE table_name = $1 AND table_schema = $2 ORDER BY ordinal_position',\n105:       [table, schema],\n106:     );\n107:     if (rows.length > 0) {\n108:       return rows.map((r) => ({ name: r.column_name, type: r.data_type }));\n109:     }\n110:   }\n111:   return [];\n112: }\n113: \n114: /**\n115:  * Closes the connection and cleanly shuts down the DuckDB instance.\n116:  */\n117: export async function closeDb() {\n118:   const { closeHonorsDb } = await import('./dbHonors.js');\n119:   await closeHonorsDb();\n120: \n121:   if (connection) {\n122:     connection.disconnectSync();\n123:     connection = null;\n124:   }\n125:   instance = null;\n126: }\n\n(End of file - total 126 lines)\n</content>\n\n<system-reminder>\nInstructions from: C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\hub\\AGENTS.md\n# AGENTS.md — hub\n\n## Package Purpose\n\nTerminal NBA analytics hub with keyboard-driven TUI (OpenTUI), DuckDB backend, and three tabs: Game Center, Career Time-Machine, SQL Sandbox.\n\n## Architecture\n\n```\nsrc/hub/index.ts → appShell → tabRegistry → activeTab → queries.ts → db.ts → DuckDB\n```\n\n### Core Module\n\n| Module | Purpose |\n|--------|---------|\n| `index.ts` | TUI bootstrap: `initDb()`, `createCliRenderer()` @ 30 FPS, `createAppShell()` |\n| `core/appShell.ts` | Keyboard routing, tab header bar, help overlay (`?`), footer status, tab visibility |\n| `core/db.ts` | DuckDB singleton: `query<T>(sql, params?)`, `getTables()`, `getColumns()`, `closeDb()` |\n| `core/dbHonors.ts` | Separate DuckDB for `v_player_honors_full` (optional, via `NBA_HONORS_DUCKDB_PATH`) |\n| `core/errors.ts` | Error types for the hub |\n| `core/types.ts` | Shared types |\n\n### Tabs (`src/hub/tabs/`)\n\n| Tab | ID | Shortcut | Purpose |\n|-----|----|----------|---------|\n| Game Center | `game-center` | F1 / 1 | Three-panel: game list / box score / shot chart |\n| Career Time-Machine | `time-machine` | F2 / 2 | Player/team search, BBR mirror, dossier, honors |\n| SQL Sandbox | `sql-sandbox` | F3 / 3 | Schema browser, SQL editor, autocomplete, Ctrl+R/Ctrl+E |\n\n### Tab Contract (`src/hub/tabs/types.ts`)\n\nEvery tab implements `AppShellTab`:\n```typescript\ninterface AppShellTab {\n  id: string; name: string; container: BoxRenderable;\n  focus(): void; init(): Promise<void>;\n  cycleFocus(): void; cycleFocusBackward?(): void;\n  getStatusLine?(): string;\n  isInputFocused(): boolean; blurInput(): void;\n  handleKeyPress(event: KeyEvent): boolean;\n}\n```\n\n### Tab Registry (`src/hub/tabs/registry.ts`)\n\n```typescript\nTAB_REGISTRY = [\n  { id: 'game-center', name: 'Game Center', shortcutIndex: 1, create: ... },\n  { id: 'time-machine', name: 'Career Time-Machine', shortcutIndex: 2, create: ... },\n  { id: 'sql-sandbox', name: 'SQL Sandbox', shortcutIndex: 3, create: ... },\n]\n```\n\n## Module Map\n\n```text\nsrc/hub/\n├── index.ts                # TUI bootstrap\n├── core/\n│   ├── appShell.ts         # Keyboard routing, tab header, help overlay, footer\n│   ├── db.ts               # DuckDB singleton + query<T>()\n│   ├── dbHonors.ts         # Optional honors DuckDB connection\n│   ├── errors.ts           # Error types\n│   └── types.ts            # Shared types\n├── shared/\n│   └── utils/\n│       ├── formatters.ts   # Table formatting, ANSI stripping, half-court drawing\n│       ├── theme.ts        # TokyoNight palette + 24-bit RGB + NO_COLOR support\n│       ├── keyboardHelp.ts # Keyboard shortcut definitions\n│       └── keyboard-map.json # Generated from keyboardHelp.ts\n├── tabs/\n│   ├── registry.ts         # TAB_REGISTRY + tab factory\n│   ├── types.ts            # AppShellTab interface\n│   ├── gameCenter/         # tab.ts, queries.ts (game list, box scores, shot charts)\n│   ├── timeMachine/        # tab.ts, queries.ts, utils/bbr/ (BBR mirror)\n│   └── sqlSandbox/         # tab.ts, queries.ts (schema browser, SQL editor)\n└── tests/                  # Bun tests\n    ├── formatters.test.ts      # Unit (no DB)\n    ├── db.test.ts              # Integration (DB path, init, query)\n    ├── tui_integration.test.ts # Integration (createTestRenderer)\n    ├── spans_frame.test.ts     # Focus/tab routing\n    ├── golden_snapshot.test.ts # Rendered frames vs snapshots\n    ├── gameCenter.test.ts      # Integration\n    ├── timeMachine.test.ts     # Integration\n    ├── app_shell.test.ts       # Key routing, tab switching\n    ├── regression.test.ts      # Known edge cases\n    ├── mutation.test.ts        # Intentionally broken queries\n    ├── keyboardHelp.test.ts    # Help text generation\n    ├── bbrIntegration.test.ts  # BBR parsing (optional local fixtures)\n    ├── helpers/\n    │   └── tabs.ts             # getTab(shell, 'game-center') helper\n    └── snapshots/              # Golden frame snapshots\n```\n\n## Key Patterns\n\n### ANSI at the Boundary\n\nTabs build display strings with raw ANSI. `ansiToStyledText()` converts to OpenTUI `StyledText` before `TextRenderable` writes. This keeps layout stable and tests predictable.\n\n### Tab Isolation\n\nTabs never import sibling tabs (enforced by CI guards). Each tab imports only from:\n- `src/hub/core/*`\n- `src/hub/shared/*`\n- Its own `src/hub/tabs/<tabId>/` folder\n\n### Singleton DB Connection\n\n`initDb()` returns cached connection if one exists. Both hub and chatbot have independent singletons (they don't share DuckDB connections, only the path resolver in `src/shared/dbPath.ts`).\n\n### Tab Factory Pattern\n\n`TAB_REGISTRY` stores `TabDefinition` objects with `create` factories. `createAppShell()` iterates the registry to produce tab instances. Adding a tab requires only a registry entry + folder.\n\n### SQL Queries per Tab\n\nEach tab colocates SQL with its view controller in `tabs/<tabId>/queries.ts`:\n- Typed interfaces for row shapes\n- `load*()` wrappers around `query()`\n- Parameterized via `$1`, `$2` bind parameters\n- CTE-based deduplication\n\n## Testing\n\nAll hub tests use `--concurrency=1` (DuckDB constraint).\n\n```bash\n# Full suite\nbun test src/hub/tests --concurrency=1\n\n# CI fixture (smaller DB)\nNBA_DUCKDB_PATH=data/fixtures/nba.ci.duckdb bun run ci:integration\n\n# Single test file\nbun test src/hub/tests/formatters.test.ts --concurrency=1\n```\n\nGolden snapshots regenerated with:\n```bash\nUPDATE_SNAPSHOTS=1 NBA_DUCKDB_PATH=data/fixtures/nba.ci.duckdb bun test src/hub/tests/golden_snapshot.test.ts --concurrency=1\n```\n\nUse `createTestRenderer` for headless TUI testing. Use `makeTestKeyEvent()` from `appShell.ts` for injected keyboard events. Access tabs via `getTab(shell, 'game-center')` with stable string IDs.\n\n## Adding a New Tab\n\n1. Create `src/hub/tabs/<tabId>/` with `tab.ts`, `queries.ts` (if SQL needed), `index.ts`\n2. Implement `AppShellTab` interface\n3. Register in `TAB_REGISTRY` in `src/hub/tabs/registry.ts`\n4. Add shortcuts in `KEYBOARD_MAP.tabs` in `src/hub/shared/utils/keyboardHelp.ts`\n5. Run `bun run keyboard-map:sync`\n6. Add tests using `getTab(shell, '<tab-id>')`\n\n## Adding a Query Helper\n\n1. Add to `tabs/<tabId>/queries.ts`\n2. Define typed interface for the row shape\n3. Use `query<T>(sql, params?)` from `core/db.ts`\n4. Add test in `__tests__/` if query has edge cases\n\n## Package Boundaries\n\n- Hub tabs must not import sibling tabs\n- Hub code must not import from `src/chatbot/`\n- Hub can import from `src/shared/dbPath.ts`\n- Repo-root assets resolved via relative paths up from `src/hub/`\n\n</system-reminder>",
+            "metadata": {
+              "preview": "import { existsSync } from 'node:fs';\nimport type { DuckDBConnection } from '@duckdb/node-api';\nimport { DuckDBInstance } from '@duckdb/node-api';\nimport type { DbRow, SqlParam } from './types.js';\n\nconst DEFAULT_DB_PATH = 'data/nba.duckdb';\nconst CI_FIXTURE_PATH = 'data/fixtures/nba.ci.duckdb';\n\n/**\n * Schema search path for unqualified table names.\n *\n * The full database keeps its canonical star schema under `unified_star` (every\n * dim_/fact_ table the hub queries, fully populated), while `main` holds only a\n * partial subset. Listing `unified_star` first lets the hub's unqualified queries\n * (e.g. `FROM dim_game`) resolve against the complete schema, with `main` retained\n * as a fallback. The CI fixture places its tables in `main`, which stays reachable.\n */\nconst SEARCH_PATH = 'unified_star,main';\n\n/** Schema the SQL Sandbox browser introspects for table/column metadata. */",
+              "truncated": false,
+              "loaded": [
+                "C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\hub\\AGENTS.md"
+              ]
+            },
+            "title": "src\\hub\\core\\db.ts",
+            "time": {
+              "start": 1780002302418,
+              "end": 1780002302437
+            }
+          },
+          "id": "prt_e7067a4f7001TpigHXU1dFdsEE",
+          "sessionID": "ses_18f986b3bffe1wOMEPSL7RTD0D",
+          "messageID": "msg_e706795f9001Hvgdo7rA2r1AzW"
+        },
+        {
+          "type": "tool",
+          "tool": "read",
+          "callID": "toolu_863aed6b4d2f4ecc8ae27a5b",
+          "state": {
+            "status": "completed",
+            "input": {
+              "filePath": "C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\db.ts"
+            },
+            "output": "<path>C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\db.ts</path>\n<type>file</type>\n<content>\n1: import type { DuckDBConnection, DuckDBValue } from '@duckdb/node-api';\n2: import { DuckDBInstance } from '@duckdb/node-api';\n3: \n4: import { resolveDbPath } from '../shared/dbPath.js';\n5: \n6: export { resolveDbPath };\n7: \n8: export type DbRow = Record<string, unknown>;\n9: export type SqlParam = DuckDBValue;\n10: \n11: let instance: DuckDBInstance | null = null;\n12: let connection: DuckDBConnection | null = null;\n13: \n14: export async function initDb(): Promise<DuckDBConnection> {\n15:   if (connection) {\n16:     try {\n17:       await connection.runAndReadAll('SELECT 1');\n18:       return connection;\n19:     } catch {\n20:       connection = null;\n21:       instance = null;\n22:     }\n23:   }\n24:   const dbPath = resolveDbPath();\n25:   instance = await DuckDBInstance.fromCache(dbPath);\n26:   connection = await instance.connect();\n27:   return connection;\n28: }\n29: \n30: export async function query<T = DbRow>(sql: string, params?: SqlParam[]): Promise<T[]> {\n31:   const conn = await initDb();\n32:   if (params && params.length > 0) {\n33:     const reader = await conn.runAndReadAll(sql, params);\n34:     return reader.getRowObjectsJson() as T[];\n35:   }\n36:   const reader = await conn.runAndReadAll(sql);\n37:   return reader.getRowObjectsJson() as T[];\n38: }\n39: \n40: interface TableNameRow {\n41:   table_schema: string;\n42:   table_name: string;\n43:   table_type: string;\n44: }\n45: \n46: interface ColumnMetaRow {\n47:   column_name: string;\n48:   data_type: string;\n49: }\n50: \n51: export interface TableRef {\n52:   schema: string;\n53:   name: string;\n54:   type: string;\n55:   qualifiedName: string;\n56: }\n57: \n58: const SYSTEM_SCHEMAS = new Set(['information_schema', 'pg_catalog']);\n59: \n60: function qualifyTableName(schema: string, table: string): string {\n61:   return schema === 'main' ? table : `${schema}.${table}`;\n62: }\n63: \n64: export async function getTables(): Promise<string[]> {\n65:   const tables = await getTableRefs();\n66:   return tables.map((table) => table.qualifiedName);\n67: }\n68: \n69: export async function getTableRefs(): Promise<TableRef[]> {\n70:   const rows = await query<TableNameRow>(\n71:     `SELECT table_schema, table_name, table_type\n72:      FROM information_schema.tables\n73:      WHERE table_schema NOT IN ('information_schema', 'pg_catalog')\n74:      ORDER BY table_schema, table_name`,\n75:   );\n76:   return rows\n77:     .filter((r) => !SYSTEM_SCHEMAS.has(r.table_schema))\n78:     .map((r) => ({\n79:       schema: r.table_schema,\n80:       name: r.table_name,\n81:       type: r.table_type,\n82:       qualifiedName: qualifyTableName(r.table_schema, r.table_name),\n83:     }));\n84: }\n85: \n86: export async function getColumns(table: string): Promise<{ name: string; type: string }[]> {\n87:   const parts = table.includes('.') ? table.split('.', 2) : ['main', table];\n88:   const schemaName = parts[0] ?? 'main';\n89:   const tableName = parts[1] ?? table;\n90:   const rows = await query<ColumnMetaRow>(\n91:     'SELECT column_name, data_type FROM information_schema.columns WHERE table_schema = $1 AND table_name = $2 ORDER BY ordinal_position',\n92:     [schemaName, tableName],\n93:   );\n94:   return rows.map((r) => ({\n95:     name: r.column_name,\n96:     type: r.data_type,\n97:   }));\n98: }\n99: \n100: export async function closeDb() {\n101:   if (connection) {\n102:     connection.disconnectSync();\n103:     connection = null;\n104:   }\n105:   instance = null;\n106: }\n\n(End of file - total 106 lines)\n</content>\n\n<system-reminder>\nInstructions from: C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\AGENTS.md\n# AGENTS.md — chatbot\n\n## Package Purpose\n\nTerminal-based NBA analytics chatbot using LangGraph ReAct agent with DuckDB querying, streaming output, and error-correction loop.\n\n## Subagent Delegation\n\nAlways read `.agent/subtask-template.md` from the repository root immediately before creating any subagent/task prompt. Apply its prompt rules to every delegation: critical instructions in the first 15%, nesting depth <=4, 40-50% instruction ratio, single-source rule references, and token-efficient wording that preserves domain precision.\n\nThis applies to all `task` tool calls for chatbot work, including scout/research, review, testing, and implementation subagents. Do not rely on remembered template details; reread the file each time before delegating.\n\n## Agent Graph\n\n```\nSTART → classify_intent → llm → [toolsCondition] → tools → sql_critic → llm → END\n```\n\n### Nodes\n\n| Node | File | Purpose |\n|------|------|---------|\n| `classify_intent` | `agent/graph.ts` | Deterministic keyword-based question classification (no LLM call) |\n| `llm` | `agent/graph.ts` | Calls OpenRouter model with bound tools, returns tool calls or final answer |\n| `tools` | `agent/graph.ts` | `ToolNode([queryNbaDb, getSchemaInfo, listNbaTables, checkNbaSql])` — executes tool calls (parallel when multiple) |\n| `sql_critic` | `agent/graph.ts` | Validates tool output for SQL errors, routes back to `llm` for correction up to `MAX_SQL_RETRIES=3` |\n\n### State\n\n`agent/state.ts` — `StateSchema` with:\n- `messages: MessagesValue` — LangGraph message history (required)\n- `sqlRetryCount: z.number().optional()` — current SQL error retry count\n- `intentCategory: z.string().optional()` — deterministic question category (career_leaders, awards, etc.)\n\n### Tools\n\n| Tool | File | Description |\n|------|------|-------------|\n| `query_nba_db` | `agent/tools.ts:7` | Executes read-only DuckDB SQL with pre-execution schema validation |\n| `get_schema_info` | `agent/tools.ts:59` | On-demand table/column discovery with partial name matching |\n\n## Module Map\n\n```text\nsrc/chatbot/\n├── index.ts              # TUI bootstrap — initDb(), buildSystemPrompt(), createChatApp()\n├── chatApp.ts            # Chat UI (OpenTUI): scrollable display, streaming, model selector, metrics\n├── db.ts                 # DuckDB singleton + schema introspection (getTableRefs, getColumns, getTables)\n├── openrouter.ts         # OpenRouter API: model list, model selection\n├── systemPrompt.ts       # Dynamic system prompt builder from live database schema\n├── agent/                # LangGraph agent core\n│   ├── graph.ts          # buildGraph() — StateGraph with llm/tools/sql_critic nodes\n│   ├── state.ts          # ChatbotState — MessagesValue + sqlRetryCount\n│   ├── tools.ts          # query_nba_db + get_schema_info (Zod schemas)\n│   ├── model.ts          # createModel() — ChatOpenAI @ OpenRouter, temp=0.3\n│   └── streaming.ts      # streamQuery() async generator — StreamEvent union\n├── utils/                # Stateless utilities\n│   ├── sql.ts            # validateReadOnlySql, validateSchemaReferences, extractSql, executeSql, formatResultsPretty\n│   ├── retry.ts          # categorizeDbError (transient/schema/syntax/permanent), formatErrorForLLM, withRetry\n│   ├── metrics.ts        # NDJSON metrics logger (duration, tokens, SQL, errors)\n│   ├── ansi.ts           # ansiToStyledText conversion for OpenTUI\n│   └── theme.ts          # TokyoNight color palette\n├── features/\n│   └── modelSelector.ts  # Interactive model picker overlay (arrow keys, search, vim navigation)\n├── eval/\n│   └── nba-100-queries.ts # 100 categorized NBA questions (17 categories)\n└── __tests/              # Bun tests with LangChain mocking\n    ├── processQuestion.test.ts  # Graph behavior: ReAct, critic, retry, parallel calls\n    ├── executeSql.test.ts       # SQL validation + execution against real DB\n    ├── sqlExtraction.test.ts    # SQL extraction from LLM markdown output\n    ├── formatResults.test.ts    # Pretty-print formatting\n    ├── systemPrompt.test.ts     # Dynamic prompt building\n    ├── ansi.test.ts             # ANSI-to-StyledText conversion\n    ├── retry.test.ts            # Error classification, retry behavior, LLM error prefixes\n    └── streaming.test.ts        # streamQuery token/tool/usage/done/error events\n```\n\n## Key Patterns\n\n### Error-Proof SQL Execution\n\n`sql_critic` validates every tool result before routing. Errors are classified by `categorizeDbError()` (transient → retry, schema → correct, syntax → correct, permanent → surface). Error prefixes are centralized in `ERROR_PREFIX` (`utils/retry.ts`) and consumed by `graph.ts`/`sql.ts` to avoid string drift. The critic enforces `MAX_SQL_RETRIES=3` before giving up.\n\n### Schema Pre-Validation\n\nBefore DuckDB execution, `validateSchemaReferences()` checks table existence against `information_schema`. This catches table name typos before they become DuckDB parse errors.\n\n### Parallel Tool Calls\n\n`ToolNode` supports parallel execution when the LLM emits multiple `tool_calls` in a single response. The system prompt instructs the LLM to use parallel calls for comparisons (e.g., \"Compare LeBron vs MJ stats\").\n\n### Streaming via streamEvents v2\n\n`streamQuery()` yields typed `StreamEvent` events: `token` (LLM output chunks), `tool_start`/`tool_end`/`tool_error` (tool lifecycle), `usage` (token counts), `done` (final messages), `error` (exceptions).\n\n### Checkpointing\n\nGraph compiled with `getCheckpointer()` — `MemorySaver` default, `SqliteSaver` when `CHATBOT_PERSIST_DIR` set. Enables multi-turn conversation memory and future HITL support.\n\n### Singleton Graph\n\n`getChatbotGraph()` returns cached graph. `resetGraph()` invalidates cache (called on model change). Each invocation uses a unique `thread_id` for isolation.\n\n## Type Safety and Linting\n\nChatbot code is checked by the repo-wide `tsconfig.json` and a stricter chatbot-only config:\n\n```bash\nbun run typecheck          # full repo\nbun run typecheck:chatbot  # chatbot + shared with strictest options\n```\n\n`tsconfig.chatbot.json` enables `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `noPropertyAccessFromIndexSignature`, `noImplicitReturns`, `noImplicitOverride`, `noFallthroughCasesInSwitch`, unused checks, and `verbatimModuleSyntax`. Prefer guards/defaults over weakening types. Access environment variables and dynamic records with bracket syntax, e.g. `process.env['OPENROUTER_API_KEY']` and `input['sql']`.\n\nBiome is strict and runs with `--error-on-warnings`. Use `import type` / `export type`, avoid unused locals/imports, prefer `const`, and let Biome organize imports. Lefthook runs Biome on staged TypeScript/JSON files before commits.\n\n## Testing\n\nAll tests use `--concurrency=1` (DuckDB constraint). Mock pattern:\n\n```typescript\nmock.module('@langchain/openai', () => ({\n  ChatOpenAI: class {\n    bindTools() { return this; }\n    async invoke() { return new AIMessage('Mock response'); }\n  },\n}));\n\nmock.module('../db.js', () => ({\n  query: async () => [{ person_id: '2544' }],\n  getTables: async () => ['dim_player'],\n}));\n```\n\nRun all chatbot tests: `bun test src/chatbot/__tests__ --concurrency=1`\n\nRun the same checks used by chatbot CI:\n\n```bash\nbun run typecheck:chatbot\nbun test src/chatbot/__tests__ --concurrency=1\n```\n\nCI also blocks `.only(` / `.skip(` in `src/chatbot/__tests__/` via `scripts/ci-guards.sh`.\n\nWhen delegating chatbot testing or research to subagents, read `.agent/subtask-template.md` first and place the chatbot-specific success criteria near the top of the prompt.\n\n## Adding a New Tool\n\n1. Define in `agent/tools.ts` using `tool()` from `@langchain/core/tools` with Zod schema\n2. Add to `bindTools([...])` and `ToolNode([...])` in `agent/graph.ts`\n3. Handle new tool events in `chatApp.ts` stream handler (tool_start/tool_end)\n4. Add test in `__tests__/processQuestion.test.ts` with mock responses\n5. Update system prompt if the tool needs LLM guidance\n6. Run `bun run typecheck:chatbot` and `bun test src/chatbot/__tests__ --concurrency=1`\n\n## Adding a New Graph Node\n\n1. Define async function taking `state: ChatbotStateType`\n2. Return `Partial<ChatbotStateType>` for plain updates or `Command({ goto, update })` for routing\n3. Add `addNode('name', fn)` + edges to `buildGraph()`\n4. Add state fields to `ChatbotState` in `state.ts` only if a node reads/writes them\n5. Add corresponding tests\n6. Run `bun run typecheck:chatbot` and `bun test src/chatbot/__tests__ --concurrency=1`\n\n</system-reminder>",
+            "metadata": {
+              "preview": "import type { DuckDBConnection, DuckDBValue } from '@duckdb/node-api';\nimport { DuckDBInstance } from '@duckdb/node-api';\n\nimport { resolveDbPath } from '../shared/dbPath.js';\n\nexport { resolveDbPath };\n\nexport type DbRow = Record<string, unknown>;\nexport type SqlParam = DuckDBValue;\n\nlet instance: DuckDBInstance | null = null;\nlet connection: DuckDBConnection | null = null;\n\nexport async function initDb(): Promise<DuckDBConnection> {\n  if (connection) {\n    try {\n      await connection.runAndReadAll('SELECT 1');\n      return connection;\n    } catch {\n      connection = null;",
+              "truncated": false,
+              "loaded": [
+                "C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\AGENTS.md"
+              ]
+            },
+            "title": "src\\chatbot\\db.ts",
+            "time": {
+              "start": 1780002302421,
+              "end": 1780002302434
+            }
+          },
+          "id": "prt_e7067a7e90014oUYclIIYW1O6n",
+          "sessionID": "ses_18f986b3bffe1wOMEPSL7RTD0D",
+          "messageID": "msg_e706795f9001Hvgdo7rA2r1AzW"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "5577677ef0e81b484f2f4f305bbee1c0788ac518",
+          "type": "step-finish",
+          "tokens": {
+            "total": 10381,
+            "input": 6,
+            "output": 225,
+            "reasoning": 0,
+            "cache": {
+              "write": 174,
+              "read": 9976
+            }
+          },
+          "cost": 0.00723425,
+          "id": "prt_e7067aa89001n3zyzyTuwfuAWC",
+          "sessionID": "ses_18f986b3bffe1wOMEPSL7RTD0D",
+          "messageID": "msg_e706795f9001Hvgdo7rA2r1AzW"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_e706794cb001rwfxLbgV8t3GNw",
+        "role": "assistant",
+        "mode": "explore",
+        "agent": "explore",
+        "path": {
+          "cwd": "C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius",
+          "root": "C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius"
+        },
+        "cost": 0.034581875,
+        "tokens": {
+          "total": 19452,
+          "input": 6,
+          "output": 101,
+          "reasoning": 0,
+          "cache": {
+            "write": 9195,
+            "read": 10150
+          }
+        },
+        "modelID": "qwen3.7-max",
+        "providerID": "opencode-go",
+        "time": {
+          "created": 1780002302734,
+          "completed": 1780002306455
+        },
+        "finish": "tool-calls",
+        "id": "msg_e7067ab0e001vO1o74k4t6JQG8",
+        "sessionID": "ses_18f986b3bffe1wOMEPSL7RTD0D"
+      },
+      "parts": [
+        {
+          "snapshot": "5577677ef0e81b484f2f4f305bbee1c0788ac518",
+          "type": "step-start",
+          "id": "prt_e7067b392001ieKjCyRY9iDWjp",
+          "sessionID": "ses_18f986b3bffe1wOMEPSL7RTD0D",
+          "messageID": "msg_e7067ab0e001vO1o74k4t6JQG8"
+        },
+        {
+          "type": "reasoning",
+          "text": "Now let me also check the shared dbPath.ts to understand the relationship between the hub's local resolveDbPath and the shared one.\n",
+          "time": {
+            "start": 1780002304915,
+            "end": 1780002305280
+          },
+          "metadata": {
+            "anthropic": {
+              "signature": ""
+            }
+          },
+          "id": "prt_e7067b393002UF4pv0vebdeT22",
+          "sessionID": "ses_18f986b3bffe1wOMEPSL7RTD0D",
+          "messageID": "msg_e7067ab0e001vO1o74k4t6JQG8"
+        },
+        {
+          "type": "text",
+          "text": "Let me also read the shared `dbPath.ts` to complete the picture of the `resolveDbPath` duplication:\n\n",
+          "time": {
+            "start": 1780002305282,
+            "end": 1780002305676
+          },
+          "id": "prt_e7067b502001Dy7101iZBKAU82",
+          "sessionID": "ses_18f986b3bffe1wOMEPSL7RTD0D",
+          "messageID": "msg_e7067ab0e001vO1o74k4t6JQG8"
+        },
+        {
+          "type": "tool",
+          "tool": "read",
+          "callID": "toolu_f32dab6df0d94a09a4b88beb",
+          "state": {
+            "status": "completed",
+            "input": {
+              "filePath": "C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\shared\\dbPath.ts"
+            },
+            "output": "<path>C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\shared\\dbPath.ts</path>\n<type>file</type>\n<content>\n1: import { existsSync } from 'node:fs';\n2: \n3: const DEFAULT_DB_PATH = 'data/nba.duckdb';\n4: const CI_FIXTURE_PATH = 'data/fixtures/nba.ci.duckdb';\n5: \n6: export function resolveDbPath(): string {\n7:   const configuredPath = process.env['NBA_DUCKDB_PATH'];\n8:   if (configuredPath) {\n9:     return configuredPath;\n10:   }\n11:   if (\n12:     (process.env['CI'] === 'true' || process.env['GITHUB_ACTIONS'] === 'true') &&\n13:     existsSync(CI_FIXTURE_PATH)\n14:   ) {\n15:     return CI_FIXTURE_PATH;\n16:   }\n17:   return DEFAULT_DB_PATH;\n18: }\n\n(End of file - total 18 lines)\n</content>",
+            "metadata": {
+              "preview": "import { existsSync } from 'node:fs';\n\nconst DEFAULT_DB_PATH = 'data/nba.duckdb';\nconst CI_FIXTURE_PATH = 'data/fixtures/nba.ci.duckdb';\n\nexport function resolveDbPath(): string {\n  const configuredPath = process.env['NBA_DUCKDB_PATH'];\n  if (configuredPath) {\n    return configuredPath;\n  }\n  if (\n    (process.env['CI'] === 'true' || process.env['GITHUB_ACTIONS'] === 'true') &&\n    existsSync(CI_FIXTURE_PATH)\n  ) {\n    return CI_FIXTURE_PATH;\n  }\n  return DEFAULT_DB_PATH;\n}",
+              "truncated": false,
+              "loaded": []
+            },
+            "title": "src\\shared\\dbPath.ts",
+            "time": {
+              "start": 1780002306166,
+              "end": 1780002306173
+            }
+          },
+          "id": "prt_e7067b68e001d33PWbeDye9IWz",
+          "sessionID": "ses_18f986b3bffe1wOMEPSL7RTD0D",
+          "messageID": "msg_e7067ab0e001vO1o74k4t6JQG8"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "5577677ef0e81b484f2f4f305bbee1c0788ac518",
+          "type": "step-finish",
+          "tokens": {
+            "total": 19452,
+            "input": 6,
+            "output": 101,
+            "reasoning": 0,
+            "cache": {
+              "write": 9195,
+              "read": 10150
+            }
+          },
+          "cost": 0.034581875,
+          "id": "prt_e7067b915001NGD2sOhmlcoFFf",
+          "sessionID": "ses_18f986b3bffe1wOMEPSL7RTD0D",
+          "messageID": "msg_e7067ab0e001vO1o74k4t6JQG8"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_e706794cb001rwfxLbgV8t3GNw",
+        "role": "assistant",
+        "mode": "explore",
+        "agent": "explore",
+        "path": {
+          "cwd": "C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius",
+          "root": "C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius"
+        },
+        "cost": 0.038804375,
+        "tokens": {
+          "total": 23445,
+          "input": 6,
+          "output": 3731,
+          "reasoning": 0,
+          "cache": {
+            "write": 363,
+            "read": 19345
+          }
+        },
+        "modelID": "qwen3.7-max",
+        "providerID": "opencode-go",
+        "time": {
+          "created": 1780002306459,
+          "completed": 1780002364181
+        },
+        "finish": "stop",
+        "id": "msg_e7067b99b0017EnE2ITuBofWaZ",
+        "sessionID": "ses_18f986b3bffe1wOMEPSL7RTD0D"
+      },
+      "parts": [
+        {
+          "snapshot": "5577677ef0e81b484f2f4f305bbee1c0788ac518",
+          "type": "step-start",
+          "id": "prt_e7067c1940019eGc2Xe7Tw3EO3",
+          "sessionID": "ses_18f986b3bffe1wOMEPSL7RTD0D",
+          "messageID": "msg_e7067b99b0017EnE2ITuBofWaZ"
+        },
+        {
+          "type": "reasoning",
+          "text": "Now I have all the information needed to provide a thorough report on all four files plus the shared dbPath.ts for context.",
+          "time": {
+            "start": 1780002308502,
+            "end": 1780002309085
+          },
+          "metadata": {
+            "anthropic": {
+              "signature": ""
+            }
+          },
+          "id": "prt_e7067c1960016rTnVrbH17jwNm",
+          "sessionID": "ses_18f986b3bffe1wOMEPSL7RTD0D",
+          "messageID": "msg_e7067b99b0017EnE2ITuBofWaZ"
+        },
+        {
+          "type": "text",
+          "text": "---\n\n## File Exploration Report\n\n---\n\n### 1. `src/hub/shared/utils/theme.ts`\n\n**Full path:** `C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\hub\\shared\\utils\\theme.ts`\n**Line count:** 111 lines\n\n#### Imports/Dependencies\n- None. This file is self-contained with zero imports.\n\n#### Exports\n\n| Export | Type | Description |\n|--------|------|-------------|\n| `Theme` | `const` object | TokyoNight color palette (10 hex colors + 3 layout constants) |\n| `isNoColor()` | function | Returns `true` if `NO_COLOR` env var is set to a non-empty value |\n| `noColor` | `const boolean` | Snapshot of `isNoColor()` at module load time |\n| `ThemeFgRole` | type (union) | `'primary' \\| 'secondary' \\| 'accent' \\| 'success' \\| 'error' \\| 'warning' \\| 'foreground'` |\n| `themeFg(role, text)` | function | 24-bit ANSI foreground color using RGB tuples from `THEME_FG_RGB` |\n| `ansiBold(text)` | function | ANSI bold wrapper |\n| `ansiDim(text)` | function | ANSI dim wrapper |\n| `ansiItalic(text)` | function | ANSI italic wrapper |\n| `ansiUnderline(text)` | function | ANSI underline wrapper |\n| `ansiGreen(text)` | function | ANSI 4-bit green |\n| `ansiRed(text)` | function | ANSI 4-bit red |\n| `ansiYellow(text)` | function | ANSI 4-bit yellow |\n| `ansiCyan(text)` | function | ANSI 4-bit cyan |\n| `ansiMagenta(text)` | function | ANSI 4-bit magenta |\n| `ansiBrightGreen(text)` | function | ANSI bold green on black background (`\\x1b[1;32;40m`) |\n| `ansiBrightRed(text)` | function | ANSI bold red on black background (`\\x1b[1;31;40m`) |\n<!-- table not formatted: invalid structure -->\n\n#### Private (non-exported) members\n- `THEME_FG_RGB` -- `Record<ThemeFgRole, [number, number, number]>` mapping roles to RGB tuples\n- `ansiReset()` -- returns `\\x1b[0m` or empty string based on `isNoColor()`\n- `ansiWrap(openSequence, text)` -- wraps text with an ANSI open sequence and reset, respecting `NO_COLOR`\n\n#### Key observations\n1. **`isNoColor()` calls `process.env.NO_COLOR` on every invocation** (dot notation), while the `noColor` constant is a one-time snapshot at module load. The JSDoc on line 31 explicitly notes: \"use `isNoColor()` when env may change (e.g. tests).\"\n2. **Every public ANSI function delegates to `ansiWrap`**, which internally calls `isNoColor()` -- so all color output is consistently gated.\n3. **Dual color representation**: hex values in `Theme` (for OpenTUI renderables that accept hex) and RGB tuples in `THEME_FG_RGB` (for raw 24-bit ANSI escape sequences). The hex and RGB values are consistent (e.g., `#7aa2f7` = `[122, 162, 247]`).\n4. **`ansiBrightGreen` and `ansiBrightRed`** use a combined bold + foreground + background sequence (`\\x1b[1;32;40m`), which is unusual -- they set a black background explicitly.\n\n---\n\n### 2. `src/chatbot/utils/theme.ts`\n\n**Full path:** `C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\utils\\theme.ts`\n**Line count:** 55 lines\n\n#### Imports/Dependencies\n- None. This file is self-contained with zero imports.\n\n#### Exports\n\n| Export                 | Type         | Description                                                                            |\n| ---------------------- | ------------ | -------------------------------------------------------------------------------------- |\n| `isNoColor()`            | function     | Identical logic to hub's `isNoColor()` but uses bracket notation `process.env['NO_COLOR']` |\n| `Theme`                  | `const` object | Same 10 TokyoNight hex colors + 2 layout constants (no `gap` property)                   |\n| `dimOrPlain(text)`       | function     | ANSI dim or plain text                                                                 |\n| `statusText(text)`       | function     | Alias for `dimOrPlain`                                                                   |\n| `bold(text)`             | function     | ANSI bold                                                                              |\n| `label(text, colorCode)` | function     | ANSI bold + color code (takes raw ANSI code as string, e.g. `'34'`)                      |\n| `youLabel()`             | function     | Returns `'[You]'` in blue (code `34`)                                                      |\n| `aiLabel()`              | function     | Returns `'[AI]'` in green (code `32`)                                                      |\n| `sqlLabel()`             | function     | Returns `'[SQL]'` in cyan (hardcoded `\\x1b[36m`)                                           |\n| `errorLabel()`           | function     | Returns `'[Error]'` in red (code `31`)                                                     |\n\n#### Key observations\n1. **Duplicated `isNoColor()` logic**: Functionally identical to the hub's version, but uses bracket notation (`process.env['NO_COLOR']`) instead of dot notation (`process.env.NO_COLOR`). This is consistent with the chatbot's stricter `tsconfig.chatbot.json` which enables `noPropertyAccessFromIndexSignature`.\n2. **Duplicated `Theme` object**: The hex values are identical to the hub's `Theme`, but the chatbot version is **missing** the `gap: 1` property. This is a near-duplicate that could be consolidated.\n3. **No `noColor` snapshot constant**: Unlike the hub version, there is no module-load-time snapshot. Every function calls `isNoColor()` directly.\n4. **No `ThemeFgRole` type or RGB lookup**: The chatbot uses raw ANSI codes (e.g., `'34'`, `'32'`) rather than named roles with RGB tuples. This is a simpler, lower-abstraction approach.\n5. **Chat-specific labels**: `youLabel()`, `aiLabel()`, `sqlLabel()`, `errorLabel()` are chat-UI-specific decorators not found in the hub theme.\n6. **`sqlLabel()` breaks the pattern**: It does not use the `label()` helper -- it hardcodes the ANSI escape directly without bold, unlike the other labels.\n\n---\n\n### 3. `src/hub/core/db.ts`\n\n**Full path:** `C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\hub\\core\\db.ts`\n**Line count:** 126 lines\n\n#### Imports/Dependencies\n| Import           | Source           | Type      |\n| ---------------- | ---------------- | --------- |\n| `existsSync`       | `node:fs`          | Value     |\n| `DuckDBConnection` | `@duckdb/node-api` | Type-only |\n| `DuckDBInstance`   | `@duckdb/node-api` | Value     |\n| `DbRow`, `SqlParam`  | `./types.js`       | Type-only |\n\n#### Exports\n\n| Export                 | Type                                    | Description                                            |\n| ---------------------- | --------------------------------------- | ------------------------------------------------------ |\n| `BROWSE_SCHEMAS`         | `const readonly ['unified_star', 'main']` | Schemas the SQL Sandbox introspects                    |\n| `resolveDbPath()`        | function                                | **Local duplicate** of `src/shared/dbPath.ts`                |\n| `initDb()`               | `async function`                          | Returns cached `DuckDBConnection` singleton              |\n| `query<T>(sql, params?)` | `async function`                          | Executes SQL, returns `T[]` via `getRowObjectsJson()`      |\n| `getTables()`            | `async function`                          | Distinct table names across `BROWSE_SCHEMAS`             |\n| `getColumns(table)`      | `async function`                          | Column name+type metadata, search-path order           |\n| `closeDb()`              | `async function`                          | Disconnects + also closes honors DB via dynamic import |\n\n#### Private members\n- `DEFAULT_DB_PATH` = `'data/nba.duckdb'`\n- `CI_FIXTURE_PATH` = `'data/fixtures/nba.ci.duckdb'`\n- `SEARCH_PATH` = `'unified_star,main'`\n- `instance: DuckDBInstance | null` -- module-level singleton\n- `connection: DuckDBConnection | null` -- module-level singleton\n- `TableNameRow` interface\n- `ColumnMetaRow` interface\n\n#### Key observations\n\n1. **`resolveDbPath()` is duplicated (lines 27-38)**: This is a verbatim copy of `src/shared/dbPath.ts` (18 lines). The hub's `db.ts` does NOT import from `src/shared/dbPath.ts` -- it defines its own local version. The chatbot's `db.ts`, by contrast, imports the shared one. This is a clear duplication inconsistency.\n\n2. **`initDb()` sets `search_path` (lines 43-57)**: After connecting, it runs `SET search_path = 'unified_star,main'` so unqualified table names resolve against the canonical star schema first. This is wrapped in a try/catch so older CI fixtures without `unified_star` still work.\n\n3. **`initDb()` uses `DuckDBInstance.fromCache()`**: This is a cached instance pattern, not a fresh `new DuckDBInstance()`.\n\n4. **No connection health check**: Unlike the chatbot's `initDb()`, the hub version does NOT verify the connection is alive before returning the cached connection. It simply checks `if (!connection)`.\n\n5. **`closeDb()` dynamically imports `dbHonors.js` (line 118)**: Uses `await import('./dbHonors.js')` to avoid a circular dependency, then calls `closeHonorsDb()` before closing the main connection.\n\n6. **`getColumns()` uses search-path iteration (lines 101-112)**: Iterates `BROWSE_SCHEMAS` and returns the first schema that has columns for the given table. This mirrors the `search_path` behavior.\n\n7. **`getTables()` uses parameterized query (lines 87-95)**: Builds dynamic `$1, $2` placeholders from `BROWSE_SCHEMAS` and passes them as params.\n\n---\n\n### 4. `src/chatbot/db.ts`\n\n**Full path:** `C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\db.ts`\n**Line count:** 106 lines\n\n#### Imports/Dependencies\n| Import                        | Source              | Type                |\n| ----------------------------- | ------------------- | ------------------- |\n| `DuckDBConnection`, `DuckDBValue` | `@duckdb/node-api`    | Type-only           |\n| `DuckDBInstance`                | `@duckdb/node-api`    | Value               |\n| `resolveDbPath`                 | `../shared/dbPath.js` | Value (re-exported) |\n\n#### Exports\n\n| Export                 | Type           | Description                                            |\n| ---------------------- | -------------- | ------------------------------------------------------ |\n| `resolveDbPath`          | re-export      | From `src/shared/dbPath.ts`                              |\n| `DbRow`                  | type           | `Record<string, unknown>`                                |\n| `SqlParam`               | type           | Alias for `DuckDBValue`                                  |\n| `initDb()`               | `async function` | Returns cached `DuckDBConnection` with health check      |\n| `query<T>(sql, params?)` | `async function` | Executes SQL, returns `T[]`                              |\n| `TableRef`               | interface      | `{ schema, name, type, qualifiedName }`                  |\n| `getTables()`            | `async function` | Qualified table names (delegates to `getTableRefs`)      |\n| `getTableRefs()`         | `async function` | Full `TableRef[]` with schema/name/type/qualifiedName    |\n| `getColumns(table)`      | `async function` | Column metadata, supports `schema.table` qualified names |\n| `closeDb()`              | `async function` | Disconnects and nulls out singletons                   |\n\n#### Private members\n- `instance: DuckDBInstance | null` -- module-level singleton\n- `connection: DuckDBConnection | null` -- module-level singleton\n- `TableNameRow` interface (includes `table_schema` and `table_type`, richer than hub's)\n- `ColumnMetaRow` interface\n- `SYSTEM_SCHEMAS` = `Set(['information_schema', 'pg_catalog'])`\n- `qualifyTableName(schema, table)` -- returns bare name for `main`, `schema.table` otherwise\n\n#### Key observations\n\n1. **Uses shared `resolveDbPath` (line 4)**: Imports from `../shared/dbPath.js` and re-exports it (line 6). This is the correct pattern per the AGENTS.md architecture. The hub's `db.ts` should do the same but does not.\n\n2. **`initDb()` has a connection health check (lines 14-28)**: Before returning the cached connection, it runs `SELECT 1` to verify liveness. If the check fails, it nulls out both `connection` and `instance` and creates fresh ones. The hub's `initDb()` lacks this resilience pattern.\n\n3. **No `search_path` configuration**: Unlike the hub, the chatbot does not set `search_path`. It relies on qualified table names (`schema.table`) throughout, which is why `qualifyTableName()` and `TableRef.qualifiedName` exist.\n\n4. **`getTableRefs()` is richer than hub's `getTables()` (lines 69-84)**: Returns full `TableRef` objects with schema, name, type, and qualified name. Filters out system schemas both in SQL (`WHERE table_schema NOT IN (...)`) and in JS (`SYSTEM_SCHEMAS.has()`), providing defense-in-depth.\n\n5. **`getColumns()` handles qualified names (lines 86-98)**: Splits `schema.table` on `.` and defaults to `main` schema. This is more flexible than the hub's version which iterates `BROWSE_SCHEMAS`.\n\n6. **`closeDb()` is simpler (lines 100-106)**: No dynamic import of an honors DB module. Just disconnects and nulls out.\n\n7. **Local type definitions**: `DbRow` and `SqlParam` are defined locally (lines 8-9) rather than imported from a shared types module. The hub imports these from `./types.js`.\n\n---\n\n### Cross-File Comparison Summary\n\n| Aspect                  | Hub `theme.ts`               | Chatbot `theme.ts`                  | Hub `db.ts`                | Chatbot `db.ts`                 |\n| ----------------------- | -------------------------- | --------------------------------- | ------------------------ | ----------------------------- |\n| **Lines**                   | 111                        | 55                                | 126                      | 106                           |\n| **Imports**                 | 0                          | 0                                 | 4                        | 3                             |\n| **`resolveDbPath` source**    | N/A                        | N/A                               | Local duplicate          | Shared (`src/shared/dbPath.ts`) |\n| **`isNoColor()` notation**    | Dot (`process.env.NO_COLOR`) | Bracket (`process.env['NO_COLOR']`) | N/A                      | N/A                           |\n| **Theme hex values**        | Identical                  | Identical                         | N/A                      | N/A                           |\n| **`noColor` snapshot**        | Yes                        | No                                | N/A                      | N/A                           |\n| **Connection health check** | N/A                        | N/A                               | No                       | Yes (`SELECT 1`)                |\n| **`search_path` set**         | N/A                        | N/A                               | Yes (`unified_star,main`)  | No                            |\n| **Schema approach**         | N/A                        | N/A                               | `BROWSE_SCHEMAS` iteration | Qualified names + `TableRef`    |\n| **Honors DB cleanup**       | N/A                        | N/A                               | Yes (dynamic import)     | No                            |\n\n### Notable Duplication Issues\n\n1. **`resolveDbPath()` is defined in 3 places**: `src/shared/dbPath.ts` (canonical), `src/hub/core/db.ts` lines 27-38 (duplicate), and effectively re-exported from `src/chatbot/db.ts` line 6 (correct). The hub should import from shared instead of duplicating.\n\n2. **`Theme` object is defined in 2 places** with identical hex values but slightly different shapes (hub has `gap`, chatbot does not). These could be consolidated into `src/shared/`.\n\n3. **`isNoColor()` is defined in 2 places** with identical logic but different property access styles (dot vs bracket notation).\n\n4. **`DbRow` and `SqlParam` types** are defined in `src/hub/core/types.ts` (imported by hub `db.ts`) and redefined locally in `src/chatbot/db.ts` lines 8-9.",
+          "time": {
+            "start": 1780002309086,
+            "end": 1780002363859
+          },
+          "id": "prt_e7067c3de001t7r152SJxxkXFU",
+          "sessionID": "ses_18f986b3bffe1wOMEPSL7RTD0D",
+          "messageID": "msg_e7067b99b0017EnE2ITuBofWaZ"
+        },
+        {
+          "reason": "stop",
+          "snapshot": "5577677ef0e81b484f2f4f305bbee1c0788ac518",
+          "type": "step-finish",
+          "tokens": {
+            "total": 23445,
+            "input": 6,
+            "output": 3731,
+            "reasoning": 0,
+            "cache": {
+              "write": 363,
+              "read": 19345
+            }
+          },
+          "cost": 0.038804375,
+          "id": "prt_e70689a850019sTnDKdV9bNvBt",
+          "sessionID": "ses_18f986b3bffe1wOMEPSL7RTD0D",
+          "messageID": "msg_e7067b99b0017EnE2ITuBofWaZ"
+        }
+      ]
+    }
+  ]
+}
