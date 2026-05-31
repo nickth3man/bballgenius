@@ -1,0 +1,785 @@
+[
+  {
+    "name": "generated_anfernee_hardaway_career_g",
+    "category": "generated_player_career",
+    "description": "Anfernee Hardaway career games played = 704",
+    "sql": "SELECT sum(GP_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Anfernee Hardaway' LIMIT 1)",
+    "expected": 704,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/h/hardaan01.html cached=.firecrawl/accuracy-sources/players/h/hardaan01.json table=totals"
+  },
+  {
+    "name": "generated_anfernee_hardaway_career_pts",
+    "category": "generated_player_career",
+    "description": "Anfernee Hardaway career points = 10684",
+    "sql": "SELECT sum(PTS_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Anfernee Hardaway' LIMIT 1)",
+    "expected": 10684,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/h/hardaan01.html cached=.firecrawl/accuracy-sources/players/h/hardaan01.json table=totals"
+  },
+  {
+    "name": "generated_anfernee_hardaway_career_trb",
+    "category": "generated_player_career",
+    "description": "Anfernee Hardaway career rebounds = 3146",
+    "sql": "SELECT sum(TRB_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Anfernee Hardaway' LIMIT 1)",
+    "expected": 3146,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/h/hardaan01.html cached=.firecrawl/accuracy-sources/players/h/hardaan01.json table=totals"
+  },
+  {
+    "name": "generated_anfernee_hardaway_career_ast",
+    "category": "generated_player_career",
+    "description": "Anfernee Hardaway career assists = 3525",
+    "sql": "SELECT sum(AST_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Anfernee Hardaway' LIMIT 1)",
+    "expected": 3525,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/h/hardaan01.html cached=.firecrawl/accuracy-sources/players/h/hardaan01.json table=totals"
+  },
+  {
+    "name": "generated_anfernee_hardaway_career_stl",
+    "category": "generated_player_career",
+    "description": "Anfernee Hardaway career steals = 1125",
+    "sql": "SELECT sum(STL_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Anfernee Hardaway' LIMIT 1)",
+    "expected": 1125,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/h/hardaan01.html cached=.firecrawl/accuracy-sources/players/h/hardaan01.json table=totals"
+  },
+  {
+    "name": "generated_anfernee_hardaway_career_blk",
+    "category": "generated_player_career",
+    "description": "Anfernee Hardaway career blocks = 312",
+    "sql": "SELECT sum(BLK_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Anfernee Hardaway' LIMIT 1)",
+    "expected": 312,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/h/hardaan01.html cached=.firecrawl/accuracy-sources/players/h/hardaan01.json table=totals"
+  },
+  {
+    "name": "generated_anfernee_hardaway_career_fg3",
+    "category": "generated_player_career",
+    "description": "Anfernee Hardaway career three-pointers made = 503",
+    "sql": "SELECT sum(FG3M_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Anfernee Hardaway' LIMIT 1)",
+    "expected": 503,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/h/hardaan01.html cached=.firecrawl/accuracy-sources/players/h/hardaan01.json table=totals"
+  },
+  {
+    "name": "generated_michael_finley_career_stl",
+    "category": "generated_player_career",
+    "description": "Michael Finley career steals = 996",
+    "sql": "SELECT sum(STL_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Michael Finley' LIMIT 1)",
+    "expected": 996,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/f/finlemi01.html cached=.firecrawl/accuracy-sources/players/f/finlemi01.json table=totals"
+  },
+  {
+    "name": "generated_michael_finley_career_blk",
+    "category": "generated_player_career",
+    "description": "Michael Finley career blocks = 323",
+    "sql": "SELECT sum(BLK_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Michael Finley' LIMIT 1)",
+    "expected": 323,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/f/finlemi01.html cached=.firecrawl/accuracy-sources/players/f/finlemi01.json table=totals"
+  },
+  {
+    "name": "generated_michael_finley_career_fg3",
+    "category": "generated_player_career",
+    "description": "Michael Finley career three-pointers made = 1454",
+    "sql": "SELECT sum(FG3M_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Michael Finley' LIMIT 1)",
+    "expected": 1454,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/f/finlemi01.html cached=.firecrawl/accuracy-sources/players/f/finlemi01.json table=totals"
+  },
+  {
+    "name": "generated_shawn_marion_career_g",
+    "category": "generated_player_career",
+    "description": "Shawn Marion career games played = 1163",
+    "sql": "SELECT sum(GP_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Shawn Marion' LIMIT 1)",
+    "expected": 1163,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/m/mariosh01.html cached=.firecrawl/accuracy-sources/players/m/mariosh01.json table=totals"
+  },
+  {
+    "name": "generated_shawn_marion_career_pts",
+    "category": "generated_player_career",
+    "description": "Shawn Marion career points = 17700",
+    "sql": "SELECT sum(PTS_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Shawn Marion' LIMIT 1)",
+    "expected": 17700,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/m/mariosh01.html cached=.firecrawl/accuracy-sources/players/m/mariosh01.json table=totals"
+  },
+  {
+    "name": "generated_shawn_marion_career_trb",
+    "category": "generated_player_career",
+    "description": "Shawn Marion career rebounds = 10101",
+    "sql": "SELECT sum(TRB_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Shawn Marion' LIMIT 1)",
+    "expected": 10101,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/m/mariosh01.html cached=.firecrawl/accuracy-sources/players/m/mariosh01.json table=totals"
+  },
+  {
+    "name": "generated_shawn_marion_career_ast",
+    "category": "generated_player_career",
+    "description": "Shawn Marion career assists = 2198",
+    "sql": "SELECT sum(AST_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Shawn Marion' LIMIT 1)",
+    "expected": 2198,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/m/mariosh01.html cached=.firecrawl/accuracy-sources/players/m/mariosh01.json table=totals"
+  },
+  {
+    "name": "generated_shawn_marion_career_stl",
+    "category": "generated_player_career",
+    "description": "Shawn Marion career steals = 1759",
+    "sql": "SELECT sum(STL_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Shawn Marion' LIMIT 1)",
+    "expected": 1759,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/m/mariosh01.html cached=.firecrawl/accuracy-sources/players/m/mariosh01.json table=totals"
+  },
+  {
+    "name": "generated_shawn_marion_career_blk",
+    "category": "generated_player_career",
+    "description": "Shawn Marion career blocks = 1233",
+    "sql": "SELECT sum(BLK_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Shawn Marion' LIMIT 1)",
+    "expected": 1233,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/m/mariosh01.html cached=.firecrawl/accuracy-sources/players/m/mariosh01.json table=totals"
+  },
+  {
+    "name": "generated_shawn_marion_career_fg3",
+    "category": "generated_player_career",
+    "description": "Shawn Marion career three-pointers made = 791",
+    "sql": "SELECT sum(FG3M_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Shawn Marion' LIMIT 1)",
+    "expected": 791,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/m/mariosh01.html cached=.firecrawl/accuracy-sources/players/m/mariosh01.json table=totals"
+  },
+  {
+    "name": "generated_antawn_jamison_career_g",
+    "category": "generated_player_career",
+    "description": "Antawn Jamison career games played = 1083",
+    "sql": "SELECT sum(GP_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Antawn Jamison' LIMIT 1)",
+    "expected": 1083,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/j/jamisan01.html cached=.firecrawl/accuracy-sources/players/j/jamisan01.json table=totals"
+  },
+  {
+    "name": "generated_antawn_jamison_career_pts",
+    "category": "generated_player_career",
+    "description": "Antawn Jamison career points = 20042",
+    "sql": "SELECT sum(PTS_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Antawn Jamison' LIMIT 1)",
+    "expected": 20042,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/j/jamisan01.html cached=.firecrawl/accuracy-sources/players/j/jamisan01.json table=totals"
+  },
+  {
+    "name": "generated_antawn_jamison_career_trb",
+    "category": "generated_player_career",
+    "description": "Antawn Jamison career rebounds = 8157",
+    "sql": "SELECT sum(TRB_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Antawn Jamison' LIMIT 1)",
+    "expected": 8157,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/j/jamisan01.html cached=.firecrawl/accuracy-sources/players/j/jamisan01.json table=totals"
+  },
+  {
+    "name": "generated_antawn_jamison_career_ast",
+    "category": "generated_player_career",
+    "description": "Antawn Jamison career assists = 1761",
+    "sql": "SELECT sum(AST_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Antawn Jamison' LIMIT 1)",
+    "expected": 1761,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/j/jamisan01.html cached=.firecrawl/accuracy-sources/players/j/jamisan01.json table=totals"
+  },
+  {
+    "name": "generated_antawn_jamison_career_stl",
+    "category": "generated_player_career",
+    "description": "Antawn Jamison career steals = 1048",
+    "sql": "SELECT sum(STL_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Antawn Jamison' LIMIT 1)",
+    "expected": 1048,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/j/jamisan01.html cached=.firecrawl/accuracy-sources/players/j/jamisan01.json table=totals"
+  },
+  {
+    "name": "generated_antawn_jamison_career_blk",
+    "category": "generated_player_career",
+    "description": "Antawn Jamison career blocks = 421",
+    "sql": "SELECT sum(BLK_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Antawn Jamison' LIMIT 1)",
+    "expected": 421,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/j/jamisan01.html cached=.firecrawl/accuracy-sources/players/j/jamisan01.json table=totals"
+  },
+  {
+    "name": "generated_antawn_jamison_career_fg3",
+    "category": "generated_player_career",
+    "description": "Antawn Jamison career three-pointers made = 1163",
+    "sql": "SELECT sum(FG3M_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Antawn Jamison' LIMIT 1)",
+    "expected": 1163,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/j/jamisan01.html cached=.firecrawl/accuracy-sources/players/j/jamisan01.json table=totals"
+  },
+  {
+    "name": "generated_rashard_lewis_career_g",
+    "category": "generated_player_career",
+    "description": "Rashard Lewis career games played = 1049",
+    "sql": "SELECT sum(GP_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Rashard Lewis' LIMIT 1)",
+    "expected": 1049,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/l/lewisra02.html cached=.firecrawl/accuracy-sources/players/l/lewisra02.json table=totals"
+  },
+  {
+    "name": "generated_rashard_lewis_career_pts",
+    "category": "generated_player_career",
+    "description": "Rashard Lewis career points = 15579",
+    "sql": "SELECT sum(PTS_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Rashard Lewis' LIMIT 1)",
+    "expected": 15579,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/l/lewisra02.html cached=.firecrawl/accuracy-sources/players/l/lewisra02.json table=totals"
+  },
+  {
+    "name": "generated_rashard_lewis_career_trb",
+    "category": "generated_player_career",
+    "description": "Rashard Lewis career rebounds = 5433",
+    "sql": "SELECT sum(TRB_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Rashard Lewis' LIMIT 1)",
+    "expected": 5433,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/l/lewisra02.html cached=.firecrawl/accuracy-sources/players/l/lewisra02.json table=totals"
+  },
+  {
+    "name": "generated_rashard_lewis_career_ast",
+    "category": "generated_player_career",
+    "description": "Rashard Lewis career assists = 1765",
+    "sql": "SELECT sum(AST_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Rashard Lewis' LIMIT 1)",
+    "expected": 1765,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/l/lewisra02.html cached=.firecrawl/accuracy-sources/players/l/lewisra02.json table=totals"
+  },
+  {
+    "name": "generated_rashard_lewis_career_stl",
+    "category": "generated_player_career",
+    "description": "Rashard Lewis career steals = 1115",
+    "sql": "SELECT sum(STL_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Rashard Lewis' LIMIT 1)",
+    "expected": 1115,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/l/lewisra02.html cached=.firecrawl/accuracy-sources/players/l/lewisra02.json table=totals"
+  },
+  {
+    "name": "generated_rashard_lewis_career_blk",
+    "category": "generated_player_career",
+    "description": "Rashard Lewis career blocks = 541",
+    "sql": "SELECT sum(BLK_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Rashard Lewis' LIMIT 1)",
+    "expected": 541,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/l/lewisra02.html cached=.firecrawl/accuracy-sources/players/l/lewisra02.json table=totals"
+  },
+  {
+    "name": "generated_rashard_lewis_career_fg3",
+    "category": "generated_player_career",
+    "description": "Rashard Lewis career three-pointers made = 1787",
+    "sql": "SELECT sum(FG3M_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Rashard Lewis' LIMIT 1)",
+    "expected": 1787,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/l/lewisra02.html cached=.firecrawl/accuracy-sources/players/l/lewisra02.json table=totals"
+  },
+  {
+    "name": "generated_peja_stojakovic_career_g",
+    "category": "generated_player_career",
+    "description": "Peja Stojakovic career games played = 804",
+    "sql": "SELECT sum(GP_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Peja Stojakovic' LIMIT 1)",
+    "expected": 804,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/s/stojape01.html cached=.firecrawl/accuracy-sources/players/s/stojape01.json table=totals"
+  },
+  {
+    "name": "generated_peja_stojakovic_career_pts",
+    "category": "generated_player_career",
+    "description": "Peja Stojakovic career points = 13647",
+    "sql": "SELECT sum(PTS_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Peja Stojakovic' LIMIT 1)",
+    "expected": 13647,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/s/stojape01.html cached=.firecrawl/accuracy-sources/players/s/stojape01.json table=totals"
+  },
+  {
+    "name": "generated_peja_stojakovic_career_trb",
+    "category": "generated_player_career",
+    "description": "Peja Stojakovic career rebounds = 3782",
+    "sql": "SELECT sum(TRB_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Peja Stojakovic' LIMIT 1)",
+    "expected": 3782,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/s/stojape01.html cached=.firecrawl/accuracy-sources/players/s/stojape01.json table=totals"
+  },
+  {
+    "name": "generated_peja_stojakovic_career_ast",
+    "category": "generated_player_career",
+    "description": "Peja Stojakovic career assists = 1408",
+    "sql": "SELECT sum(AST_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Peja Stojakovic' LIMIT 1)",
+    "expected": 1408,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/s/stojape01.html cached=.firecrawl/accuracy-sources/players/s/stojape01.json table=totals"
+  },
+  {
+    "name": "generated_peja_stojakovic_career_stl",
+    "category": "generated_player_career",
+    "description": "Peja Stojakovic career steals = 747",
+    "sql": "SELECT sum(STL_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Peja Stojakovic' LIMIT 1)",
+    "expected": 747,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/s/stojape01.html cached=.firecrawl/accuracy-sources/players/s/stojape01.json table=totals"
+  },
+  {
+    "name": "generated_peja_stojakovic_career_blk",
+    "category": "generated_player_career",
+    "description": "Peja Stojakovic career blocks = 106",
+    "sql": "SELECT sum(BLK_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Peja Stojakovic' LIMIT 1)",
+    "expected": 106,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/s/stojape01.html cached=.firecrawl/accuracy-sources/players/s/stojape01.json table=totals"
+  },
+  {
+    "name": "generated_peja_stojakovic_career_fg3",
+    "category": "generated_player_career",
+    "description": "Peja Stojakovic career three-pointers made = 1760",
+    "sql": "SELECT sum(FG3M_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Peja Stojakovic' LIMIT 1)",
+    "expected": 1760,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/s/stojape01.html cached=.firecrawl/accuracy-sources/players/s/stojape01.json table=totals"
+  },
+  {
+    "name": "generated_mike_bibby_career_g",
+    "category": "generated_player_career",
+    "description": "Mike Bibby career games played = 1001",
+    "sql": "SELECT sum(GP_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Mike Bibby' LIMIT 1)",
+    "expected": 1001,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/b/bibbymi01.html cached=.firecrawl/accuracy-sources/players/b/bibbymi01.json table=totals"
+  },
+  {
+    "name": "generated_mike_bibby_career_pts",
+    "category": "generated_player_career",
+    "description": "Mike Bibby career points = 14698",
+    "sql": "SELECT sum(PTS_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Mike Bibby' LIMIT 1)",
+    "expected": 14698,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/b/bibbymi01.html cached=.firecrawl/accuracy-sources/players/b/bibbymi01.json table=totals"
+  },
+  {
+    "name": "generated_mike_bibby_career_trb",
+    "category": "generated_player_career",
+    "description": "Mike Bibby career rebounds = 3103",
+    "sql": "SELECT sum(TRB_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Mike Bibby' LIMIT 1)",
+    "expected": 3103,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/b/bibbymi01.html cached=.firecrawl/accuracy-sources/players/b/bibbymi01.json table=totals"
+  },
+  {
+    "name": "generated_mike_bibby_career_ast",
+    "category": "generated_player_career",
+    "description": "Mike Bibby career assists = 5517",
+    "sql": "SELECT sum(AST_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Mike Bibby' LIMIT 1)",
+    "expected": 5517,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/b/bibbymi01.html cached=.firecrawl/accuracy-sources/players/b/bibbymi01.json table=totals"
+  },
+  {
+    "name": "generated_mike_bibby_career_stl",
+    "category": "generated_player_career",
+    "description": "Mike Bibby career steals = 1172",
+    "sql": "SELECT sum(STL_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Mike Bibby' LIMIT 1)",
+    "expected": 1172,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/b/bibbymi01.html cached=.firecrawl/accuracy-sources/players/b/bibbymi01.json table=totals"
+  },
+  {
+    "name": "generated_mike_bibby_career_blk",
+    "category": "generated_player_career",
+    "description": "Mike Bibby career blocks = 149",
+    "sql": "SELECT sum(BLK_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Mike Bibby' LIMIT 1)",
+    "expected": 149,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/b/bibbymi01.html cached=.firecrawl/accuracy-sources/players/b/bibbymi01.json table=totals"
+  },
+  {
+    "name": "generated_mike_bibby_career_fg3",
+    "category": "generated_player_career",
+    "description": "Mike Bibby career three-pointers made = 1517",
+    "sql": "SELECT sum(FG3M_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Mike Bibby' LIMIT 1)",
+    "expected": 1517,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/b/bibbymi01.html cached=.firecrawl/accuracy-sources/players/b/bibbymi01.json table=totals"
+  },
+  {
+    "name": "generated_lamar_odom_career_g",
+    "category": "generated_player_career",
+    "description": "Lamar Odom career games played = 961",
+    "sql": "SELECT sum(GP_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Lamar Odom' LIMIT 1)",
+    "expected": 961,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/o/odomla01.html cached=.firecrawl/accuracy-sources/players/o/odomla01.json table=totals"
+  },
+  {
+    "name": "generated_lamar_odom_career_pts",
+    "category": "generated_player_career",
+    "description": "Lamar Odom career points = 12781",
+    "sql": "SELECT sum(PTS_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Lamar Odom' LIMIT 1)",
+    "expected": 12781,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/o/odomla01.html cached=.firecrawl/accuracy-sources/players/o/odomla01.json table=totals"
+  },
+  {
+    "name": "generated_lamar_odom_career_trb",
+    "category": "generated_player_career",
+    "description": "Lamar Odom career rebounds = 8059",
+    "sql": "SELECT sum(TRB_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Lamar Odom' LIMIT 1)",
+    "expected": 8059,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/o/odomla01.html cached=.firecrawl/accuracy-sources/players/o/odomla01.json table=totals"
+  },
+  {
+    "name": "generated_lamar_odom_career_ast",
+    "category": "generated_player_career",
+    "description": "Lamar Odom career assists = 3554",
+    "sql": "SELECT sum(AST_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Lamar Odom' LIMIT 1)",
+    "expected": 3554,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/o/odomla01.html cached=.firecrawl/accuracy-sources/players/o/odomla01.json table=totals"
+  },
+  {
+    "name": "generated_lamar_odom_career_stl",
+    "category": "generated_player_career",
+    "description": "Lamar Odom career steals = 848",
+    "sql": "SELECT sum(STL_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Lamar Odom' LIMIT 1)",
+    "expected": 848,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/o/odomla01.html cached=.firecrawl/accuracy-sources/players/o/odomla01.json table=totals"
+  },
+  {
+    "name": "generated_lamar_odom_career_blk",
+    "category": "generated_player_career",
+    "description": "Lamar Odom career blocks = 892",
+    "sql": "SELECT sum(BLK_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Lamar Odom' LIMIT 1)",
+    "expected": 892,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/o/odomla01.html cached=.firecrawl/accuracy-sources/players/o/odomla01.json table=totals"
+  },
+  {
+    "name": "generated_lamar_odom_career_fg3",
+    "category": "generated_player_career",
+    "description": "Lamar Odom career three-pointers made = 664",
+    "sql": "SELECT sum(FG3M_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Lamar Odom' LIMIT 1)",
+    "expected": 664,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/o/odomla01.html cached=.firecrawl/accuracy-sources/players/o/odomla01.json table=totals"
+  },
+  {
+    "name": "generated_marcus_camby_career_g",
+    "category": "generated_player_career",
+    "description": "Marcus Camby career games played = 973",
+    "sql": "SELECT sum(GP_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Marcus Camby' LIMIT 1)",
+    "expected": 973,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/c/cambyma01.html cached=.firecrawl/accuracy-sources/players/c/cambyma01.json table=totals"
+  },
+  {
+    "name": "generated_marcus_camby_career_pts",
+    "category": "generated_player_career",
+    "description": "Marcus Camby career points = 9262",
+    "sql": "SELECT sum(PTS_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Marcus Camby' LIMIT 1)",
+    "expected": 9262,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/c/cambyma01.html cached=.firecrawl/accuracy-sources/players/c/cambyma01.json table=totals"
+  },
+  {
+    "name": "generated_marcus_camby_career_trb",
+    "category": "generated_player_career",
+    "description": "Marcus Camby career rebounds = 9513",
+    "sql": "SELECT sum(TRB_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Marcus Camby' LIMIT 1)",
+    "expected": 9513,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/c/cambyma01.html cached=.firecrawl/accuracy-sources/players/c/cambyma01.json table=totals"
+  },
+  {
+    "name": "generated_marcus_camby_career_ast",
+    "category": "generated_player_career",
+    "description": "Marcus Camby career assists = 1837",
+    "sql": "SELECT sum(AST_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Marcus Camby' LIMIT 1)",
+    "expected": 1837,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/c/cambyma01.html cached=.firecrawl/accuracy-sources/players/c/cambyma01.json table=totals"
+  },
+  {
+    "name": "generated_marcus_camby_career_stl",
+    "category": "generated_player_career",
+    "description": "Marcus Camby career steals = 967",
+    "sql": "SELECT sum(STL_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Marcus Camby' LIMIT 1)",
+    "expected": 967,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/c/cambyma01.html cached=.firecrawl/accuracy-sources/players/c/cambyma01.json table=totals"
+  },
+  {
+    "name": "generated_marcus_camby_career_blk",
+    "category": "generated_player_career",
+    "description": "Marcus Camby career blocks = 2331",
+    "sql": "SELECT sum(BLK_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Marcus Camby' LIMIT 1)",
+    "expected": 2331,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/c/cambyma01.html cached=.firecrawl/accuracy-sources/players/c/cambyma01.json table=totals"
+  },
+  {
+    "name": "generated_marcus_camby_career_fg3",
+    "category": "generated_player_career",
+    "description": "Marcus Camby career three-pointers made = 18",
+    "sql": "SELECT sum(FG3M_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Marcus Camby' LIMIT 1)",
+    "expected": 18,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/c/cambyma01.html cached=.firecrawl/accuracy-sources/players/c/cambyma01.json table=totals"
+  },
+  {
+    "name": "generated_metta_world_peace_career_g",
+    "category": "generated_player_career",
+    "description": "Metta World Peace career games played = 991",
+    "sql": "SELECT sum(GP_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Metta World Peace' LIMIT 1)",
+    "expected": 991,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/a/artesro01.html cached=.firecrawl/accuracy-sources/players/a/artesro01.json table=totals"
+  },
+  {
+    "name": "generated_metta_world_peace_career_pts",
+    "category": "generated_player_career",
+    "description": "Metta World Peace career points = 13058",
+    "sql": "SELECT sum(PTS_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Metta World Peace' LIMIT 1)",
+    "expected": 13058,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/a/artesro01.html cached=.firecrawl/accuracy-sources/players/a/artesro01.json table=totals"
+  },
+  {
+    "name": "generated_metta_world_peace_career_trb",
+    "category": "generated_player_career",
+    "description": "Metta World Peace career rebounds = 4448",
+    "sql": "SELECT sum(TRB_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Metta World Peace' LIMIT 1)",
+    "expected": 4448,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/a/artesro01.html cached=.firecrawl/accuracy-sources/players/a/artesro01.json table=totals"
+  },
+  {
+    "name": "generated_metta_world_peace_career_ast",
+    "category": "generated_player_career",
+    "description": "Metta World Peace career assists = 2631",
+    "sql": "SELECT sum(AST_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Metta World Peace' LIMIT 1)",
+    "expected": 2631,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/a/artesro01.html cached=.firecrawl/accuracy-sources/players/a/artesro01.json table=totals"
+  },
+  {
+    "name": "generated_metta_world_peace_career_stl",
+    "category": "generated_player_career",
+    "description": "Metta World Peace career steals = 1721",
+    "sql": "SELECT sum(STL_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Metta World Peace' LIMIT 1)",
+    "expected": 1721,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/a/artesro01.html cached=.firecrawl/accuracy-sources/players/a/artesro01.json table=totals"
+  },
+  {
+    "name": "generated_metta_world_peace_career_blk",
+    "category": "generated_player_career",
+    "description": "Metta World Peace career blocks = 522",
+    "sql": "SELECT sum(BLK_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Metta World Peace' LIMIT 1)",
+    "expected": 522,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/a/artesro01.html cached=.firecrawl/accuracy-sources/players/a/artesro01.json table=totals"
+  },
+  {
+    "name": "generated_metta_world_peace_career_fg3",
+    "category": "generated_player_career",
+    "description": "Metta World Peace career three-pointers made = 1154",
+    "sql": "SELECT sum(FG3M_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Metta World Peace' LIMIT 1)",
+    "expected": 1154,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/a/artesro01.html cached=.firecrawl/accuracy-sources/players/a/artesro01.json table=totals"
+  },
+  {
+    "name": "generated_deron_williams_career_g",
+    "category": "generated_player_career",
+    "description": "Deron Williams career games played = 845",
+    "sql": "SELECT sum(GP_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Deron Williams' LIMIT 1)",
+    "expected": 845,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/w/willide01.html cached=.firecrawl/accuracy-sources/players/w/willide01.json table=totals"
+  },
+  {
+    "name": "generated_deron_williams_career_pts",
+    "category": "generated_player_career",
+    "description": "Deron Williams career points = 13804",
+    "sql": "SELECT sum(PTS_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Deron Williams' LIMIT 1)",
+    "expected": 13804,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/w/willide01.html cached=.firecrawl/accuracy-sources/players/w/willide01.json table=totals"
+  },
+  {
+    "name": "generated_deron_williams_career_trb",
+    "category": "generated_player_career",
+    "description": "Deron Williams career rebounds = 2619",
+    "sql": "SELECT sum(TRB_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Deron Williams' LIMIT 1)",
+    "expected": 2619,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/w/willide01.html cached=.firecrawl/accuracy-sources/players/w/willide01.json table=totals"
+  },
+  {
+    "name": "generated_deron_williams_career_ast",
+    "category": "generated_player_career",
+    "description": "Deron Williams career assists = 6819",
+    "sql": "SELECT sum(AST_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Deron Williams' LIMIT 1)",
+    "expected": 6819,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/w/willide01.html cached=.firecrawl/accuracy-sources/players/w/willide01.json table=totals"
+  },
+  {
+    "name": "generated_deron_williams_career_stl",
+    "category": "generated_player_career",
+    "description": "Deron Williams career steals = 867",
+    "sql": "SELECT sum(STL_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Deron Williams' LIMIT 1)",
+    "expected": 867,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/w/willide01.html cached=.firecrawl/accuracy-sources/players/w/willide01.json table=totals"
+  },
+  {
+    "name": "generated_deron_williams_career_blk",
+    "category": "generated_player_career",
+    "description": "Deron Williams career blocks = 206",
+    "sql": "SELECT sum(BLK_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Deron Williams' LIMIT 1)",
+    "expected": 206,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/w/willide01.html cached=.firecrawl/accuracy-sources/players/w/willide01.json table=totals"
+  },
+  {
+    "name": "generated_deron_williams_career_fg3",
+    "category": "generated_player_career",
+    "description": "Deron Williams career three-pointers made = 1178",
+    "sql": "SELECT sum(FG3M_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Deron Williams' LIMIT 1)",
+    "expected": 1178,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/w/willide01.html cached=.firecrawl/accuracy-sources/players/w/willide01.json table=totals"
+  },
+  {
+    "name": "generated_carlos_boozer_career_g",
+    "category": "generated_player_career",
+    "description": "Carlos Boozer career games played = 861",
+    "sql": "SELECT sum(GP_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Carlos Boozer' LIMIT 1)",
+    "expected": 861,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/b/boozeca01.html cached=.firecrawl/accuracy-sources/players/b/boozeca01.json table=totals"
+  },
+  {
+    "name": "generated_carlos_boozer_career_pts",
+    "category": "generated_player_career",
+    "description": "Carlos Boozer career points = 13976",
+    "sql": "SELECT sum(PTS_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Carlos Boozer' LIMIT 1)",
+    "expected": 13976,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/b/boozeca01.html cached=.firecrawl/accuracy-sources/players/b/boozeca01.json table=totals"
+  },
+  {
+    "name": "generated_carlos_boozer_career_trb",
+    "category": "generated_player_career",
+    "description": "Carlos Boozer career rebounds = 8192",
+    "sql": "SELECT sum(TRB_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Carlos Boozer' LIMIT 1)",
+    "expected": 8192,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/b/boozeca01.html cached=.firecrawl/accuracy-sources/players/b/boozeca01.json table=totals"
+  },
+  {
+    "name": "generated_carlos_boozer_career_ast",
+    "category": "generated_player_career",
+    "description": "Carlos Boozer career assists = 1928",
+    "sql": "SELECT sum(AST_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Carlos Boozer' LIMIT 1)",
+    "expected": 1928,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/b/boozeca01.html cached=.firecrawl/accuracy-sources/players/b/boozeca01.json table=totals"
+  },
+  {
+    "name": "generated_carlos_boozer_career_stl",
+    "category": "generated_player_career",
+    "description": "Carlos Boozer career steals = 765",
+    "sql": "SELECT sum(STL_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Carlos Boozer' LIMIT 1)",
+    "expected": 765,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/b/boozeca01.html cached=.firecrawl/accuracy-sources/players/b/boozeca01.json table=totals"
+  },
+  {
+    "name": "generated_carlos_boozer_career_blk",
+    "category": "generated_player_career",
+    "description": "Carlos Boozer career blocks = 346",
+    "sql": "SELECT sum(BLK_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Carlos Boozer' LIMIT 1)",
+    "expected": 346,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/b/boozeca01.html cached=.firecrawl/accuracy-sources/players/b/boozeca01.json table=totals"
+  },
+  {
+    "name": "generated_carlos_boozer_career_fg3",
+    "category": "generated_player_career",
+    "description": "Carlos Boozer career three-pointers made = 1",
+    "sql": "SELECT sum(FG3M_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'Carlos Boozer' LIMIT 1)",
+    "expected": 1,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/b/boozeca01.html cached=.firecrawl/accuracy-sources/players/b/boozeca01.json table=totals"
+  },
+  {
+    "name": "generated_david_west_career_g",
+    "category": "generated_player_career",
+    "description": "David West career games played = 1034",
+    "sql": "SELECT sum(GP_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'David West' LIMIT 1)",
+    "expected": 1034,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/w/westda01.html cached=.firecrawl/accuracy-sources/players/w/westda01.json table=totals"
+  },
+  {
+    "name": "generated_david_west_career_pts",
+    "category": "generated_player_career",
+    "description": "David West career points = 14034",
+    "sql": "SELECT sum(PTS_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'David West' LIMIT 1)",
+    "expected": 14034,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/w/westda01.html cached=.firecrawl/accuracy-sources/players/w/westda01.json table=totals"
+  },
+  {
+    "name": "generated_david_west_career_trb",
+    "category": "generated_player_career",
+    "description": "David West career rebounds = 6590",
+    "sql": "SELECT sum(TRB_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'David West' LIMIT 1)",
+    "expected": 6590,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/w/westda01.html cached=.firecrawl/accuracy-sources/players/w/westda01.json table=totals"
+  },
+  {
+    "name": "generated_david_west_career_ast",
+    "category": "generated_player_career",
+    "description": "David West career assists = 2273",
+    "sql": "SELECT sum(AST_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'David West' LIMIT 1)",
+    "expected": 2273,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/w/westda01.html cached=.firecrawl/accuracy-sources/players/w/westda01.json table=totals"
+  },
+  {
+    "name": "generated_david_west_career_stl",
+    "category": "generated_player_career",
+    "description": "David West career steals = 764",
+    "sql": "SELECT sum(STL_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'David West' LIMIT 1)",
+    "expected": 764,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/w/westda01.html cached=.firecrawl/accuracy-sources/players/w/westda01.json table=totals"
+  },
+  {
+    "name": "generated_david_west_career_blk",
+    "category": "generated_player_career",
+    "description": "David West career blocks = 850",
+    "sql": "SELECT sum(BLK_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'David West' LIMIT 1)",
+    "expected": 850,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/w/westda01.html cached=.firecrawl/accuracy-sources/players/w/westda01.json table=totals"
+  },
+  {
+    "name": "generated_david_west_career_fg3",
+    "category": "generated_player_career",
+    "description": "David West career three-pointers made = 57",
+    "sql": "SELECT sum(FG3M_golden) AS val FROM api.v_golden_player_season_totals WHERE master_id = (SELECT CAST(player_id AS VARCHAR) FROM nbadb.dim_player WHERE full_name = 'David West' LIMIT 1)",
+    "expected": 57,
+    "mode": "exact",
+    "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/w/westda01.html cached=.firecrawl/accuracy-sources/players/w/westda01.json table=totals"
+  }
+]
