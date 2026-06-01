@@ -1,0 +1,196 @@
+/kaizen:analyse Wire the new accuracy verification work into the repo as a clean top-level workflow. Add distinct `package.json` scripts for refreshing Firecrawl-backed accuracy checks and for running `scripts/db/verify-accuracy.ts`, make the naming unambiguous versus the existing `dq:accuracy` pipeline, and update the minimal README/AGENTS sections that should mention the new commands. Keep the change tight and consistent with the current repo conventions.
+
+---
+
+PLEASE IMPLEMENT THIS PLAN:
+# Plan: Wire Firecrawl-Backed Accuracy Verification
+
+## Context
+
+The repo has a **two-tier DQ system** documented in AGENTS.md:
+
+1. **Internal Consistency (`verify-dq.ts`)**: Uniqueness, referential integrity, consistency checks over `nbadb` star tier
+2. **Cross-Source Accuracy Reconciliation (`dq:accuracy`)**: BBR ↔ NBA-API merge pipeline with discrepancy classification
+
+There's also a **third accuracy layer** built but not yet wired into package.json:
+
+- **`fetch-accuracy-sources.ts`**: Firecrawl CLI-backed BBR source fetcher that populates `accuracy-checks.json` with fact-check test cases (e.g., "LeBron has 43,440 career points")
+- **`verify-accuracy.ts`**: Runs fact-checks against DuckDB, reports pass/fail/error
+
+**Problem**: These Firecrawl-backed accuracy scripts exist but have no package.json entry points, making them undiscoverable and inconsistent with the documented `dq:*` workflow conventions.
+
+**Goal**: Add distinct package.json scripts for refreshing and running Firecrawl-backed accuracy checks, with unambiguous naming vs `dq:accuracy`, and update documentation.
+
+---
+
+## Current State
+
+**Existing `dq:*` scripts (package.json lines 37-42):**
+```json
+"dq": "bun run scripts/db/verify-dq.ts",
+"dq:gate": "bun run scripts/db/verify-dq.ts --gate=HIGH",
+"dq:accuracy": "bun run scripts/db/build-canonical-metric-registry.ts --apply && bun run scripts/db/build-canonical-merge.ts --apply && bun run scripts/db/classify-accuracy-discrepancies.ts",
+"dq:oracle": "bun run scripts/db/oracle-resolve-discrepancies.ts",
+"dq:full": "bun run dq:accuracy && bun run dq:gate",
+```
+
+**Unwired scripts:**
+- `scripts/db/fetch-accuracy-sources.ts` — Firecrawl fetcher (generates `accuracy-candidates.generated.json`, optionally appends to `accuracy-checks.json`)
+- `scripts/db/verify-accuracy.ts` — Fact-check runner (reads `accuracy-checks.json`, executes SQL, reports outcomes)
+
+**Documentation gaps:**
+- AGENTS.md mentions `dq:accuracy` and `dq:oracle` but not the Firecrawl fact-check layer
+- README.md has no accuracy/DQ section
+- No clear separation between "cross-source reconciliation" vs "fact-check verification"
+
+---
+
+## Recommended Approach
+
+### 1. Add package.json scripts
+
+**Naming rationale:**
+- `dq:accuracy` = **Cross-source reconciliation pipeline** (BBR vs NBA-API merge)
+- `accuracy:refresh` = **Firecrawl fact-check source refresh** (populate `accuracy-checks.json`)
+- `accuracy:verify` = **Run fact-checks** (execute `verify-accuracy.ts`)
+
+This keeps:
+- `dq:*` prefix for **data quality** (internal consistency + cross-source reconciliation)
+- `accuracy:*` prefix for **Firecrawl-backed fact-checks** (external truth verification)
+
+**Add to package.json scripts section (after line 42, after `dq:fixture`):**
+```json
+"accuracy:refresh": "bun run scripts/db/fetch-accuracy-sources.ts",
+"accuracy:verify": "bun run scripts/db/verify-accuracy.ts",
+```
+
+**Optional convenience alias (add after `accuracy:verify`):**
+```json
+"accuracy:full": "bun run accuracy:refresh && bun run accuracy:verify",
+```
+
+### 2. Update AGENTS.md
+
+**Add new subsection after "Cross-Source Accuracy Reconciliation" block (around line 268):**
+
+```markdown
+### Firecrawl-Backed Fact-Check Verification
+
+Separate from cross-source reconciliation, this layer uses Firecrawl to validate database values against external sources (e.g., Basketball-Reference player career totals).
+
+**Commands:**
+```bash
+bun run accuracy:refresh    # Fetch BBR sources, generate accuracy-candidates.generated.json
+bun run accuracy:verify     # Run fact-checks from accuracy-checks.json, report pass/fail
+bun run accuracy:full       # Refresh then verify
+```
+
+**Files:**
+- `scripts/db/fetch-accuracy-sources.ts` — Firecrawl CLI-backed BBR source fetcher
+- `scripts/db/verify-accuracy.ts` — Fact-check verification suite
+- `scripts/db/accuracy-checks.json` — Registry of accuracy test cases (expected values)
+- `scripts/db/accuracy-candidates.generated.json` — Generated candidates (pre-validation)
+
+**Workflow:**
+1. `accuracy:refresh` fetches BBR player pages, parses career totals, builds SQL queries, validates candidates
+2. Passing candidates written to `accuracy-candidates.generated.json`
+3. Use `--append` flag to merge passing candidates into `accuracy-checks.json`
+4. `accuracy:verify` executes all checks from `accuracy-checks.json` and reports outcomes
+
+**Relationship to dq:accuracy:**
+- `dq:accuracy` = Cross-source reconciliation (BBR vs NBA-API agreement)
+- `accuracy:refresh/verify` = External truth validation (DB vs BBR ground truth)
+- Both write to `audit` schema for visibility but serve different purposes
+```
+
+### 3. Update README.md
+
+**Add "Data Quality & Accuracy" section after project overview (new section before "Repository Structure"):**
+
+```markdown
+## Data Quality & Accuracy
+
+The repo uses a **three-tier DQ system**:
+
+1. **Internal Consistency** (`bun run dq`) — Uniqueness, referential integrity, validity checks
+2. **Cross-Source Reconciliation** (`bun run dq:accuracy`) — BBR ↔ NBA-API merge and discrepancy classification
+3. **Fact-Check Verification** (`bun run accuracy:full`) — Firecrawl-backed external truth validation
+
+Quick start:
+```bash
+bun run dq:gate          # Internal consistency gate (HIGH+ severity)
+bun run dq:accuracy      # Cross-source reconciliation pipeline
+bun run accuracy:full    # Refresh + verify Firecrawl fact-checks
+```
+
+See [AGENTS.md](./AGENTS.md#data-warehouse-schema--data-quality) for full documentation.
+```
+
+---
+
+## Files to Modify
+
+1. **`package.json`** (lines 42-43)
+   - Add `"accuracy:refresh"`, `"accuracy:verify"`, `"accuracy:full"` scripts
+   - Insert after `"dq:fixture"` line, before `"ci:integration"`
+
+2. **`AGENTS.md`** (around line 268)
+   - Add "Firecrawl-Backed Fact-Check Verification" subsection
+   - Insert after "Cross-Source Accuracy Reconciliation" block, before "DuckDB scripting conventions"
+
+3. **`README.md`** (after line ~30, before "Repository Structure")
+   - Add "Data Quality & Accuracy" section with quick-start commands
+   - Keep it brief (4-6 lines max) — full docs in AGENTS.md
+
+---
+
+## Verification
+
+After implementation, verify the workflow end-to-end:
+
+1. **Test script discovery:**
+   ```bash
+   bun run | grep accuracy  # Should show accuracy:refresh, accuracy:verify, accuracy:full
+   ```
+
+2. **Test help text in scripts:**
+   ```bash
+   bun run scripts/db/fetch-accuracy-sources.ts --help    # Should show usage
+   bun run scripts/db/verify-accuracy.ts --help           # Should show usage
+   ```
+
+3. **Test docs accuracy:**
+   - Check AGENTS.md renders correctly with new subsection
+   - Check README.md section links to AGENTS.md anchor
+
+4. **Smoke test (optional, requires FIRECRAWL_API_KEY):**
+   ```bash
+   bun run accuracy:refresh --limit=1 --validate    # Fetch 1 player, validate
+   bun run accuracy:verify --filter=career --verbose  # Run career checks
+   ```
+
+---
+
+## Why This Approach
+
+**Naming clarity:**
+- `dq:*` = data quality (internal + cross-source)
+- `accuracy:*` = external truth validation (Firecrawl)
+- No ambiguity between `dq:accuracy` (pipeline) and `accuracy:verify` (fact-checks)
+
+**Consistency:**
+- Mirrors existing `dq:*` pattern with subcommands (`refresh`, `verify`, `full`)
+- `accuracy:full` follows `dq:full` convention (chaining)
+
+**Documentation:**
+- AGENTS.md gets the full technical details (workflow, files, relationship to `dq:accuracy`)
+- README.md gets a concise quick-start section (users discover commands without reading AGENTS.md)
+
+**Minimal change:**
+- Only 3 files touched (package.json, AGENTS.md, README.md)
+- No script logic changes (just wiring existing code)
+- Follows repo conventions (bbr:*, dq:*, chatbot:* script patterns)
+
+---
+
+run the commands
