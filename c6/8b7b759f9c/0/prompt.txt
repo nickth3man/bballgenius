@@ -1,0 +1,118 @@
+Here is the blueprint to audit and verify your entire database.
+
+---
+
+## Phase 1: Internal Logic & Cross-Reconciliation
+
+Before comparing your data to the outside world, you must ensure the database doesn't contradict itself. If the internal math doesn't check out, the data is broken.
+
+* **The Box Score Summation Check:** Write a query that aggregates all player box scores for a specific `game_id` (points, rebounds, assists, field goals attempted/made) and subtracts the corresponding row in the team box score table. The delta must be exactly zero.
+* **The Aggregate Continuity Check:** For a subset of random players across different eras, write a script to sum up their game logs (`fact_player_game_boxscore`) for a given season and compare it to their row in the season totals table (`fact_player_season_stats`). They must align perfectly.
+
+
+* **The Record & Schedule Check:** Aggregate team wins and losses from your game results table for every team-season. Compare the calculated records against the team's standing/record table. If a team is listed as 50-32, but you only have 81 game rows for them, you have a missing game artifact.
+
+---
+
+## Phase 2: Automated Advanced Stat Recalculation
+
+Advanced metrics like True Shooting Percentage ($TS\%$), Effective Field Goal Percentage ($eFG\%$), and Usage Rate ($USG\%$) are highly prone to calculation drift if a null value or missing team-possession data messes up the formula.
+
+* **Deterministic Testing:** Do not trust the imported advanced stat columns blindly. Write a Python script using the DuckDB API to manually calculate $TS\%$ and $eFG\%$ directly from the raw points, field goal attempts, and free throw attempts:
+
+$$TS\% = \frac{\text{Points}}{2 \times (\text{FGA} + 0.44 \times \text{FTA})}$$
+
+
+* **The Discrepancy Log:** Run this calculation for all 1.66M+ player game rows and flag any row where your computed metric deviates from the stored metric by more than a rounding error (e.g., $> 0.001$). Populated errors go directly into your `audit` schema.
+
+---
+
+## Phase 3: The "Historical Edge Case" Boundary Scan
+
+NBA history is full of weird statistical anomalies and rule updates. You can write simple SQL constraint checks to catch corrupt historical data.
+
+### Bio Data Logical Constraints
+
+* **Age/Draft Sanity:** Ensure `draft_year` minus `birth_date` year is always between 17 and 30. Anyone drafted at age 8 or age 50 is a corrupted row.
+* **Height & Weight Bounds:** Query for any player where height is outside 5'3" to 7'7", or weight is outside 130 lbs to 375 lbs. Catch corrupt zero-values or nulls masquerading as data.
+* **Alternative Academies:** Check your `school` or pre-NBA columns for modern pathways. Ensure players like Jalen Green or Scoot Henderson properly list "G League Ignite," and international players list their respective overseas clubs rather than being left blank or marked "Undrafted."
+
+### Historical Rule Violations
+
+* **The 3-Point Line (1979-80):** Query your database for any games played prior to the 1979-80 season where `fg3a` (Three-point attempts) or `fg3m` is greater than 0. If there are any, your historical data ingestion is leaking modern stats into the past.
+* **Tracking Stats (1973-74):** Blocks (`blk`) and steals (`stl`) were not officially tracked until 1973-74. Ensure all rows prior to 1973 are either strictly null or safely handled so your application doesn't accidentally treat historical legends like Bill Russell as having "0 blocks" per game.
+
+---
+
+## Phase 4: External Spot-Checking Against Ground Truth
+
+You can't programmatically verify *everything* internally. You need to pull authoritative programmatic reference points to spot-check your database.
+
+1. **Select a Control Group:** Pick 50 players who represent different eras and complex profiles.
+* *Examples:* Wilt Chamberlain (statistical outlier), LeBron James (massive longevity data), Bogdan Bogdanović (international/cross-language spellings), Alperen Şengün (modern international), and someone like Dyson Daniels (G League Ignite pathway).
+
+
+2. **Pull Live Live API Benchmarks:** Use a lightweight Python script to pull the official career stats and bio JSON directly from the live NBA API or scrape a known page from Basketball-Reference for these 50 control players.
+3. **Automated Cross-Check:** Write an assertion script that maps your `xref.player_xref` keys to these live pulls. If any player's career points, draft number, or birthplace fails to match the ground-truth benchmark, isolate the source schema that brought in the error.
+
+---
+
+# SYSTEM / TASK INSTRUCTION: Purge Corrupted Data & Migrate Frontend to Unified Star Schema
+
+## Context & Objective
+We have identified severe data corruption within our local DuckDB database (`data/nba.duckdb`). Specifically, the `nbadb.agg_player_season*` tables contain heavily inflated season totals that conflict with real game-log data. 
+
+You need to accomplish two goals:
+1. Physically purge the corrupted tables from the database to eliminate them entirely.
+2. Refactor all data-fetching queries, API routes, and components in this repository to pull data from the verified, mathematically accurate `unified_star` schema instead of the old `nbadb` schema.
+
+---
+
+## Phase 1: Database Purge (SQL Migration)
+Connect to `data/nba.duckdb` using your available tools or execution scripts and run the following structural changes:
+1. Drop the corrupted season aggregation tables:
+   ```sql
+   DROP TABLE IF EXISTS nbadb.agg_player_season;
+   DROP TABLE IF EXISTS nbadb.agg_player_season_advanced;
+   DROP TABLE IF EXISTS nbadb.agg_player_season_per36;
+   DROP TABLE IF EXISTS nbadb.agg_player_season_per48;
+
+```
+
+2. Drop the redundant shot chart duplicate table to reclaim disk space:
+```sql
+DROP TABLE IF EXISTS nbadb.analytics_shooting_efficiency;
+
+```
+
+
+3. Verify that `unified_star.fact_player_season_stats` and `unified_star.dim_player` are online and intact.
+
+---
+
+## Phase 2: Repository Code Search & Query Refactoring
+
+Scan the codebase for any references to the deleted `nbadb.agg_player_season` tables or general `nbadb` table calls. Refactor those data-fetching functions to hit the `unified_star` layer while strictly adhering to these architectural differences:
+
+### 1. Resolve the Team ID Mismatch (Franchise vs. Era Grain)
+
+* **The Problem:** The old schema used franchise-level IDs (63 unique teams). The `unified_star` schema tracks history-aware team eras (97 unique entries separating team, city, and name eras). Direct joins will fail or return empty datasets.
+* **The Refactor:** For any query pulling team-level data, you must inject a join path through the cross-reference table `xref.team_xref` to safely bridge the old frontend IDs to the new history-aware `team_id` keys in `unified_star.dim_team`.
+
+### 2. Handle Player Identification & Scopes
+
+* **The Refactor:** Change the base player metrics query target from the old tables to `unified_star.fact_player_season_stats`. Ensure your queries safely map player identifiers using `xref.player_xref` when cross-referencing Basketball-Reference (`bref_player_id`) and standard tracking keys.
+
+### 3. Metric Scaling Adjustments (Fractions vs. Whole Integers)
+
+* **The Problem:** Advanced stats in `unified_star` are stored as pure mathematical decimals/fractions (e.g., a Usage Rate of `0.285` or a True Shooting percentage of `0.612`) rather than whole numbers (like `28.5` or `61.2`).
+* **The Refactor:** Locate where these metrics are passed to UI components. Update the query layer or the UI formatting utilities to multiply these advanced values by 100, or apply a local percentage formatter so the layout displays accurately to users.
+
+---
+
+## Success Criteria
+
+* No references to the dropped `nbadb.agg_player_season` tables remain in the active codebase.
+* All data pipelines fetching seasonal metrics point to `unified_star.fact_player_season_stats`.
+* The TypeScript types/interfaces reflecting database outputs match the decimal/fractional scales of the new schema.
+* Run a project build/type-check script upon completion to guarantee no imports or properties are broken.
