@@ -22,10 +22,10 @@ export function createPanel(
     focusedBorderColor: opts.focusedBorderColor ?? Theme.borderFocused,
     title: opts.title,
     titleAlignment: opts.titleAlignment ?? Theme.titleAlignment,
-    paddingX: opts.paddingX ?? 1,
+    paddingX: opts.paddingX ?? Theme.panelPaddingX,
     flexDirection: opts.flexDirection,
     flexGrow: opts.flexGrow,
-    gap: opts.gap,
+    gap: opts.gap ?? Theme.gap,
     backgroundColor: opts.backgroundColor ?? Theme.background,
   });
 }

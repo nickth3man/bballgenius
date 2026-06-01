@@ -4,25 +4,28 @@
  */
 
 export const Theme = {
-  // Brand colors (Hex values)
-  primary: '#7aa2f7', // TokyoNight Blue
-  secondary: '#bb9af7', // TokyoNight Purple
-  accent: '#2ac3de', // TokyoNight Cyan
-  success: '#9ece6a', // TokyoNight Green
-  error: '#f7768e', // TokyoNight Red
-  warning: '#e0af68', // TokyoNight Orange
-  foreground: '#a9b1d6', // Default text
-  foregroundMuted: '#565f89', // Subdued text / labels
-  background: '#1a1b26', // Deep layout background
-  surface: '#16161e', // Contrasting panels / headers
-  surfaceAlt: '#1f2231', // Active workspace areas
-  inputBg: '#24283b', // Darker typing fields
-  borderFocused: '#2ac3de', // Cyan for sharp focus indication
-  borderNormal: '#383e5a', // Subdued panel split lines
+  primary: '#7aa2f7',
+  secondary: '#bb9af7',
+  accent: '#2ac3de',
+  success: '#9ece6a',
+  error: '#f7768e',
+  warning: '#e0af68',
+  foreground: '#a9b1d6',
+  foregroundMuted: '#565f89',
+  foregroundSubtle: '#414868',
+  background: '#1a1b26',
+  surface: '#16161e',
+  surfaceElevated: '#1a1b26',
+  surfaceAlt: '#1f2231',
+  inputBg: '#24283b',
+  borderFocused: '#2ac3de',
+  borderNormal: '#383e5a',
 
   borderStyle: 'rounded' as const,
   titleAlignment: 'left' as const,
   gap: 1 as const,
+  panelPaddingX: 1 as const,
+  footerPaddingX: 2 as const,
 };
 
 /** True when `NO_COLOR` is set to any non-empty value (https://no-color.org/). */
@@ -42,7 +45,8 @@ export type ThemeFgRole =
   | 'error'
   | 'warning'
   | 'foreground'
-  | 'foregroundMuted';
+  | 'foregroundMuted'
+  | 'foregroundSubtle';
 
 const THEME_FG_RGB: Record<ThemeFgRole, [number, number, number]> = {
   primary: [122, 162, 247],
@@ -53,6 +57,7 @@ const THEME_FG_RGB: Record<ThemeFgRole, [number, number, number]> = {
   warning: [224, 175, 104],
   foreground: [169, 177, 214],
   foregroundMuted: [86, 95, 137],
+  foregroundSubtle: [65, 72, 104],
 };
 
 function ansiReset(): string {

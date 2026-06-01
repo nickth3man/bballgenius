@@ -55,6 +55,7 @@ function createHeaderBox(renderer: CliRenderer, tabSelect: TabSelectRenderable):
     backgroundColor: Theme.surface,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingX: Theme.panelPaddingX,
   });
   headerBox.add(tabSelect);
   return headerBox;
@@ -68,8 +69,8 @@ function createHelpOverlay(renderer: CliRenderer): BoxRenderable {
     visible: false,
     border: true,
     borderStyle: Theme.borderStyle,
-    borderColor: Theme.borderFocused,
-    backgroundColor: Theme.surface,
+    borderColor: Theme.primary,
+    backgroundColor: Theme.surfaceElevated,
     paddingX: 4,
     paddingY: 2,
   });
@@ -97,7 +98,7 @@ function createFooterBox(
     backgroundColor: Theme.surface,
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingX: 2,
+    paddingX: Theme.footerPaddingX,
     flexGrow: 0,
     border: ['top'],
     borderColor: Theme.borderNormal,
@@ -146,7 +147,7 @@ export function createAppShell(renderer: CliRenderer): AppShell {
     flexGrow: 1,
     flexDirection: 'column',
     backgroundColor: Theme.surfaceAlt,
-    paddingX: 1,
+    paddingX: Theme.panelPaddingX,
     paddingY: 1,
   });
 
@@ -157,7 +158,7 @@ export function createAppShell(renderer: CliRenderer): AppShell {
 
   const footerLeftText = new TextRenderable(renderer, {
     id: 'footer-left-text',
-    content: 'BBallGenius Hub | nba.duckdb',
+    content: 'BBallGenius Hub \xb7 nba.duckdb',
   });
 
   const footerCenterText = new TextRenderable(renderer, {
