@@ -238,8 +238,8 @@ Run `bbr:map` before `bbr:crawl`. Do not run map and crawl simultaneously becaus
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, coding standards, and PR process.
+See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for development setup, coding standards, and PR process.
 
 ## License
 
-[MIT](LICENSE)
+[MIT](docs/LICENSE)
