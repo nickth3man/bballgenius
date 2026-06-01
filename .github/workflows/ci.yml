@@ -124,8 +124,14 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: TypeScript compile check
+      - name: TypeScript compile check (root, TUI hub)
         run: bun run typecheck
+
+      - name: TypeScript compile check (data package)
+        run: bunx tsc --noEmit -p packages/data/tsconfig.json
+
+      - name: TypeScript compile check (web package)
+        run: bunx tsc --noEmit -p packages/web/tsconfig.json
 
   unit:
     name: Unit tests (no database)
