@@ -247,7 +247,7 @@ Fork used locally: [nickth3man/nbadb](https://github.com/nickth3man/nbadb). BBR 
 
 ### `audit` schema (data quality)
 
-One-stop store for DQ + reconciliation. Key tables: **`dq_results`** (one row per check: `check_name, table_name, severity, row_count, details, checked_at`), `referential_integrity`, `metric_discrepancy` / `player_season_stat_discrepancy` (cross-source; built, populated by the reconciliation pipeline), `player_identity_bridge` (BBR ↔ NBA-API), `column_profile`, `duplicate_key_summary`, `xref_coverage`, `raw_to_curated_counts`.
+One-stop store for DQ + reconciliation. Key tables: **`dq_results`** (one row per check: `check_name, table_name, severity, row_count, details, checked_at`), `cross_table_discrepancy` (Phase 1 offending keys: `check_name, season_year, game_id, team_id, player_id, metric, expected, actual, delta, checked_at`), `advanced_stat_recompute` (Phase 2 per-row recompute mismatches: `game_id, person_id, team_id, metric, stored, computed, delta, season_year, checked_at`), `referential_integrity`, `metric_discrepancy` / `player_season_stat_discrepancy` (cross-source; built, populated by the reconciliation pipeline), `player_identity_bridge` (BBR ↔ NBA-API), `column_profile`, `duplicate_key_summary`, `xref_coverage`, `raw_to_curated_counts`.
 
 ### `scripts/db/verify-dq.ts` — internal-consistency DQ suite
 
@@ -260,6 +260,22 @@ bun run scripts/db/verify-dq.ts --dry-run        # print only, do not persist
 bun run scripts/db/verify-dq.ts --filter=orphan  # subset by check-name substring
 bun run dq:fixture                               # internal-consistency checks against the CI fixture
 ```
+
+The check primitives + runner (`CheckSpec`, `violations`/`duplicateGrain`/`orphans`/`requiredColumns`, `runCountChecks`, `persistResults`, `printReport`, `applyGate`) live in **`scripts/db/dq-core.ts`** and are shared by `verify-dq.ts` and the Phase 1/3 cross-table and historical suites below. All accept `--dry-run`, `--gate=`, `--filter=`.
+
+**Cross-table & recompute suites** (built on `dq-core`, write summaries to `audit.dq_results` + row-level detail tables):
+
+```bash
+bun run dq:crosstable   # verify-cross-table.ts — box-score summation, game-log↔season continuity,
+                        #   W/L↔standings (+bref fallback); offending keys → audit.cross_table_discrepancy
+bun run dq:recompute    # verify-advanced-recompute.ts — recompute eFG%/TS% (exact) + USG% (possession
+                        #   formula, ≥5 MP) over main.fact_player_game_stats; mismatches → audit.advanced_stat_recompute
+                        #   (--tol/--tol-ts/--tol-efg/--tol-usg override; defaults 0.005/0.005/0.03)
+bun run dq:historical   # verify-historical.ts — 3PT pre-1979-80, blk/stl pre-1973-74, draft age,
+                        #   height/weight bounds, pathway completeness (main.dim_player)
+```
+
+These three are wired into `run-dq-pipeline.ts` as non-critical stages. They target `nbadb`/`main`/`unified_star` tables, so they ERROR-gracefully (exit 0) on the CI fixture and are not part of the default `bun run ci` gate.
 
 Cross-source **accuracy** reconciliation (separate from internal consistency) has its own aliases:
 `bun run dq:accuracy` (build canonical metric registry + merge + classify discrepancies),

@@ -160,6 +160,43 @@ export function buildCareerChecks(
   return checks;
 }
 
+/**
+ * Extract a player's overall draft pick from a BBR player page's meta block.
+ * The "Draft:" line reads e.g. "… 1st round (16th pick, 16th overall), 2021 NBA Draft".
+ * Returns null for undrafted players (no "overall" token).
+ */
+export function parseBbrDraftPick(rawHtml: string): number | null {
+  const html = rawHtml.replace(/<!--([\s\S]*?)-->/g, '$1');
+  const $ = cheerio.load(html);
+  let draftText = '';
+  $('p').each((_, element) => {
+    const text = $(element).text();
+    if (/Draft:/i.test(text) && /overall/i.test(text)) {
+      draftText = text;
+    }
+  });
+  const match = draftText.match(/(\d+)(?:st|nd|rd|th)\s+overall/i);
+  return match?.[1] ? Number(match[1]) : null;
+}
+
+/** Build an exact draft-pick check (DB overall_pick vs BBR meta) for a control player. */
+export function buildDraftCheck(
+  player: BbrPlayerSeed,
+  pick: number,
+  sourcePath: string,
+): AccuracyCheck {
+  const url = player.url ?? bbrPlayerUrl(player.bbrId);
+  return {
+    name: `generated_${slugName(player.name)}_draft_pick`,
+    category: 'generated_player_draft',
+    description: `${player.name} drafted #${pick} overall`,
+    sql: `SELECT overall_pick AS val FROM nbadb.fact_draft WHERE player_name = '${escapeSql(player.name)}'`,
+    expected: pick,
+    mode: 'exact',
+    source: `Firecrawl BBR player page ${url} cached=${sourcePath} meta=draft`,
+  };
+}
+
 export function bbrPlayerUrl(bbrId: string): string {
   return `https://www.basketball-reference.com/players/${bbrId[0]}/${bbrId}.html`;
 }

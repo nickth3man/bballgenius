@@ -2,9 +2,11 @@ import { describe, expect, test } from 'bun:test';
 
 import {
   buildCareerChecks,
+  buildDraftCheck,
   formatExpected,
   loadAccuracyChecks,
   parseBbrCareerTotals,
+  parseBbrDraftPick,
 } from './accuracy.js';
 
 describe('accuracy check loader', () => {
@@ -71,5 +73,36 @@ describe('accuracy check loader', () => {
       mode: 'exact',
     });
     expect(checks[0].sql).toContain("full_name = 'Ralph Sampson'");
+  });
+
+  test('parses overall draft pick from the BBR meta block', () => {
+    const html = `
+      <div id="meta">
+        <p><strong>Draft:</strong> Houston Rockets, 1st round (16th pick, 16th overall), 2021 NBA Draft</p>
+      </div>`;
+
+    expect(parseBbrDraftPick(html)).toBe(16);
+  });
+
+  test('returns null draft pick for undrafted players', () => {
+    const html = '<div id="meta"><p><strong>Experience:</strong> 5 years</p></div>';
+
+    expect(parseBbrDraftPick(html)).toBeNull();
+  });
+
+  test('builds an exact draft-pick check against fact_draft', () => {
+    const check = buildDraftCheck(
+      { name: 'Alperen Sengun', bbrId: 'sengual01' },
+      16,
+      '.firecrawl/accuracy-sources/players/s/sengual01.json',
+    );
+
+    expect(check).toMatchObject({
+      name: 'generated_alperen_sengun_draft_pick',
+      category: 'generated_player_draft',
+      expected: 16,
+      mode: 'exact',
+    });
+    expect(check.sql).toContain("player_name = 'Alperen Sengun'");
   });
 });

@@ -31,68 +31,20 @@
  */
 import { DuckDBInstance } from '@duckdb/node-api';
 
-const DB_PATH = process.env['NBA_DUCKDB_PATH'] ?? './data/nba.duckdb';
-
-type Severity = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' | 'INFO';
-type Dimension = 'uniqueness' | 'referential' | 'consistency' | 'validity' | 'completeness';
-
-const SEVERITY_RANK: Record<Severity, number> = {
-  CRITICAL: 5,
-  HIGH: 4,
-  MEDIUM: 3,
-  LOW: 2,
-  INFO: 1,
-};
-
-type CheckSpec = {
-  /** Stable identifier stored in audit.dq_results.check_name. */
-  name: string;
-  /** Fully-qualified table the check is about (stored as table_name). */
-  table: string;
-  severity: Severity;
-  dimension: Dimension;
-  /** Human-readable statement of the rule that must hold. */
-  rule: string;
-  /**
-   * SQL returning exactly one row with columns:
-   *   n       BIGINT   — count of violating rows
-   *   details VARCHAR  — short explanation (NULL when n = 0)
-   */
-  countSql: string;
-};
-
-// ── Reusable check builders ────────────────────────────────────────────────
-
-/** Count rows where `predicate` holds (NULLs in the predicate are not counted). */
-function violations(table: string, predicate: string, label: string): string {
-  return `SELECT count(*) AS n,
-    CASE WHEN count(*) > 0 THEN '${label}: ' || count(*) || ' rows' END AS details
-    FROM ${table} WHERE ${predicate}`;
-}
-
-/** Count duplicate grain groups for the given key columns. */
-function duplicateGrain(table: string, keys: string[]): string {
-  const k = keys.join(', ');
-  return `SELECT count(*) AS n,
-    CASE WHEN count(*) > 0 THEN 'duplicate (${k}) groups: ' || count(*) END AS details
-    FROM (SELECT ${k} FROM ${table} GROUP BY ${k} HAVING count(*) > 1)`;
-}
-
-/** Count child rows whose non-null FK has no matching parent PK (orphans). */
-function orphans(child: string, fk: string, parent: string, pk: string, distinct = false): string {
-  const src = distinct ? `(SELECT DISTINCT ${fk} FROM ${child}) c` : `${child} c`;
-  return `SELECT count(*) AS n,
-    CASE WHEN count(*) > 0 THEN 'orphan ${fk} (not in ${parent}): ' || count(*) END AS details
-    FROM ${src}
-    WHERE c.${fk} IS NOT NULL
-      AND NOT EXISTS (SELECT 1 FROM ${parent} p WHERE p.${pk} = c.${fk})`;
-}
-
-/** Count rows missing any required grain/key column. */
-function requiredColumns(table: string, columns: string[], label: string): string {
-  const predicate = columns.map((col) => `${col} IS NULL`).join(' OR ');
-  return violations(table, predicate, label);
-}
+import {
+  applyGate,
+  type CheckSpec,
+  DB_PATH,
+  duplicateGrain,
+  newRunId,
+  orphans,
+  parseStandardArgs,
+  persistResults,
+  printReport,
+  requiredColumns,
+  runCountChecks,
+  violations,
+} from './dq-core.js';
 
 // ── Table short-hands ────────────────────────────────────────────────────────
 const PGT = 'nbadb.fact_player_game_traditional';
@@ -723,103 +675,25 @@ const CHECKS: CheckSpec[] = [
 ];
 
 // ── Runner ───────────────────────────────────────────────────────────────────
-type Outcome = CheckSpec & { count: number; detail: string | null; error: string | null };
-
-function parseArgs() {
-  const args = process.argv.slice(2);
-  const dryRun = args.includes('--dry-run');
-  const gateArg = args.find((a) => a.startsWith('--gate='));
-  const filterArg = args.find((a) => a.startsWith('--filter='));
-  const gate = (gateArg?.split('=')[1]?.toUpperCase() as Severity) ?? 'CRITICAL';
-  const filter = filterArg?.split('=')[1] ?? null;
-  if (!(gate in SEVERITY_RANK)) {
-    throw new Error(`--gate must be one of ${Object.keys(SEVERITY_RANK).join(', ')}`);
-  }
-  return { dryRun, gate, filter };
-}
-
-const { dryRun, gate, filter } = parseArgs();
-const runId = new Date().toISOString().replace('T', ' ').replace('Z', '');
+const { dryRun, gate, filter } = parseStandardArgs(process.argv);
+const runId = newRunId();
 const selected = filter ? CHECKS.filter((c) => c.name.includes(filter)) : CHECKS;
 
 const db = await DuckDBInstance.fromCache(DB_PATH);
 const conn = await db.connect();
 
-const outcomes: Outcome[] = [];
-for (const check of selected) {
-  try {
-    const res = await conn.runAndReadAll(check.countSql);
-    const row = res.getRowObjectsJson()[0] ?? {};
-    const count = Number(row['n'] ?? 0);
-    const detail = (row['details'] as string | null) ?? null;
-    outcomes.push({ ...check, count, detail, error: null });
-  } catch (e: unknown) {
-    const message = e instanceof Error ? e.message : String(e);
-    outcomes.push({ ...check, count: -1, detail: null, error: message });
-  }
-}
-
-// Persist (one shared checked_at per run; history retained for trend tracking).
+const outcomes = await runCountChecks(conn, selected);
 if (!dryRun) {
-  for (const o of outcomes) {
-    if (o.error) continue; // do not record rows for checks that failed to execute
-    const detailSql = o.detail === null ? 'NULL' : `'${o.detail.replace(/'/g, "''")}'`;
-    await conn.run(
-      `INSERT INTO audit.dq_results (check_name, table_name, severity, row_count, details, checked_at)
-       VALUES ('${o.name}', '${o.table}', '${o.severity}', ${o.count}, ${detailSql}, TIMESTAMP '${runId}')`,
-    );
-  }
-  await conn.run('CHECKPOINT'); // flush WAL → avoid cross-process replay bug
+  await persistResults(conn, outcomes, runId);
 }
 
-// ── Report ─────────────────────────────────────────────────────────────────
-const order: Severity[] = ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'INFO'];
-const sorted = [...outcomes].sort(
-  (a, b) =>
-    SEVERITY_RANK[b.severity] - SEVERITY_RANK[a.severity] ||
-    b.count - a.count ||
-    a.name.localeCompare(b.name),
-);
-
-console.log(
-  `\nData-quality verification — run ${runId}${dryRun ? ' (dry-run, not persisted)' : ''}`,
-);
-console.log(`DB: ${DB_PATH} · checks: ${selected.length} · gate: ${gate}\n`);
-
-const pad = (s: string, n: number) => s.padEnd(n);
-console.log(`${pad('SEV', 9)}${pad('CHECK', 38)}${pad('TABLE', 38)}${pad('VIOLATIONS', 12)}DETAIL`);
-console.log('─'.repeat(120));
-for (const o of sorted) {
-  const v = o.error ? 'ERROR' : o.count === 0 ? 'ok' : String(o.count);
-  const detail = o.error ? o.error : (o.detail ?? '');
-  console.log(
-    `${pad(o.severity, 9)}${pad(o.name, 38)}${pad(o.table.replace('nbadb.', ''), 38)}${pad(v, 12)}${detail}`,
-  );
-}
-
-const failed = outcomes.filter(
-  (o) => o.error === null && o.count > 0 && SEVERITY_RANK[o.severity] >= SEVERITY_RANK[gate],
-);
-const errored = outcomes.filter((o) => o.error !== null);
-
-console.log('\nSummary by severity:');
-for (const sev of order) {
-  const group = outcomes.filter((o) => o.severity === sev && o.error === null);
-  if (group.length === 0) continue;
-  const failing = group.filter((o) => o.count > 0).length;
-  console.log(`  ${pad(sev, 9)} ${group.length} checks, ${failing} with violations`);
-}
-
-if (errored.length > 0) {
-  console.log(`\n⚠ ${errored.length} check(s) failed to execute (see ERROR rows above).`);
-}
-
-if (failed.length > 0) {
-  console.log(`\n✗ GATE FAILED: ${failed.length} check(s) at or above ${gate} have violations:`);
-  for (const f of failed) console.log(`    - [${f.severity}] ${f.name}: ${f.detail}`);
-  process.exitCode = 1;
-} else {
-  console.log(`\n✓ Gate passed: no violations at or above ${gate}.`);
-}
+printReport(outcomes, {
+  title: 'Data-quality verification',
+  runId,
+  dryRun,
+  gate,
+  checkCount: selected.length,
+});
+applyGate(outcomes, gate);
 
 conn.closeSync();

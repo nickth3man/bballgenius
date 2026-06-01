@@ -3602,5 +3602,68 @@
     "expected": 503,
     "mode": "exact",
     "source": "Firecrawl BBR player page https://www.basketball-reference.com/players/h/hardaan01.html cached=.firecrawl/accuracy-sources/players/h/hardaan01.json table=totals"
+  },
+  {
+    "name": "draft_wembanyama_pick",
+    "category": "control_draft",
+    "description": "Victor Wembanyama drafted #1 overall (2023)",
+    "sql": "SELECT overall_pick AS val FROM nbadb.fact_draft WHERE player_name = 'Victor Wembanyama'",
+    "expected": 1,
+    "mode": "exact",
+    "source": "BBR NBA_2023 draft"
+  },
+  {
+    "name": "draft_sengun_pick",
+    "category": "control_draft",
+    "description": "Alperen Sengun drafted #16 overall (2021)",
+    "sql": "SELECT overall_pick AS val FROM nbadb.fact_draft WHERE player_name = 'Alperen Sengun'",
+    "expected": 16,
+    "mode": "exact",
+    "source": "BBR NBA_2021 draft"
+  },
+  {
+    "name": "draft_dyson_daniels_pick",
+    "category": "control_draft",
+    "description": "Dyson Daniels drafted #8 overall (2022)",
+    "sql": "SELECT overall_pick AS val FROM nbadb.fact_draft WHERE player_name = 'Dyson Daniels'",
+    "expected": 8,
+    "mode": "exact",
+    "source": "BBR NBA_2022 draft"
+  },
+  {
+    "name": "draft_bogdan_bogdanovic_pick",
+    "category": "control_draft",
+    "description": "Bogdan Bogdanovic drafted #27 overall (2014)",
+    "sql": "SELECT overall_pick AS val FROM nbadb.fact_draft WHERE player_name = 'Bogdan Bogdanovic'",
+    "expected": 27,
+    "mode": "exact",
+    "source": "BBR NBA_2014 draft"
+  },
+  {
+    "name": "pathway_jalen_green_ignite",
+    "category": "control_pathway",
+    "description": "Jalen Green lists the G League Ignite pathway",
+    "sql": "SELECT count(*) AS val FROM main.dim_player WHERE first_name = 'Jalen' AND last_name = 'Green' AND school = 'NBA G League Ignite'",
+    "expected": 1,
+    "mode": "gte",
+    "source": "NBA.com common_player_info school/last_affiliation"
+  },
+  {
+    "name": "pathway_dyson_daniels_ignite",
+    "category": "control_pathway",
+    "description": "Dyson Daniels lists the G League Ignite pathway",
+    "sql": "SELECT count(*) AS val FROM main.dim_player WHERE first_name = 'Dyson' AND last_name = 'Daniels' AND school = 'NBA G League Ignite'",
+    "expected": 1,
+    "mode": "gte",
+    "source": "NBA.com common_player_info school/last_affiliation"
+  },
+  {
+    "name": "pathway_scoot_henderson_ignite",
+    "category": "control_pathway",
+    "description": "Scoot Henderson lists the G League Ignite pathway",
+    "sql": "SELECT count(*) AS val FROM main.dim_player WHERE first_name = 'Scoot' AND last_name = 'Henderson' AND school = 'NBA G League Ignite'",
+    "expected": 1,
+    "mode": "gte",
+    "source": "NBA.com common_player_info school/last_affiliation"
   }
 ]

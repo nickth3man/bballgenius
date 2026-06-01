@@ -62,6 +62,13 @@ const STAGES: Stage[] = [
     critical: false,
   },
   { name: 'verify-dq', script: 'scripts/db/verify-dq.ts', critical: true },
+  { name: 'verify-cross-table', script: 'scripts/db/verify-cross-table.ts', critical: false },
+  {
+    name: 'verify-advanced-recompute',
+    script: 'scripts/db/verify-advanced-recompute.ts',
+    critical: false,
+  },
+  { name: 'verify-historical', script: 'scripts/db/verify-historical.ts', critical: false },
 ];
 
 function runStage(stage: Stage): Promise<StageResult> {

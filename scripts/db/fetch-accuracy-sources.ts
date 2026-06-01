@@ -15,9 +15,11 @@ import {
   type BbrPlayerSeed,
   bbrPlayerUrl,
   buildCareerChecks,
+  buildDraftCheck,
   compareActual,
   loadAccuracyChecks,
   parseBbrCareerTotals,
+  parseBbrDraftPick,
 } from './accuracy.js';
 
 type Options = {
@@ -121,7 +123,12 @@ async function fetchAndBuildChecks(
     throw new Error(`No rawHtml found in ${cachePath}`);
   }
 
-  return buildCareerChecks(player, parseBbrCareerTotals(rawHtml), cachePath);
+  const checks = buildCareerChecks(player, parseBbrCareerTotals(rawHtml), cachePath);
+  const pick = parseBbrDraftPick(rawHtml);
+  if (pick !== null) {
+    checks.push(buildDraftCheck(player, pick, cachePath));
+  }
+  return checks;
 }
 
 async function scrapeWithFirecrawl(url: string, outputPath: string, maxAgeMs: number) {
