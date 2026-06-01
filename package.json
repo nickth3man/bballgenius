@@ -82,7 +82,7 @@
     "@types/node": "^25.9.1",
     "cheerio": "^1.2.0",
     "lefthook": "^2.1.8",
-    "markdownlint-cli2": "^0.17.2",
+    "markdownlint-cli2": "^0.22.1",
     "typescript": "^6.0.3"
   },
   "overrides": {
