@@ -5,6 +5,7 @@
   "branch": "dev",
   "checkpoints_count": 0,
   "files_touched": [
+    ".gitignore",
     "src/core/db.ts",
     "src/core/dbHonors.ts",
     "src/core/errors.ts",
@@ -53,6 +54,12 @@
       "metadata": "/55/50dc4a3b2e/6/metadata.json",
       "transcript": "/55/50dc4a3b2e/6/full.jsonl",
       "content_hash": "/55/50dc4a3b2e/6/content_hash.txt",
+      "prompt": ""
+    },
+    {
+      "metadata": "/55/50dc4a3b2e/7/metadata.json",
+      "transcript": "/55/50dc4a3b2e/7/full.jsonl",
+      "content_hash": "/55/50dc4a3b2e/7/content_hash.txt",
       "prompt": ""
     }
   ],
