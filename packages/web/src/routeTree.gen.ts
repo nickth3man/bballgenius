@@ -9,10 +9,16 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TimeMachineRouteImport } from './routes/time-machine'
 import { Route as SqlSandboxRouteImport } from './routes/sql-sandbox'
 import { Route as GameCenterRouteImport } from './routes/game-center'
 import { Route as IndexRouteImport } from './routes/index'
 
+const TimeMachineRoute = TimeMachineRouteImport.update({
+  id: '/time-machine',
+  path: '/time-machine',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SqlSandboxRoute = SqlSandboxRouteImport.update({
   id: '/sql-sandbox',
   path: '/sql-sandbox',
@@ -33,34 +39,45 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/game-center': typeof GameCenterRoute
   '/sql-sandbox': typeof SqlSandboxRoute
+  '/time-machine': typeof TimeMachineRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/game-center': typeof GameCenterRoute
   '/sql-sandbox': typeof SqlSandboxRoute
+  '/time-machine': typeof TimeMachineRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/game-center': typeof GameCenterRoute
   '/sql-sandbox': typeof SqlSandboxRoute
+  '/time-machine': typeof TimeMachineRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/game-center' | '/sql-sandbox'
+  fullPaths: '/' | '/game-center' | '/sql-sandbox' | '/time-machine'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/game-center' | '/sql-sandbox'
-  id: '__root__' | '/' | '/game-center' | '/sql-sandbox'
+  to: '/' | '/game-center' | '/sql-sandbox' | '/time-machine'
+  id: '__root__' | '/' | '/game-center' | '/sql-sandbox' | '/time-machine'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   GameCenterRoute: typeof GameCenterRoute
   SqlSandboxRoute: typeof SqlSandboxRoute
+  TimeMachineRoute: typeof TimeMachineRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/time-machine': {
+      id: '/time-machine'
+      path: '/time-machine'
+      fullPath: '/time-machine'
+      preLoaderRoute: typeof TimeMachineRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sql-sandbox': {
       id: '/sql-sandbox'
       path: '/sql-sandbox'
@@ -89,6 +106,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   GameCenterRoute: GameCenterRoute,
   SqlSandboxRoute: SqlSandboxRoute,
+  TimeMachineRoute: TimeMachineRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
