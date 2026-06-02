@@ -17,7 +17,9 @@ export async function handleCopilotKitChat(body: unknown): Promise<Response> {
       );
     }
 
-    const { messages: userMessages = [] } = body as { messages?: { content: string; role: string }[] };
+    const { messages: userMessages = [] } = body as {
+      messages?: { content: string; role: string }[];
+    };
     const lastMessage = userMessages[userMessages.length - 1];
 
     if (!lastMessage?.content) {
@@ -41,7 +43,9 @@ export async function handleCopilotKitChat(body: unknown): Promise<Response> {
   } catch (e: unknown) {
     return Response.json(
       {
-        messages: [{ role: 'assistant', content: `Error: ${e instanceof Error ? e.message : String(e)}` }],
+        messages: [
+          { role: 'assistant', content: `Error: ${e instanceof Error ? e.message : String(e)}` },
+        ],
       },
       { status: 500 },
     );

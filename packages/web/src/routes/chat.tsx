@@ -14,7 +14,8 @@ function ChatPage(): ReactNode {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: 'assistant',
-      content: 'Welcome to BBallGenius Chat! Ask me anything about NBA — players, games, stats, awards, and more.',
+      content:
+        'Welcome to BBallGenius Chat! Ask me anything about NBA — players, games, stats, awards, and more.',
     },
   ]);
   const [input, setInput] = useState('');
@@ -60,9 +61,7 @@ function ChatPage(): ReactNode {
           >
             <div
               className={`max-w-[75%] rounded-lg px-3 py-2 text-sm ${
-                msg.role === 'user'
-                  ? 'bg-primary/30 text-fg'
-                  : 'bg-surface text-fg'
+                msg.role === 'user' ? 'bg-primary/30 text-fg' : 'bg-surface text-fg'
               }`}
             >
               <div className="whitespace-pre-wrap">{msg.content}</div>
@@ -71,9 +70,7 @@ function ChatPage(): ReactNode {
         ))}
         {loading && (
           <div className="flex justify-start">
-            <div className="rounded-lg bg-surface px-3 py-2 text-sm text-fg-muted">
-              Thinking...
-            </div>
+            <div className="rounded-lg bg-surface px-3 py-2 text-sm text-fg-muted">Thinking...</div>
           </div>
         )}
       </div>

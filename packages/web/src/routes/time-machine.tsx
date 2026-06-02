@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { type ReactNode, useState, useCallback } from 'react';
 import type { PlayerAwardRow } from 'data/tabs/time-machine/queries';
+import { type ReactNode, useCallback, useState } from 'react';
 
 type Row = Record<string, unknown>;
 
@@ -44,13 +44,15 @@ function TimeMachinePage(): ReactNode {
         [`%${search.trim()}%`],
       );
       type RawRow = Record<string, unknown>;
-      setPlayers(rows.map((r: RawRow) => ({
-        player_id: String(r.player_id),
-        full_name: String(r.full_name),
-        from_year: String(r.from_year ?? ''),
-        to_year: String(r.to_year ?? ''),
-        is_active: Boolean(r.is_active),
-      })));
+      setPlayers(
+        rows.map((r: RawRow) => ({
+          player_id: String(r.player_id),
+          full_name: String(r.full_name),
+          from_year: String(r.from_year ?? ''),
+          to_year: String(r.to_year ?? ''),
+          is_active: Boolean(r.is_active),
+        })),
+      );
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
