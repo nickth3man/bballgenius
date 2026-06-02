@@ -10,6 +10,7 @@ const DEPTH_SAMPLES_PATH = join(
   '..',
   '..',
   '..',
+  '..',
   '.firecrawl',
   'bbr-depth-samples.json',
 );

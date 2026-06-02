@@ -1,12 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test';
-import { parseColor } from '@opentui/core';
-import {
-  ansiToStyledText,
-  drawHalfCourt,
-  formatTable,
-  isNoColor,
-  stripAnsi,
-} from '../shared/utils/formatters.js';
+import { drawHalfCourt, formatTable, isNoColor, stripAnsi } from '../formatters.js';
 
 describe('Table Formatter (formatTable)', () => {
   test('should format an array of objects into an aligned ASCII grid with headers', () => {
@@ -217,71 +210,5 @@ describe('NO_COLOR / monochrome (drawHalfCourt)', () => {
   test('stripAnsi removes escape sequences from colored strings', () => {
     const colored = '\x1b[32mo\x1b[0m';
     expect(stripAnsi(colored)).toBe('o');
-    expect(ansiToStyledText(colored).chunks.length).toBeGreaterThanOrEqual(1);
-  });
-});
-
-describe('ANSI to StyledText Parser (ansiToStyledText)', () => {
-  test('should parse plain unstyled text to a single styled chunk', () => {
-    const styled = ansiToStyledText('Hello World');
-    expect(styled.chunks.length).toBe(1);
-    expect(styled.chunks[0].text).toBe('Hello World');
-    expect(styled.chunks[0].fg).toBeUndefined();
-    expect(styled.chunks[0].bg).toBeUndefined();
-    expect(styled.chunks[0].attributes).toBeUndefined();
-  });
-
-  test('should parse standard colors (31m/32m) into correct foreground chunks', () => {
-    const text = 'Normal \x1b[32mGreen\x1b[0m Normal';
-    const styled = ansiToStyledText(text);
-
-    expect(styled.chunks.length).toBe(3);
-    expect(styled.chunks[0].text).toBe('Normal ');
-    expect(styled.chunks[1].text).toBe('Green');
-    expect(styled.chunks[1].fg).toBeDefined(); // Green RGBA object
-    expect(styled.chunks[2].text).toBe(' Normal');
-  });
-
-  test('should parse bold and dim style flags correctly', () => {
-    const text = '\x1b[1mBoldText\x1b[0m';
-    const styled = ansiToStyledText(text);
-
-    expect(styled.chunks.length).toBe(1);
-    expect(styled.chunks[0].text).toBe('BoldText');
-    expect(styled.chunks[0].attributes).toBeDefined();
-    expect(styled.chunks[0].attributes! & (1 << 0)).not.toBe(0); // Bold bit set
-  });
-
-  test('should parse composite multi-style codes (e.g. bold white on magenta)', () => {
-    const text = '\x1b[1;37;45mHighlight\x1b[0m';
-    const styled = ansiToStyledText(text);
-
-    expect(styled.chunks.length).toBe(1);
-    expect(styled.chunks[0].text).toBe('Highlight');
-    expect(styled.chunks[0].fg).toBeDefined();
-    expect(styled.chunks[0].bg).toBeDefined();
-    expect(styled.chunks[0].attributes).toBeDefined();
-  });
-
-  test('should parse 24-bit RGB foreground escape sequences as hex for parseColor', () => {
-    const styled = ansiToStyledText('\x1b[38;2;56;62;90m│\x1b[0m');
-    expect(styled.chunks.length).toBeGreaterThanOrEqual(1);
-    const pipeChunk = styled.chunks.find((c) => c.text.includes('│'));
-    expect(pipeChunk).toBeDefined();
-    expect(pipeChunk!.fg).toBeTruthy();
-    expect(pipeChunk!.fg!.equals(parseColor('#383e5a'))).toBe(true);
-  });
-
-  test('should return StyledText for empty input without throwing', () => {
-    const styled = ansiToStyledText('');
-    expect(styled).toBeDefined();
-    expect(Array.isArray(styled.chunks)).toBe(true);
-  });
-
-  test('documents falsy-zero stat formatting used in TimeMachine renderStats', () => {
-    const result = (val: unknown) => (val ? String(val) : '---');
-    // BUG: per === 0 renders '---' — tracked, do not fix here
-    expect(result(0)).toBe('---');
-    expect(result(1)).toBe('1');
   });
 });

@@ -1,9 +1,20 @@
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
-const FIRECRAWL_DIR = join(import.meta.dirname, '..', '..', '..', '..', '..', '..', '.firecrawl');
+const FIRECRAWL_DIR = join(
+  import.meta.dirname,
+  '..',
+  '..',
+  '..',
+  '..',
+  '..',
+  '..',
+  '..',
+  '.firecrawl',
+);
 const SCREENSHOTS_DIR = join(
   import.meta.dirname,
+  '..',
   '..',
   '..',
   '..',

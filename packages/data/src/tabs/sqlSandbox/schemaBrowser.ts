@@ -1,16 +1,8 @@
-import type { ScrollBoxRenderable, TextRenderable } from '@opentui/core';
-import { ansiToStyledText } from '../../shared/utils/formatters.js';
-
 export interface SchemaNode {
   type: 'table' | 'column';
   name: string;
   tableName?: string;
   columnType?: string;
-}
-
-export interface SchemaBrowserDeps {
-  schemaScroll: ScrollBoxRenderable;
-  schemaText: TextRenderable;
 }
 
 export class SchemaBrowser {
@@ -20,8 +12,6 @@ export class SchemaBrowser {
   private selectedIdx = 0;
   private filterQuery = '';
   private tableColumns: Map<string, { name: string; type: string }[]> = new Map();
-
-  constructor(private readonly deps: SchemaBrowserDeps) {}
 
   getNodes(): SchemaNode[] {
     return this.nodes;
@@ -84,46 +74,9 @@ export class SchemaBrowser {
     }
   }
 
-  render(): void {
-    if (this.nodes.length === 0) {
-      this.deps.schemaText.content = ansiToStyledText('No tables found.');
-      return;
-    }
-
-    const lines = this.nodes.map((node, idx) => {
-      const isSelected = idx === this.selectedIdx;
-      const prefix = isSelected ? ' \x1b[1;35m▶\x1b[0m ' : '   ';
-
-      if (node.type === 'table') {
-        const isExpanded = this.expandedTables.has(node.name);
-        const icon = isExpanded ? '▼' : '▶';
-        const name = isSelected ? `\x1b[1m${node.name}\x1b[0m` : node.name;
-        return `${prefix}${icon} \x1b[36m${name}\x1b[0m`;
-      }
-      const name = isSelected ? `\x1b[1m${node.name}\x1b[0m` : node.name;
-      return `${prefix}  ├─ ${name} \x1b[90m(${node.columnType})\x1b[0m`;
-    });
-
-    this.deps.schemaText.content = ansiToStyledText(lines.join('\n'));
-  }
-
-  scrollIntoView(): void {
-    const visibleHeight = this.deps.schemaScroll.height || 20;
-    const currentScroll = this.deps.schemaScroll.scrollTop;
-    const idx = this.selectedIdx;
-
-    if (idx < currentScroll) {
-      this.deps.schemaScroll.scrollTop = idx;
-    } else if (idx >= currentScroll + visibleHeight - 2) {
-      this.deps.schemaScroll.scrollTop = Math.max(0, idx - visibleHeight + 3);
-    }
-  }
-
   moveUp(): boolean {
     if (this.selectedIdx > 0) {
       this.selectedIdx--;
-      this.render();
-      this.scrollIntoView();
       return true;
     }
     return false;
@@ -132,8 +85,6 @@ export class SchemaBrowser {
   moveDown(): boolean {
     if (this.selectedIdx < this.nodes.length - 1) {
       this.selectedIdx++;
-      this.render();
-      this.scrollIntoView();
       return true;
     }
     return false;

@@ -1,4 +1,4 @@
-import { isNoColor, Theme } from '../../../shared/utils/theme.js';
+import { isNoColor, Theme } from '../../../shared/theme.js';
 
 export { isNoColor, Theme };
 

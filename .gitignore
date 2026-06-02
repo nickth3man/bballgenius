@@ -13,6 +13,7 @@ data/**/*.wal.bad*
 data/**/*.wal.tmp*
 data/chatbot-metrics.ndjson
 data/test-metrics/
+packages/*/data/
 
 # BBR Firecrawl artifacts (local crawl output)
 bbr-screenshots/

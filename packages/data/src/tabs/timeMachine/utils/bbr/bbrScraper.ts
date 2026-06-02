@@ -12,7 +12,17 @@ import {
   buildBbrPlayerUrl,
 } from './bbrSiteCatalog.js';
 
-const FIRECRAWL_DIR = join(import.meta.dirname, '..', '..', '..', '..', '..', '..', '.firecrawl');
+const FIRECRAWL_DIR = join(
+  import.meta.dirname,
+  '..',
+  '..',
+  '..',
+  '..',
+  '..',
+  '..',
+  '..',
+  '.firecrawl',
+);
 
 export type { BbrPlayerPageType };
 

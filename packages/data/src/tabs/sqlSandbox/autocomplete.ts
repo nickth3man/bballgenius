@@ -1,6 +1,7 @@
-import { type CliRenderer, TextRenderable } from '@opentui/core';
-import { ansiToStyledText } from '../../shared/utils/formatters.js';
-import { ansiDim } from '../../shared/utils/theme.js';
+/**
+ * SQL autocomplete: pure data helper. Renders are handled by the web UI.
+ */
+import { ansiDim } from '../../shared/theme.js';
 
 const SQL_KEYWORDS = [
   'SELECT',
@@ -33,28 +34,24 @@ const SQL_KEYWORDS = [
   'MAX',
 ];
 
-export class AutocompleteController {
+export interface TableColumn {
+  name: string;
+  type: string;
+}
+
+export interface AutocompleteState {
+  suggestions: string[];
+  selectedIdx: number;
+  hasSuggestions: boolean;
+  /** ANSI-formatted line of suggestions for terminal output, or empty string. */
+  formatted: string;
+}
+
+export class SqlAutocomplete {
   private suggestions: string[] = [];
   private selectedIdx = 0;
-  private readonly text: TextRenderable;
   private tables: string[] = [];
-  private tableColumns: Map<string, { name: string; type: string }[]> = new Map();
-
-  constructor(renderer: CliRenderer) {
-    this.text = new TextRenderable(renderer, {
-      id: 'sandbox-autocomplete-text',
-      content: '',
-      wrapMode: 'none',
-    });
-  }
-
-  get renderable(): TextRenderable {
-    return this.text;
-  }
-
-  get hasSuggestions(): boolean {
-    return this.suggestions.length > 0;
-  }
+  private tableColumns: Map<string, TableColumn[]> = new Map();
 
   get currentIndex(): number {
     return this.selectedIdx;
@@ -68,43 +65,45 @@ export class AutocompleteController {
     return this.suggestions;
   }
 
-  loadSchema(tables: string[], tableColumns: Map<string, { name: string; type: string }[]>): void {
+  get state(): AutocompleteState {
+    const hasSuggestions = this.suggestions.length > 0;
+    const formatted = this.formatSuggestions();
+    return {
+      suggestions: this.suggestions,
+      selectedIdx: this.selectedIdx,
+      hasSuggestions,
+      formatted,
+    };
+  }
+
+  loadSchema(tables: string[], tableColumns: Map<string, TableColumn[]>): void {
     this.tables = tables;
     this.tableColumns = tableColumns;
   }
 
-  update(query: string, requestRender: () => void): void {
+  update(query: string): AutocompleteState {
     this.suggestions = this.computeSuggestions(query);
 
     if (this.selectedIdx >= this.suggestions.length) {
       this.selectedIdx = 0;
     }
 
-    if (this.suggestions.length === 0) {
-      this.text.content = '';
-    } else {
-      const lines = this.suggestions.map((s, idx) => {
-        if (idx === this.selectedIdx) {
-          return `\x1b[1;37;45m ${s} \x1b[0m`;
-        }
-        return ansiDim(s);
-      });
-      this.text.content = ansiToStyledText(`Suggestions: ${lines.join('  ')}`);
-    }
-
-    requestRender();
+    return this.state;
   }
 
   moveUp(): void {
+    if (this.suggestions.length === 0) return;
     this.selectedIdx = (this.selectedIdx - 1 + this.suggestions.length) % this.suggestions.length;
   }
 
   moveDown(): void {
+    if (this.suggestions.length === 0) return;
     this.selectedIdx = (this.selectedIdx + 1) % this.suggestions.length;
   }
 
   reset(): void {
     this.selectedIdx = 0;
+    this.suggestions = [];
   }
 
   accept(currentValue: string): string {
@@ -118,6 +117,17 @@ export class AutocompleteController {
     }
 
     return currentValue;
+  }
+
+  private formatSuggestions(): string {
+    if (this.suggestions.length === 0) return '';
+    const lines = this.suggestions.map((s, idx) => {
+      if (idx === this.selectedIdx) {
+        return `\x1b[1;37;45m ${s} \x1b[0m`;
+      }
+      return ansiDim(s);
+    });
+    return `Suggestions: ${lines.join('  ')}`;
   }
 
   private computeSuggestions(query: string): string[] {

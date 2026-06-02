@@ -5,6 +5,46 @@
   "private": true,
   "main": "./src/index.ts",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./db": "./src/core/db.ts",
+    "./dbPath": "./src/shared/dbPath.ts",
+    "./errors": "./src/shared/errors.ts",
+    "./formatters": "./src/shared/formatters.ts",
+    "./theme": "./src/shared/theme.ts",
+    "./tabs/game-center/queries": "./src/tabs/gameCenter/queries.ts",
+    "./tabs/time-machine/queries": "./src/tabs/timeMachine/queries.ts",
+    "./tabs/sql-sandbox/queries": "./src/tabs/sqlSandbox/queries.ts",
+    "./tabs/sql-sandbox/autocomplete": "./src/tabs/sqlSandbox/autocomplete.ts",
+    "./tabs/sql-sandbox/schema-browser": "./src/tabs/sqlSandbox/schemaBrowser.ts",
+    "./tabs/chatbot/system-prompt": "./src/tabs/chatbot/systemPrompt.ts",
+    "./tabs/chatbot/db": "./src/tabs/chatbot/db.ts",
+    "./tabs/chatbot/openrouter": "./src/tabs/chatbot/openrouter.ts",
+    "./tabs/chatbot/agent": "./src/tabs/chatbot/agent/index.ts",
+    "./tabs/chatbot/utils": "./src/tabs/chatbot/utils/index.ts",
+    "./tabs/chatbot/eval": "./src/tabs/chatbot/eval/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "bun test src --concurrency=1"
+  },
+  "dependencies": {
+    "@duckdb/node-api": "^1.5.2-r.2",
+    "@duckdb/node-bindings": "^1.5.2-r.2",
+    "@langchain/core": "^1.1.47",
+    "@langchain/langgraph": "^1.3.2",
+    "@langchain/openai": "^1.4.6",
+    "cheerio": "^1.2.0",
+    "langchain": "^1.4.1",
+    "openai": "^6.38.0",
+    "parse5": "^8.0.1",
+    "parse5-htmlparser2-tree-adapter": "^8.0.1",
+    "uuid": "^11.1.1",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.14",
+    "bun-types": "^1.3.14",
+    "langsmith": "^0.7.3",
+    "typescript": "^6.0.3"
   }
 }

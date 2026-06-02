@@ -1,9 +1,16 @@
 import { query } from '../../core/db.js';
 import { isHonorsDbConfigured, queryHonors } from '../../core/dbHonors.js';
 import type { DbRow } from '../../core/types.js';
-import type { PlayerSuggestion } from './types.js';
 import { dedupeCareerStats } from './utils/careerStats.js';
 import { seasonEndYearToNbaLabel } from './utils/seasonYear.js';
+
+export interface PlayerSuggestion {
+  player_id: string;
+  full_name: string;
+  from_year: number | string;
+  to_year: number | string;
+  is_active: boolean;
+}
 
 export interface PlayerAwardRow {
   award: string;
