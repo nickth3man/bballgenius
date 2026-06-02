@@ -1,0 +1,386 @@
+{
+  "info": {
+    "id": "ses_18f95ebfbfferBENj6OikdoslE",
+    "slug": "nimble-eagle",
+    "projectID": "0c46fb5d797641591d2c0443a46971182cb21aee",
+    "directory": "C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius",
+    "path": "",
+    "parentID": "ses_18f9abccfffe3Fmdls5loVvOrW",
+    "title": "Explore ANSI constants and types (@explore subagent)",
+    "agent": "explore",
+    "model": {
+      "id": "qwen3.7-max",
+      "providerID": "opencode-go",
+      "variant": "default"
+    },
+    "version": "1.15.12",
+    "summary": {
+      "additions": 0,
+      "deletions": 0,
+      "files": 0
+    },
+    "cost": 0.075208375,
+    "tokens": {
+      "input": 12,
+      "output": 4018,
+      "reasoning": 0,
+      "cache": {
+        "read": 20118,
+        "write": 11195
+      }
+    },
+    "permission": [
+      {
+        "permission": "todowrite",
+        "action": "deny",
+        "pattern": "*"
+      },
+      {
+        "permission": "task",
+        "action": "deny",
+        "pattern": "*"
+      }
+    ],
+    "time": {
+      "created": 1780002460676,
+      "updated": 1780002524102
+    }
+  },
+  "messages": [
+    {
+      "info": {
+        "role": "user",
+        "time": {
+          "created": 1780002460684
+        },
+        "tools": {
+          "todowrite": false,
+          "task": false
+        },
+        "agent": "explore",
+        "model": {
+          "providerID": "opencode-go",
+          "modelID": "qwen3.7-max"
+        },
+        "summary": {
+          "diffs": []
+        },
+        "id": "msg_e706a140b001CMS15k9ZPm2P19",
+        "sessionID": "ses_18f95ebfbfferBENj6OikdoslE"
+      },
+      "parts": [
+        {
+          "type": "text",
+          "text": "Thoroughly explore the following files and return their full contents and key observations:\n\n1. src/hub/core/types.ts - look for TableDataRow, DbRow, SqlParam types\n2. src/chatbot/__tests__/ - list all test files in this directory\n3. src/chatbot/__tests__/intentClassification.test.ts - look for test patterns\n4. src/chatbot/__tests__/executeSql.test.ts - look for test patterns and imports\n5. src/chatbot/__tests__/retry.test.ts - look for test patterns\n\nFor each file, report:\n- Full file path and line count\n- Key function signatures and exports\n- Any imports/dependencies\n- Notable patterns or conventions used\n\nThis is a READ-ONLY exploration task. Do not modify any files.",
+          "snippetsProcessed": true,
+          "id": "prt_e706a140e0025lu2rmfZVbdk1k",
+          "sessionID": "ses_18f95ebfbfferBENj6OikdoslE",
+          "messageID": "msg_e706a140b001CMS15k9ZPm2P19"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_e706a140b001CMS15k9ZPm2P19",
+        "role": "assistant",
+        "mode": "explore",
+        "agent": "explore",
+        "path": {
+          "cwd": "C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius",
+          "root": "C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius"
+        },
+        "cost": 0.00770425,
+        "tokens": {
+          "total": 10439,
+          "input": 6,
+          "output": 291,
+          "reasoning": 0,
+          "cache": {
+            "write": 166,
+            "read": 9976
+          }
+        },
+        "modelID": "qwen3.7-max",
+        "providerID": "opencode-go",
+        "time": {
+          "created": 1780002460997,
+          "completed": 1780002466374
+        },
+        "finish": "tool-calls",
+        "id": "msg_e706a1545001StGM1UF5YZ5PIZ",
+        "sessionID": "ses_18f95ebfbfferBENj6OikdoslE"
+      },
+      "parts": [
+        {
+          "snapshot": "5577677ef0e81b484f2f4f305bbee1c0788ac518",
+          "type": "step-start",
+          "id": "prt_e706a1bcd001dGac7DIKFINdmo",
+          "sessionID": "ses_18f95ebfbfferBENj6OikdoslE",
+          "messageID": "msg_e706a1545001StGM1UF5YZ5PIZ"
+        },
+        {
+          "type": "reasoning",
+          "text": "The user wants me to explore several files and directories. Let me start by reading the files and listing the directory contents in parallel.\n",
+          "time": {
+            "start": 1780002462672,
+            "end": 1780002463246
+          },
+          "metadata": {
+            "anthropic": {
+              "signature": ""
+            }
+          },
+          "id": "prt_e706a1bd0001Ie7KxFiNEWEniA",
+          "sessionID": "ses_18f95ebfbfferBENj6OikdoslE",
+          "messageID": "msg_e706a1545001StGM1UF5YZ5PIZ"
+        },
+        {
+          "type": "text",
+          "text": "I'll explore all the requested files and directories in parallel.\n\n",
+          "time": {
+            "start": 1780002463248,
+            "end": 1780002463452
+          },
+          "id": "prt_e706a1e10001woXrHZS4Koz87T",
+          "sessionID": "ses_18f95ebfbfferBENj6OikdoslE",
+          "messageID": "msg_e706a1545001StGM1UF5YZ5PIZ"
+        },
+        {
+          "type": "tool",
+          "tool": "read",
+          "callID": "toolu_1f188fcacbcc4e9fad02588e",
+          "state": {
+            "status": "completed",
+            "input": {
+              "filePath": "C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\hub\\core\\types.ts"
+            },
+            "output": "<path>C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\hub\\core\\types.ts</path>\n<type>file</type>\n<content>\n1: import type { DuckDBValue } from '@duckdb/node-api';\n2: \n3: /** JSON-safe row object returned by DuckDB `getRowObjectsJson()`. */\n4: export type DbRow = Record<string, unknown>;\n5: \n6: /** Bound parameter for parameterized SQL queries. */\n7: export type SqlParam = DuckDBValue;\n8: \n9: /** Row accepted by `formatTable` (object keyed by column or array of cell values). */\n10: export type TableDataRow = DbRow | unknown[];\n\n(End of file - total 10 lines)\n</content>\n\n<system-reminder>\nInstructions from: C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\hub\\AGENTS.md\n# AGENTS.md — hub\n\n## Package Purpose\n\nTerminal NBA analytics hub with keyboard-driven TUI (OpenTUI), DuckDB backend, and three tabs: Game Center, Career Time-Machine, SQL Sandbox.\n\n## Architecture\n\n```\nsrc/hub/index.ts → appShell → tabRegistry → activeTab → queries.ts → db.ts → DuckDB\n```\n\n### Core Module\n\n| Module | Purpose |\n|--------|---------|\n| `index.ts` | TUI bootstrap: `initDb()`, `createCliRenderer()` @ 30 FPS, `createAppShell()` |\n| `core/appShell.ts` | Keyboard routing, tab header bar, help overlay (`?`), footer status, tab visibility |\n| `core/db.ts` | DuckDB singleton: `query<T>(sql, params?)`, `getTables()`, `getColumns()`, `closeDb()` |\n| `core/dbHonors.ts` | Separate DuckDB for `v_player_honors_full` (optional, via `NBA_HONORS_DUCKDB_PATH`) |\n| `core/errors.ts` | Error types for the hub |\n| `core/types.ts` | Shared types |\n\n### Tabs (`src/hub/tabs/`)\n\n| Tab | ID | Shortcut | Purpose |\n|-----|----|----------|---------|\n| Game Center | `game-center` | F1 / 1 | Three-panel: game list / box score / shot chart |\n| Career Time-Machine | `time-machine` | F2 / 2 | Player/team search, BBR mirror, dossier, honors |\n| SQL Sandbox | `sql-sandbox` | F3 / 3 | Schema browser, SQL editor, autocomplete, Ctrl+R/Ctrl+E |\n\n### Tab Contract (`src/hub/tabs/types.ts`)\n\nEvery tab implements `AppShellTab`:\n```typescript\ninterface AppShellTab {\n  id: string; name: string; container: BoxRenderable;\n  focus(): void; init(): Promise<void>;\n  cycleFocus(): void; cycleFocusBackward?(): void;\n  getStatusLine?(): string;\n  isInputFocused(): boolean; blurInput(): void;\n  handleKeyPress(event: KeyEvent): boolean;\n}\n```\n\n### Tab Registry (`src/hub/tabs/registry.ts`)\n\n```typescript\nTAB_REGISTRY = [\n  { id: 'game-center', name: 'Game Center', shortcutIndex: 1, create: ... },\n  { id: 'time-machine', name: 'Career Time-Machine', shortcutIndex: 2, create: ... },\n  { id: 'sql-sandbox', name: 'SQL Sandbox', shortcutIndex: 3, create: ... },\n]\n```\n\n## Module Map\n\n```text\nsrc/hub/\n├── index.ts                # TUI bootstrap\n├── core/\n│   ├── appShell.ts         # Keyboard routing, tab header, help overlay, footer\n│   ├── db.ts               # DuckDB singleton + query<T>()\n│   ├── dbHonors.ts         # Optional honors DuckDB connection\n│   ├── errors.ts           # Error types\n│   └── types.ts            # Shared types\n├── shared/\n│   └── utils/\n│       ├── formatters.ts   # Table formatting, ANSI stripping, half-court drawing\n│       ├── theme.ts        # TokyoNight palette + 24-bit RGB + NO_COLOR support\n│       ├── keyboardHelp.ts # Keyboard shortcut definitions\n│       └── keyboard-map.json # Generated from keyboardHelp.ts\n├── tabs/\n│   ├── registry.ts         # TAB_REGISTRY + tab factory\n│   ├── types.ts            # AppShellTab interface\n│   ├── gameCenter/         # tab.ts, queries.ts (game list, box scores, shot charts)\n│   ├── timeMachine/        # tab.ts, queries.ts, utils/bbr/ (BBR mirror)\n│   └── sqlSandbox/         # tab.ts, queries.ts (schema browser, SQL editor)\n└── tests/                  # Bun tests\n    ├── formatters.test.ts      # Unit (no DB)\n    ├── db.test.ts              # Integration (DB path, init, query)\n    ├── tui_integration.test.ts # Integration (createTestRenderer)\n    ├── spans_frame.test.ts     # Focus/tab routing\n    ├── golden_snapshot.test.ts # Rendered frames vs snapshots\n    ├── gameCenter.test.ts      # Integration\n    ├── timeMachine.test.ts     # Integration\n    ├── app_shell.test.ts       # Key routing, tab switching\n    ├── regression.test.ts      # Known edge cases\n    ├── mutation.test.ts        # Intentionally broken queries\n    ├── keyboardHelp.test.ts    # Help text generation\n    ├── bbrIntegration.test.ts  # BBR parsing (optional local fixtures)\n    ├── helpers/\n    │   └── tabs.ts             # getTab(shell, 'game-center') helper\n    └── snapshots/              # Golden frame snapshots\n```\n\n## Key Patterns\n\n### ANSI at the Boundary\n\nTabs build display strings with raw ANSI. `ansiToStyledText()` converts to OpenTUI `StyledText` before `TextRenderable` writes. This keeps layout stable and tests predictable.\n\n### Tab Isolation\n\nTabs never import sibling tabs (enforced by CI guards). Each tab imports only from:\n- `src/hub/core/*`\n- `src/hub/shared/*`\n- Its own `src/hub/tabs/<tabId>/` folder\n\n### Singleton DB Connection\n\n`initDb()` returns cached connection if one exists. Both hub and chatbot have independent singletons (they don't share DuckDB connections, only the path resolver in `src/shared/dbPath.ts`).\n\n### Tab Factory Pattern\n\n`TAB_REGISTRY` stores `TabDefinition` objects with `create` factories. `createAppShell()` iterates the registry to produce tab instances. Adding a tab requires only a registry entry + folder.\n\n### SQL Queries per Tab\n\nEach tab colocates SQL with its view controller in `tabs/<tabId>/queries.ts`:\n- Typed interfaces for row shapes\n- `load*()` wrappers around `query()`\n- Parameterized via `$1`, `$2` bind parameters\n- CTE-based deduplication\n\n## Testing\n\nAll hub tests use `--concurrency=1` (DuckDB constraint).\n\n```bash\n# Full suite\nbun test src/hub/tests --concurrency=1\n\n# CI fixture (smaller DB)\nNBA_DUCKDB_PATH=data/fixtures/nba.ci.duckdb bun run ci:integration\n\n# Single test file\nbun test src/hub/tests/formatters.test.ts --concurrency=1\n```\n\nGolden snapshots regenerated with:\n```bash\nUPDATE_SNAPSHOTS=1 NBA_DUCKDB_PATH=data/fixtures/nba.ci.duckdb bun test src/hub/tests/golden_snapshot.test.ts --concurrency=1\n```\n\nUse `createTestRenderer` for headless TUI testing. Use `makeTestKeyEvent()` from `appShell.ts` for injected keyboard events. Access tabs via `getTab(shell, 'game-center')` with stable string IDs.\n\n## Adding a New Tab\n\n1. Create `src/hub/tabs/<tabId>/` with `tab.ts`, `queries.ts` (if SQL needed), `index.ts`\n2. Implement `AppShellTab` interface\n3. Register in `TAB_REGISTRY` in `src/hub/tabs/registry.ts`\n4. Add shortcuts in `KEYBOARD_MAP.tabs` in `src/hub/shared/utils/keyboardHelp.ts`\n5. Run `bun run keyboard-map:sync`\n6. Add tests using `getTab(shell, '<tab-id>')`\n\n## Adding a Query Helper\n\n1. Add to `tabs/<tabId>/queries.ts`\n2. Define typed interface for the row shape\n3. Use `query<T>(sql, params?)` from `core/db.ts`\n4. Add test in `__tests__/` if query has edge cases\n\n## Package Boundaries\n\n- Hub tabs must not import sibling tabs\n- Hub code must not import from `src/chatbot/`\n- Hub can import from `src/shared/dbPath.ts`\n- Repo-root assets resolved via relative paths up from `src/hub/`\n\n</system-reminder>",
+            "metadata": {
+              "preview": "import type { DuckDBValue } from '@duckdb/node-api';\n\n/** JSON-safe row object returned by DuckDB `getRowObjectsJson()`. */\nexport type DbRow = Record<string, unknown>;\n\n/** Bound parameter for parameterized SQL queries. */\nexport type SqlParam = DuckDBValue;\n\n/** Row accepted by `formatTable` (object keyed by column or array of cell values). */\nexport type TableDataRow = DbRow | unknown[];",
+              "truncated": false,
+              "loaded": [
+                "C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\hub\\AGENTS.md"
+              ]
+            },
+            "title": "src\\hub\\core\\types.ts",
+            "time": {
+              "start": 1780002466064,
+              "end": 1780002466109
+            }
+          },
+          "id": "prt_e706a1ede0014pva0BjPAW5uhO",
+          "sessionID": "ses_18f95ebfbfferBENj6OikdoslE",
+          "messageID": "msg_e706a1545001StGM1UF5YZ5PIZ"
+        },
+        {
+          "type": "tool",
+          "tool": "read",
+          "callID": "toolu_f8e7fc922a4f4d9a9a395eb2",
+          "state": {
+            "status": "completed",
+            "input": {
+              "filePath": "C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\__tests__"
+            },
+            "output": "<path>C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\__tests__</path>\n<type>directory</type>\n<entries>\naccessibility.test.ts\nansi.test.ts\nexecuteSql.test.ts\nformatResults.test.ts\nintentClassification.test.ts\nmarkdown.test.ts\nmetrics.test.ts\nprocessQuestion.test.ts\nretry.test.ts\nspinner.test.ts\nsqlExtraction.test.ts\nstreaming.test.ts\nsystemPrompt.test.ts\ntableFormatter.test.ts\ntheme.test.ts\n\n(15 entries)\n</entries>",
+            "metadata": {
+              "preview": "accessibility.test.ts\nansi.test.ts\nexecuteSql.test.ts\nformatResults.test.ts\nintentClassification.test.ts\nmarkdown.test.ts\nmetrics.test.ts\nprocessQuestion.test.ts\nretry.test.ts\nspinner.test.ts\nsqlExtraction.test.ts\nstreaming.test.ts\nsystemPrompt.test.ts\ntableFormatter.test.ts\ntheme.test.ts",
+              "truncated": false,
+              "loaded": []
+            },
+            "title": "src\\chatbot\\__tests__",
+            "time": {
+              "start": 1780002466068,
+              "end": 1780002466085
+            }
+          },
+          "id": "prt_e706a20d4001IuDobjSgk62JYe",
+          "sessionID": "ses_18f95ebfbfferBENj6OikdoslE",
+          "messageID": "msg_e706a1545001StGM1UF5YZ5PIZ"
+        },
+        {
+          "type": "tool",
+          "tool": "read",
+          "callID": "toolu_2658f70c549747b8829f8636",
+          "state": {
+            "status": "completed",
+            "input": {
+              "filePath": "C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\__tests__\\intentClassification.test.ts"
+            },
+            "output": "<path>C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\__tests__\\intentClassification.test.ts</path>\n<type>file</type>\n<content>\n1: import { describe, expect, test } from 'bun:test';\n2: import { classifyQuestion } from '../agent/graph.js';\n3: \n4: describe('classifyQuestion', () => {\n5:   test('classifies career leader questions', () => {\n6:     expect(classifyQuestion('Who are the top 5 NBA regular season career points leaders?')).toBe(\n7:       'career_leaders',\n8:     );\n9:     expect(classifyQuestion('What are LeBron James career points?')).toBe('career_leaders');\n10:     expect(classifyQuestion('How many regular season triple-doubles does Jokic have?')).toBe(\n11:       'career_leaders',\n12:     );\n13:     expect(classifyQuestion('Which players have the most 50-point games?')).toBe('career_leaders');\n14:   });\n15: \n16:   test('classifies season leader questions', () => {\n17:     expect(classifyQuestion('Who led the NBA in points per game in 2015-16?')).toBe(\n18:       'season_leaders',\n19:     );\n20:     expect(classifyQuestion('What was Stephen Curry 2015-16 points per game?')).toBe(\n21:       'season_leaders',\n22:     );\n23:     expect(classifyQuestion('Which players averaged at least 30 points per game?')).toBe(\n24:       'season_leaders',\n25:     );\n26:   });\n27: \n28:   test('classifies award questions', () => {\n29:     expect(classifyQuestion('Who won NBA MVP in the 2023-24 season?')).toBe('awards');\n30:     expect(classifyQuestion('Who won NBA Rookie of the Year?')).toBe('awards');\n31:     expect(classifyQuestion('Which players were All-NBA First Team?')).toBe('awards');\n32:   });\n33: \n34:   test('classifies team season questions', () => {\n35:     expect(\n36:       classifyQuestion('What was the 2015-16 Golden State Warriors regular season record?'),\n37:     ).toBe('team_seasons');\n38:     expect(classifyQuestion('What was the Celtics record and SRS?')).toBe('team_seasons');\n39:   });\n40: \n41:   test('classifies game questions', () => {\n42:     expect(classifyQuestion('What was the final score of 2016 NBA Finals Game 7?')).toBe('games');\n43:     expect(classifyQuestion('What was LeBron James stat line in game_id 0041500407?')).toBe(\n44:       'games',\n45:     );\n46:   });\n47: \n48:   test('classifies shot chart questions', () => {\n49:     expect(classifyQuestion('How many three pointer did Curry make in shot chart data?')).toBe(\n50:       'shot_charts',\n51:     );\n52:     expect(classifyQuestion('What was LeBron James shot distribution by zone?')).toBe(\n53:       'shot_charts',\n54:     );\n55:   });\n56: \n57:   test('classifies play-by-play questions', () => {\n58:     expect(classifyQuestion('How many turnovers are in the play-by-play data?')).toBe(\n59:       'play_by_play',\n60:     );\n61:     expect(classifyQuestion('How many made shots are in play-by-play?')).toBe('play_by_play');\n62:   });\n63: \n64:   test('classifies identity questions', () => {\n65:     expect(classifyQuestion('What Basketball-Reference ID is linked to LeBron James?')).toBe(\n66:       'identity',\n67:     );\n68:     expect(classifyQuestion('What NBA API person_id is linked to Michael Jordan?')).toBe(\n69:       'identity',\n70:     );\n71:     expect(classifyQuestion('Which players are unresolved in the identity bridge?')).toBe(\n72:       'identity',\n73:     );\n74:   });\n75: \n76:   test('classifies draft questions', () => {\n77:     expect(classifyQuestion('Who was selected first overall in the 2003 NBA draft?')).toBe('draft');\n78:     expect(classifyQuestion('Compare draft pick via BRef and NBA API tables.')).toBe('draft');\n79:   });\n80: \n81:   test('classifies data quality questions', () => {\n82:     expect(classifyQuestion('What data quality issues are in audit.dq_results?')).toBe(\n83:       'data_quality',\n84:     );\n85:   });\n86: \n87:   test('classifies cross-schema questions', () => {\n88:     expect(\n89:       classifyQuestion('Cross-check 2016 Finals Game 7 score between main and unified_star.'),\n90:     ).toBe('cross_schema');\n91:   });\n92: \n93:   test('classifies general/unmatched questions', () => {\n94:     expect(classifyQuestion('Tell me about basketball')).toBe('general');\n95:     expect(classifyQuestion('What is the NBA?')).toBe('general');\n96:   });\n97: \n98:   test('classifies via context-rich questions', () => {\n99:     expect(classifyQuestion('Using the api schema, show LeBron James recent game log rows.')).toBe(\n100:       'general',\n101:     );\n102:   });\n103: });\n\n(End of file - total 103 lines)\n</content>\n\n<system-reminder>\nInstructions from: C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\AGENTS.md\n# AGENTS.md — chatbot\n\n## Package Purpose\n\nTerminal-based NBA analytics chatbot using LangGraph ReAct agent with DuckDB querying, streaming output, and error-correction loop.\n\n## Subagent Delegation\n\nAlways read `.agent/subtask-template.md` from the repository root immediately before creating any subagent/task prompt. Apply its prompt rules to every delegation: critical instructions in the first 15%, nesting depth <=4, 40-50% instruction ratio, single-source rule references, and token-efficient wording that preserves domain precision.\n\nThis applies to all `task` tool calls for chatbot work, including scout/research, review, testing, and implementation subagents. Do not rely on remembered template details; reread the file each time before delegating.\n\n## Agent Graph\n\n```\nSTART → classify_intent → llm → [toolsCondition] → tools → sql_critic → llm → END\n```\n\n### Nodes\n\n| Node | File | Purpose |\n|------|------|---------|\n| `classify_intent` | `agent/graph.ts` | Deterministic keyword-based question classification (no LLM call) |\n| `llm` | `agent/graph.ts` | Calls OpenRouter model with bound tools, returns tool calls or final answer |\n| `tools` | `agent/graph.ts` | `ToolNode([queryNbaDb, getSchemaInfo, listNbaTables, checkNbaSql])` — executes tool calls (parallel when multiple) |\n| `sql_critic` | `agent/graph.ts` | Validates tool output for SQL errors, routes back to `llm` for correction up to `MAX_SQL_RETRIES=3` |\n\n### State\n\n`agent/state.ts` — `StateSchema` with:\n- `messages: MessagesValue` — LangGraph message history (required)\n- `sqlRetryCount: z.number().optional()` — current SQL error retry count\n- `intentCategory: z.string().optional()` — deterministic question category (career_leaders, awards, etc.)\n\n### Tools\n\n| Tool | File | Description |\n|------|------|-------------|\n| `query_nba_db` | `agent/tools.ts:7` | Executes read-only DuckDB SQL with pre-execution schema validation |\n| `get_schema_info` | `agent/tools.ts:59` | On-demand table/column discovery with partial name matching |\n\n## Module Map\n\n```text\nsrc/chatbot/\n├── index.ts              # TUI bootstrap — initDb(), buildSystemPrompt(), createChatApp()\n├── chatApp.ts            # Chat UI (OpenTUI): scrollable display, streaming, model selector, metrics\n├── db.ts                 # DuckDB singleton + schema introspection (getTableRefs, getColumns, getTables)\n├── openrouter.ts         # OpenRouter API: model list, model selection\n├── systemPrompt.ts       # Dynamic system prompt builder from live database schema\n├── agent/                # LangGraph agent core\n│   ├── graph.ts          # buildGraph() — StateGraph with llm/tools/sql_critic nodes\n│   ├── state.ts          # ChatbotState — MessagesValue + sqlRetryCount\n│   ├── tools.ts          # query_nba_db + get_schema_info (Zod schemas)\n│   ├── model.ts          # createModel() — ChatOpenAI @ OpenRouter, temp=0.3\n│   └── streaming.ts      # streamQuery() async generator — StreamEvent union\n├── utils/                # Stateless utilities\n│   ├── sql.ts            # validateReadOnlySql, validateSchemaReferences, extractSql, executeSql, formatResultsPretty\n│   ├── retry.ts          # categorizeDbError (transient/schema/syntax/permanent), formatErrorForLLM, withRetry\n│   ├── metrics.ts        # NDJSON metrics logger (duration, tokens, SQL, errors)\n│   ├── ansi.ts           # ansiToStyledText conversion for OpenTUI\n│   └── theme.ts          # TokyoNight color palette\n├── features/\n│   └── modelSelector.ts  # Interactive model picker overlay (arrow keys, search, vim navigation)\n├── eval/\n│   └── nba-100-queries.ts # 100 categorized NBA questions (17 categories)\n└── __tests/              # Bun tests with LangChain mocking\n    ├── processQuestion.test.ts  # Graph behavior: ReAct, critic, retry, parallel calls\n    ├── executeSql.test.ts       # SQL validation + execution against real DB\n    ├── sqlExtraction.test.ts    # SQL extraction from LLM markdown output\n    ├── formatResults.test.ts    # Pretty-print formatting\n    ├── systemPrompt.test.ts     # Dynamic prompt building\n    ├── ansi.test.ts             # ANSI-to-StyledText conversion\n    ├── retry.test.ts            # Error classification, retry behavior, LLM error prefixes\n    └── streaming.test.ts        # streamQuery token/tool/usage/done/error events\n```\n\n## Key Patterns\n\n### Error-Proof SQL Execution\n\n`sql_critic` validates every tool result before routing. Errors are classified by `categorizeDbError()` (transient → retry, schema → correct, syntax → correct, permanent → surface). Error prefixes are centralized in `ERROR_PREFIX` (`utils/retry.ts`) and consumed by `graph.ts`/`sql.ts` to avoid string drift. The critic enforces `MAX_SQL_RETRIES=3` before giving up.\n\n### Schema Pre-Validation\n\nBefore DuckDB execution, `validateSchemaReferences()` checks table existence against `information_schema`. This catches table name typos before they become DuckDB parse errors.\n\n### Parallel Tool Calls\n\n`ToolNode` supports parallel execution when the LLM emits multiple `tool_calls` in a single response. The system prompt instructs the LLM to use parallel calls for comparisons (e.g., \"Compare LeBron vs MJ stats\").\n\n### Streaming via streamEvents v2\n\n`streamQuery()` yields typed `StreamEvent` events: `token` (LLM output chunks), `tool_start`/`tool_end`/`tool_error` (tool lifecycle), `usage` (token counts), `done` (final messages), `error` (exceptions).\n\n### Checkpointing\n\nGraph compiled with `getCheckpointer()` — `MemorySaver` default, `SqliteSaver` when `CHATBOT_PERSIST_DIR` set. Enables multi-turn conversation memory and future HITL support.\n\n### Singleton Graph\n\n`getChatbotGraph()` returns cached graph. `resetGraph()` invalidates cache (called on model change). Each invocation uses a unique `thread_id` for isolation.\n\n## Type Safety and Linting\n\nChatbot code is checked by the repo-wide `tsconfig.json` and a stricter chatbot-only config:\n\n```bash\nbun run typecheck          # full repo\nbun run typecheck:chatbot  # chatbot + shared with strictest options\n```\n\n`tsconfig.chatbot.json` enables `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `noPropertyAccessFromIndexSignature`, `noImplicitReturns`, `noImplicitOverride`, `noFallthroughCasesInSwitch`, unused checks, and `verbatimModuleSyntax`. Prefer guards/defaults over weakening types. Access environment variables and dynamic records with bracket syntax, e.g. `process.env['OPENROUTER_API_KEY']` and `input['sql']`.\n\nBiome is strict and runs with `--error-on-warnings`. Use `import type` / `export type`, avoid unused locals/imports, prefer `const`, and let Biome organize imports. Lefthook runs Biome on staged TypeScript/JSON files before commits.\n\n## Testing\n\nAll tests use `--concurrency=1` (DuckDB constraint). Mock pattern:\n\n```typescript\nmock.module('@langchain/openai', () => ({\n  ChatOpenAI: class {\n    bindTools() { return this; }\n    async invoke() { return new AIMessage('Mock response'); }\n  },\n}));\n\nmock.module('../db.js', () => ({\n  query: async () => [{ person_id: '2544' }],\n  getTables: async () => ['dim_player'],\n}));\n```\n\nRun all chatbot tests: `bun test src/chatbot/__tests__ --concurrency=1`\n\nRun the same checks used by chatbot CI:\n\n```bash\nbun run typecheck:chatbot\nbun test src/chatbot/__tests__ --concurrency=1\n```\n\nCI also blocks `.only(` / `.skip(` in `src/chatbot/__tests__/` via `scripts/ci-guards.sh`.\n\nWhen delegating chatbot testing or research to subagents, read `.agent/subtask-template.md` first and place the chatbot-specific success criteria near the top of the prompt.\n\n## Adding a New Tool\n\n1. Define in `agent/tools.ts` using `tool()` from `@langchain/core/tools` with Zod schema\n2. Add to `bindTools([...])` and `ToolNode([...])` in `agent/graph.ts`\n3. Handle new tool events in `chatApp.ts` stream handler (tool_start/tool_end)\n4. Add test in `__tests__/processQuestion.test.ts` with mock responses\n5. Update system prompt if the tool needs LLM guidance\n6. Run `bun run typecheck:chatbot` and `bun test src/chatbot/__tests__ --concurrency=1`\n\n## Adding a New Graph Node\n\n1. Define async function taking `state: ChatbotStateType`\n2. Return `Partial<ChatbotStateType>` for plain updates or `Command({ goto, update })` for routing\n3. Add `addNode('name', fn)` + edges to `buildGraph()`\n4. Add state fields to `ChatbotState` in `state.ts` only if a node reads/writes them\n5. Add corresponding tests\n6. Run `bun run typecheck:chatbot` and `bun test src/chatbot/__tests__ --concurrency=1`\n\n</system-reminder>",
+            "metadata": {
+              "preview": "import { describe, expect, test } from 'bun:test';\nimport { classifyQuestion } from '../agent/graph.js';\n\ndescribe('classifyQuestion', () => {\n  test('classifies career leader questions', () => {\n    expect(classifyQuestion('Who are the top 5 NBA regular season career points leaders?')).toBe(\n      'career_leaders',\n    );\n    expect(classifyQuestion('What are LeBron James career points?')).toBe('career_leaders');\n    expect(classifyQuestion('How many regular season triple-doubles does Jokic have?')).toBe(\n      'career_leaders',\n    );\n    expect(classifyQuestion('Which players have the most 50-point games?')).toBe('career_leaders');\n  });\n\n  test('classifies season leader questions', () => {\n    expect(classifyQuestion('Who led the NBA in points per game in 2015-16?')).toBe(\n      'season_leaders',\n    );\n    expect(classifyQuestion('What was Stephen Curry 2015-16 points per game?')).toBe(",
+              "truncated": false,
+              "loaded": [
+                "C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\AGENTS.md"
+              ]
+            },
+            "title": "src\\chatbot\\__tests__\\intentClassification.test.ts",
+            "time": {
+              "start": 1780002466072,
+              "end": 1780002466103
+            }
+          },
+          "id": "prt_e706a22d000107eBXMqCTEjbNu",
+          "sessionID": "ses_18f95ebfbfferBENj6OikdoslE",
+          "messageID": "msg_e706a1545001StGM1UF5YZ5PIZ"
+        },
+        {
+          "type": "tool",
+          "tool": "read",
+          "callID": "toolu_5701d118970d4e8c9b95b25b",
+          "state": {
+            "status": "completed",
+            "input": {
+              "filePath": "C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\__tests__\\executeSql.test.ts"
+            },
+            "output": "<path>C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\__tests__\\executeSql.test.ts</path>\n<type>file</type>\n<content>\n1: import { afterAll, beforeAll, describe, expect, test } from 'bun:test';\n2: import { closeDb, initDb } from '../db.js';\n3: import { checkSql, executeSql } from '../utils/sql.js';\n4: \n5: beforeAll(async () => {\n6:   await initDb();\n7: });\n8: \n9: afterAll(async () => {\n10:   await closeDb();\n11: });\n12: \n13: describe('executeSql', () => {\n14:   test('checks valid SQL without executing it', async () => {\n15:     const result = await checkSql('SELECT COUNT(*) AS cnt FROM dim_player');\n16:     expect(result).toContain('OK');\n17:   });\n18: \n19:   test('checks invalid SQL without executing it', async () => {\n20:     const result = await checkSql('SELECT * FROM nonexistent_table');\n21:     expect(result).toContain('Schema validation failed');\n22:   });\n23: \n24:   test('simple SELECT', async () => {\n25:     const result = await executeSql('SELECT 1 AS num');\n26:     expect(result).toContain('1');\n27:     expect(result).toContain('num');\n28:   });\n29: \n30:   test('table query', async () => {\n31:     const result = await executeSql('SELECT COUNT(*) AS cnt FROM dim_player');\n32:     expect(result).toContain('cnt');\n33:     expect(result).toMatch(/\\d/);\n34:   });\n35: \n36:   test('empty result', async () => {\n37:     const result = await executeSql('SELECT * FROM dim_player WHERE 1=0');\n38:     expect(result).toContain('no results');\n39:   });\n40: \n41:   test('SQL syntax error', async () => {\n42:     const result = await executeSql('SELECT INVALID');\n43:     expect(result).toContain('SQL Error');\n44:   });\n45: \n46:   test('missing table', async () => {\n47:     const result = await executeSql('SELECT * FROM nonexistent_table');\n48:     expect(result).toContain('Schema validation failed');\n49:     expect(result).toContain('does not exist');\n50:   });\n51: \n52:   test('blocks write statements', async () => {\n53:     const result = await executeSql('DROP TABLE dim_player');\n54:     expect(result).toContain('SQL Error');\n55:     expect(result).toContain('read-only');\n56:   });\n57: \n58:   test('blocks multiple statements', async () => {\n59:     const result = await executeSql('SELECT 1; SELECT 2');\n60:     expect(result).toContain('SQL Error');\n61:     expect(result).toContain('Only one SQL statement');\n62:   });\n63: \n64:   test('large result set', async () => {\n65:     const result = await executeSql('SELECT * FROM dim_player');\n66:     expect(result).toContain('showing first');\n67:   });\n68: \n69:   test('blocks external access function read_csv', async () => {\n70:     const result = await executeSql(\"SELECT * FROM read_csv('file.csv')\");\n71:     expect(result).toContain('SQL Error');\n72:     expect(result).toContain('blocked');\n73:   });\n74: \n75:   test('blocks external access function glob', async () => {\n76:     const result = await executeSql(\"SELECT * FROM glob('*.db')\");\n77:     expect(result).toContain('SQL Error');\n78:     expect(result).toContain('blocked');\n79:   });\n80: \n81:   test('blocks external access function httpfs', async () => {\n82:     const result = await executeSql(\"SELECT * FROM httpfs('https://evil.com')\");\n83:     expect(result).toContain('SQL Error');\n84:     expect(result).toContain('blocked');\n85:   });\n86: \n87:   test('blocks INSERT statements', async () => {\n88:     const result = await executeSql(\"INSERT INTO dim_player VALUES (1, 'test')\");\n89:     expect(result).toContain('SQL Error');\n90:     expect(result).toContain('read-only');\n91:   });\n92: \n93:   test('blocks DELETE statements', async () => {\n94:     const result = await executeSql('DELETE FROM dim_player');\n95:     expect(result).toContain('SQL Error');\n96:     expect(result).toContain('read-only');\n97:   });\n98: \n99:   test('blocks CREATE TABLE statements', async () => {\n100:     const result = await executeSql('CREATE TABLE hack (id INTEGER)');\n101:     expect(result).toContain('SQL Error');\n102:     expect(result).toContain('read-only');\n103:   });\n104: \n105:   test('blocks ALTER TABLE statements', async () => {\n106:     const result = await executeSql('ALTER TABLE dim_player ADD COLUMN test VARCHAR');\n107:     expect(result).toContain('SQL Error');\n108:     expect(result).toContain('read-only');\n109:   });\n110: \n111:   test('blocks TRUNCATE statements', async () => {\n112:     const result = await executeSql('TRUNCATE TABLE dim_player');\n113:     expect(result).toContain('SQL Error');\n114:     expect(result).toContain('read-only');\n115:   });\n116: \n117:   test('blocks ATTACH DATABASE statements', async () => {\n118:     const result = await executeSql(\"ATTACH DATABASE 'evil.db'\");\n119:     expect(result).toContain('SQL Error');\n120:     expect(result).toContain('read-only');\n121:   });\n122: \n123:   test('blocks DESCRIBE on nonexistent table', async () => {\n124:     const result = await executeSql('DESCRIBE nonexistent_table');\n125:     expect(result).toContain('Schema error');\n126:   });\n127: });\n\n(End of file - total 127 lines)\n</content>",
+            "metadata": {
+              "preview": "import { afterAll, beforeAll, describe, expect, test } from 'bun:test';\nimport { closeDb, initDb } from '../db.js';\nimport { checkSql, executeSql } from '../utils/sql.js';\n\nbeforeAll(async () => {\n  await initDb();\n});\n\nafterAll(async () => {\n  await closeDb();\n});\n\ndescribe('executeSql', () => {\n  test('checks valid SQL without executing it', async () => {\n    const result = await checkSql('SELECT COUNT(*) AS cnt FROM dim_player');\n    expect(result).toContain('OK');\n  });\n\n  test('checks invalid SQL without executing it', async () => {\n    const result = await checkSql('SELECT * FROM nonexistent_table');",
+              "truncated": false,
+              "loaded": []
+            },
+            "title": "src\\chatbot\\__tests__\\executeSql.test.ts",
+            "time": {
+              "start": 1780002466076,
+              "end": 1780002466091
+            }
+          },
+          "id": "prt_e706a24ef001IfiAdrmnhzonuo",
+          "sessionID": "ses_18f95ebfbfferBENj6OikdoslE",
+          "messageID": "msg_e706a1545001StGM1UF5YZ5PIZ"
+        },
+        {
+          "type": "tool",
+          "tool": "read",
+          "callID": "toolu_eeeda37c705d46df9b394270",
+          "state": {
+            "status": "completed",
+            "input": {
+              "filePath": "C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\__tests__\\retry.test.ts"
+            },
+            "output": "<path>C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\__tests__\\retry.test.ts</path>\n<type>file</type>\n<content>\n1: import { describe, expect, test } from 'bun:test';\n2: import {\n3:   categorizeDbError,\n4:   ERROR_PREFIX,\n5:   formatErrorForLLM,\n6:   formatErrorForUser,\n7:   isRetryableError,\n8:   withRetry,\n9: } from '../utils/retry.js';\n10: \n11: describe('categorizeDbError', () => {\n12:   test('classifies rate limit errors as transient', () => {\n13:     const err = new Error('rate limit exceeded');\n14:     expect(categorizeDbError(err)).toBe('transient');\n15:   });\n16: \n17:   test('classifies timeout errors as transient', () => {\n18:     const err = new Error('connection timeout occurred');\n19:     expect(categorizeDbError(err)).toBe('transient');\n20:   });\n21: \n22:   test('classifies connection errors as transient', () => {\n23:     const err = new Error('connection refused');\n24:     expect(categorizeDbError(err)).toBe('transient');\n25:   });\n26: \n27:   test('classifies lock errors as transient', () => {\n28:     const err = new Error('database is locked');\n29:     expect(categorizeDbError(err)).toBe('transient');\n30:   });\n31: \n32:   test('classifies conflict errors as transient', () => {\n33:     const err = new Error('catalog conflict');\n34:     expect(categorizeDbError(err)).toBe('transient');\n35:   });\n36: \n37:   test('classifies busy errors as transient', () => {\n38:     const err = new Error('database is busy');\n39:     expect(categorizeDbError(err)).toBe('transient');\n40:   });\n41: \n42:   test('classifies missing table errors as schema', () => {\n43:     const err = new Error('table \"players\" does not exist');\n44:     expect(categorizeDbError(err)).toBe('schema');\n45:   });\n46: \n47:   test('classifies no such table errors as schema', () => {\n48:     const err = new Error('no such table: players');\n49:     expect(categorizeDbError(err)).toBe('schema');\n50:   });\n51: \n52:   test('classifies no such column errors as schema', () => {\n53:     const err = new Error('no such column: pts');\n54:     expect(categorizeDbError(err)).toBe('schema');\n55:   });\n56: \n57:   test('classifies not found in schema errors as schema', () => {\n58:     const err = new Error('column \"pts\" not found in schema');\n59:     expect(categorizeDbError(err)).toBe('schema');\n60:   });\n61: \n62:   test('classifies ambiguous column errors as schema', () => {\n63:     const err = new Error('ambiguous column name \"id\"');\n64:     expect(categorizeDbError(err)).toBe('schema');\n65:   });\n66: \n67:   test('classifies syntax errors', () => {\n68:     const err = new Error('syntax error at or near \"SELECT\"');\n69:     expect(categorizeDbError(err)).toBe('syntax');\n70:   });\n71: \n72:   test('classifies parse errors', () => {\n73:     const err = new Error('parse error: unexpected token');\n74:     expect(categorizeDbError(err)).toBe('syntax');\n75:   });\n76: \n77:   test('classifies parser errors', () => {\n78:     const err = new Error('parser error: could not parse query');\n79:     expect(categorizeDbError(err)).toBe('syntax');\n80:   });\n81: \n82:   test('classifies unknown errors as permanent', () => {\n83:     const err = new Error('something went horribly wrong');\n84:     expect(categorizeDbError(err)).toBe('permanent');\n85:   });\n86: \n87:   test('classifies non-Error values as permanent', () => {\n88:     expect(categorizeDbError('string error')).toBe('permanent');\n89:     expect(categorizeDbError(42)).toBe('permanent');\n90:     expect(categorizeDbError(null)).toBe('permanent');\n91:   });\n92: });\n93: \n94: describe('isRetryableError', () => {\n95:   test('returns true for rate limit errors', () => {\n96:     expect(isRetryableError(new Error('rate limit exceeded'))).toBe(true);\n97:   });\n98: \n99:   test('returns true for timeout errors', () => {\n100:     expect(isRetryableError(new Error('request timeout'))).toBe(true);\n101:   });\n102: \n103:   test('returns true for ECONNREFUSED', () => {\n104:     expect(isRetryableError(new Error('ECONNREFUSED'))).toBe(true);\n105:   });\n106: \n107:   test('returns true for ECONNRESET', () => {\n108:     expect(isRetryableError(new Error('ECONNRESET'))).toBe(true);\n109:   });\n110: \n111:   test('returns true for network errors', () => {\n112:     expect(isRetryableError(new Error('network error'))).toBe(true);\n113:   });\n114: \n115:   test('returns false for schema errors', () => {\n116:     expect(isRetryableError(new Error('table does not exist'))).toBe(false);\n117:   });\n118: \n119:   test('returns false for syntax errors', () => {\n120:     expect(isRetryableError(new Error('syntax error'))).toBe(false);\n121:   });\n122: \n123:   test('returns false for non-Error values', () => {\n124:     expect(isRetryableError('error string')).toBe(false);\n125:     expect(isRetryableError(undefined)).toBe(false);\n126:     expect(isRetryableError(null)).toBe(false);\n127:   });\n128: });\n129: \n130: describe('formatErrorForLLM', () => {\n131:   test('formats schema errors with schema prefix', () => {\n132:     const err = new Error('table \"players\" does not exist');\n133:     const result = formatErrorForLLM(err);\n134:     expect(result).toStartWith(`${ERROR_PREFIX.SCHEMA_ERROR} `);\n135:     expect(result).toContain('Check table/column names');\n136:   });\n137: \n138:   test('formats syntax errors with syntax prefix', () => {\n139:     const err = new Error('syntax error at SELECT');\n140:     const result = formatErrorForLLM(err);\n141:     expect(result).toStartWith(`${ERROR_PREFIX.SYNTAX_ERROR} `);\n142:     expect(result).toContain('Fix the SQL syntax');\n143:   });\n144: \n145:   test('formats transient errors with transient prefix', () => {\n146:     const err = new Error('connection timeout');\n147:     const result = formatErrorForLLM(err);\n148:     expect(result).toStartWith(`${ERROR_PREFIX.TRANSIENT_ERROR} `);\n149:     expect(result).toContain('succeed on retry');\n150:   });\n151: \n152:   test('formats permanent errors with SQL Error prefix', () => {\n153:     const err = new Error('unknown failure');\n154:     const result = formatErrorForLLM(err);\n155:     expect(result).toStartWith(`${ERROR_PREFIX.SQL_ERROR} `);\n156:   });\n157: \n158:   test('formats non-Error values as plain strings', () => {\n159:     expect(formatErrorForLLM('oops')).toBe('oops');\n160:     expect(formatErrorForLLM(42)).toBe('42');\n161:   });\n162: });\n163: \n164: describe('withRetry', () => {\n165:   test('returns result on first success', async () => {\n166:     let calls = 0;\n167:     const fn = async () => {\n168:       calls++;\n169:       return 42;\n170:     };\n171:     const result = await withRetry(fn);\n172:     expect(result).toBe(42);\n173:     expect(calls).toBe(1);\n174:   });\n175: \n176:   test('retries on transient error and succeeds', async () => {\n177:     let calls = 0;\n178:     const fn = async () => {\n179:       calls++;\n180:       if (calls < 3) throw new Error('connection timeout');\n181:       return 'ok';\n182:     };\n183:     const result = await withRetry(fn);\n184:     expect(result).toBe('ok');\n185:     expect(calls).toBe(3);\n186:   });\n187: \n188:   test('throws after exhausting max attempts', async () => {\n189:     let calls = 0;\n190:     const fn = async () => {\n191:       calls++;\n192:       throw new Error('connection timeout');\n193:     };\n194:     await expect(withRetry(fn, { maxAttempts: 2 })).rejects.toThrow('connection timeout');\n195:     expect(calls).toBe(2);\n196:   });\n197: \n198:   test('does not retry non-retryable errors', async () => {\n199:     let calls = 0;\n200:     const fn = async () => {\n201:       calls++;\n202:       throw new Error('syntax error');\n203:     };\n204:     await expect(withRetry(fn)).rejects.toThrow('syntax error');\n205:     expect(calls).toBe(1);\n206:   });\n207: \n208:   test('respects custom retry options', async () => {\n209:     let calls = 0;\n210:     const fn = async () => {\n211:       calls++;\n212:       throw new Error('connection timeout');\n213:     };\n214:     await expect(\n215:       withRetry(fn, { maxAttempts: 4, baseDelayMs: 10, maxDelayMs: 50 }),\n216:     ).rejects.toThrow('connection timeout');\n217:     expect(calls).toBe(4);\n218:   });\n219: });\n220: \n221: describe('ERROR_PREFIX', () => {\n222:   test('all prefixes are non-empty strings', () => {\n223:     for (const value of Object.values(ERROR_PREFIX)) {\n224:       expect(typeof value).toBe('string');\n225:       expect(value.length).toBeGreaterThan(0);\n226:     }\n227:   });\n228: \n229:   test('prefixes end with colon for consistent message formatting', () => {\n230:     for (const value of Object.values(ERROR_PREFIX)) {\n231:       expect(value.endsWith(':')).toBe(true);\n232:     }\n233:   });\n234: });\n235: \n236: describe('formatErrorForUser', () => {\n237:   test('returns user-friendly message for rate limit errors', () => {\n238:     const err = new Error('rate limit exceeded');\n239:     expect(formatErrorForUser(err)).toBe('Rate limited. Please wait and try again.');\n240:   });\n241: \n242:   test('returns user-friendly message for timeout errors', () => {\n243:     const err = new Error('request timeout');\n244:     expect(formatErrorForUser(err)).toBe('Request timed out. Try a simpler question.');\n245:   });\n246: \n247:   test('returns user-friendly message for network errors', () => {\n248:     expect(formatErrorForUser(new Error('ECONNREFUSED'))).toBe(\n249:       'Network error. Check your connection.',\n250:     );\n251:     expect(formatErrorForUser(new Error('network failure'))).toBe(\n252:       'Network error. Check your connection.',\n253:     );\n254:     expect(formatErrorForUser(new Error('fetch failed'))).toBe(\n255:       'Network error. Check your connection.',\n256:     );\n257:   });\n258: \n259:   test('returns original message for unrecognized errors', () => {\n260:     const err = new Error('something went wrong');\n261:     expect(formatErrorForUser(err)).toBe('something went wrong');\n262:   });\n263: \n264:   test('returns string for non-Error values', () => {\n265:     expect(formatErrorForUser('oops')).toBe('oops');\n266:     expect(formatErrorForUser(42)).toBe('42');\n267:   });\n268: });\n\n(End of file - total 268 lines)\n</content>",
+            "metadata": {
+              "preview": "import { describe, expect, test } from 'bun:test';\nimport {\n  categorizeDbError,\n  ERROR_PREFIX,\n  formatErrorForLLM,\n  formatErrorForUser,\n  isRetryableError,\n  withRetry,\n} from '../utils/retry.js';\n\ndescribe('categorizeDbError', () => {\n  test('classifies rate limit errors as transient', () => {\n    const err = new Error('rate limit exceeded');\n    expect(categorizeDbError(err)).toBe('transient');\n  });\n\n  test('classifies timeout errors as transient', () => {\n    const err = new Error('connection timeout occurred');\n    expect(categorizeDbError(err)).toBe('transient');\n  });",
+              "truncated": false,
+              "loaded": []
+            },
+            "title": "src\\chatbot\\__tests__\\retry.test.ts",
+            "time": {
+              "start": 1780002466079,
+              "end": 1780002466101
+            }
+          },
+          "id": "prt_e706a271a001XKqFoj9Hkfrfjk",
+          "sessionID": "ses_18f95ebfbfferBENj6OikdoslE",
+          "messageID": "msg_e706a1545001StGM1UF5YZ5PIZ"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "5577677ef0e81b484f2f4f305bbee1c0788ac518",
+          "type": "step-finish",
+          "tokens": {
+            "total": 10439,
+            "input": 6,
+            "output": 291,
+            "reasoning": 0,
+            "cache": {
+              "write": 166,
+              "read": 9976
+            }
+          },
+          "cost": 0.00770425,
+          "id": "prt_e706a29c4001DazP4w6DLZSlIN",
+          "sessionID": "ses_18f95ebfbfferBENj6OikdoslE",
+          "messageID": "msg_e706a1545001StGM1UF5YZ5PIZ"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_e706a140b001CMS15k9ZPm2P19",
+        "role": "assistant",
+        "mode": "explore",
+        "agent": "explore",
+        "path": {
+          "cwd": "C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius",
+          "root": "C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius"
+        },
+        "cost": 0.067504125,
+        "tokens": {
+          "total": 24904,
+          "input": 6,
+          "output": 3727,
+          "reasoning": 0,
+          "cache": {
+            "write": 11029,
+            "read": 10142
+          }
+        },
+        "modelID": "qwen3.7-max",
+        "providerID": "opencode-go",
+        "time": {
+          "created": 1780002466377,
+          "completed": 1780002521942
+        },
+        "finish": "stop",
+        "id": "msg_e706a2a49001Vk5HhvQ254dIiR",
+        "sessionID": "ses_18f95ebfbfferBENj6OikdoslE"
+      },
+      "parts": [
+        {
+          "snapshot": "5577677ef0e81b484f2f4f305bbee1c0788ac518",
+          "type": "step-start",
+          "id": "prt_e706a36010015Y5rtcR605SKW8",
+          "sessionID": "ses_18f95ebfbfferBENj6OikdoslE",
+          "messageID": "msg_e706a2a49001Vk5HhvQ254dIiR"
+        },
+        {
+          "type": "reasoning",
+          "text": "Now I have all the data. Let me compile a thorough report for each file/directory.",
+          "time": {
+            "start": 1780002469379,
+            "end": 1780002469637
+          },
+          "metadata": {
+            "anthropic": {
+              "signature": ""
+            }
+          },
+          "id": "prt_e706a3603001OUNrV38g4msFVp",
+          "sessionID": "ses_18f95ebfbfferBENj6OikdoslE",
+          "messageID": "msg_e706a2a49001Vk5HhvQ254dIiR"
+        },
+        {
+          "type": "text",
+          "text": "Here is a thorough report of all requested files and directories.\n\n---\n\n## 1. `src/hub/core/types.ts`\n\n**Full path:** `C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\hub\\core\\types.ts`\n**Line count:** 10 lines\n\n### Full Contents\n\n```typescript\nimport type { DuckDBValue } from '@duckdb/node-api';\n\n/** JSON-safe row object returned by DuckDB `getRowObjectsJson()`. */\nexport type DbRow = Record<string, unknown>;\n\n/** Bound parameter for parameterized SQL queries. */\nexport type SqlParam = DuckDBValue;\n\n/** Row accepted by `formatTable` (object keyed by column or array of cell values). */\nexport type TableDataRow = DbRow | unknown[];\n```\n\n### Key Observations\n\n- **Three exported type aliases**, all very concise:\n  - `DbRow` -- a `Record<string, unknown>` representing a JSON-safe DuckDB row object.\n  - `SqlParam` -- an alias for `DuckDBValue` (from `@duckdb/node-api`), used for parameterized SQL bind parameters.\n  - `TableDataRow` -- a union of `DbRow | unknown[]`, meaning the `formatTable` function accepts either a column-keyed object or a positional array of cell values.\n- **Single import:** `DuckDBValue` from `@duckdb/node-api` (type-only import).\n- **Conventions:** Every type has a JSDoc comment. The file is purely type-level (no runtime code). Uses `import type` for tree-shaking safety, consistent with the repo's `verbatimModuleSyntax` policy.\n\n---\n\n## 2. `src/chatbot/__tests__/` -- Directory Listing\n\n**Full path:** `C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\__tests__`\n**Entry count:** 15 test files\n\n| #   | File                         |\n| --- | ---------------------------- |\n| 1   | `accessibility.test.ts`        |\n| 2   | `ansi.test.ts`                 |\n| 3   | `executeSql.test.ts`           |\n| 4   | `formatResults.test.ts`        |\n| 5   | `intentClassification.test.ts` |\n| 6   | `markdown.test.ts`             |\n| 7   | `metrics.test.ts`              |\n| 8   | `processQuestion.test.ts`      |\n| 9   | `retry.test.ts`                |\n| 10  | `spinner.test.ts`              |\n| 11  | `sqlExtraction.test.ts`        |\n| 12  | `streaming.test.ts`            |\n| 13  | `systemPrompt.test.ts`         |\n| 14  | `tableFormatter.test.ts`       |\n| 15  | `theme.test.ts`                |\n\n**Notable:** The AGENTS.md mentions 8 \"core\" test files, but the actual directory contains 15 -- meaning 7 additional test files have been added beyond the originally documented set (`accessibility`, `markdown`, `metrics`, `spinner`, `tableFormatter`, `theme`, and one more). All follow the `*.test.ts` Bun test naming convention.\n\n---\n\n## 3. `src/chatbot/__tests__/intentClassification.test.ts`\n\n**Full path:** `C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\__tests__\\intentClassification.test.ts`\n**Line count:** 103 lines\n\n### Imports\n\n```typescript\nimport { describe, expect, test } from 'bun:test';\nimport { classifyQuestion } from '../agent/graph.js';\n```\n\n- Single import from the agent graph module -- the `classifyQuestion` function is the unit under test.\n- No mocking is used; this tests a pure deterministic function.\n\n### Key Function Under Test\n\n- **`classifyQuestion(question: string): string`** -- imported from `../agent/graph.js`. A deterministic keyword-based classifier (no LLM call) that maps a natural language question to a category string.\n\n### Test Structure\n\nOne top-level `describe('classifyQuestion', ...)` block with **12 test cases**, each covering a category:\n\n| Test Name                   | Category Returned | Example Inputs                                                                                                 |\n| --------------------------- | ----------------- | -------------------------------------------------------------------------------------------------------------- |\n| career leader questions     | `'career_leaders'`  | \"top 5 NBA career points leaders\", \"LeBron James career points\", \"triple-doubles Jokic\", \"most 50-point games\" |\n| season leader questions     | `'season_leaders'`  | \"led NBA in PPG in 2015-16\", \"Curry 2015-16 PPG\", \"averaged at least 30 PPG\"                                   |\n| award questions             | `'awards'`          | \"NBA MVP 2023-24\", \"Rookie of the Year\", \"All-NBA First Team\"                                                  |\n| team season questions       | `'team_seasons'`    | \"2015-16 Warriors record\", \"Celtics record and SRS\"                                                            |\n| game questions              | `'games'`           | \"2016 Finals Game 7 score\", \"LeBron stat line game_id 0041500407\"                                              |\n| shot chart questions        | `'shot_charts'`     | \"three pointer Curry shot chart\", \"LeBron shot distribution by zone\"                                           |\n| play-by-play questions      | `'play_by_play'`    | \"turnovers in play-by-play\", \"made shots in play-by-play\"                                                      |\n| identity questions          | `'identity'`        | \"Basketball-Reference ID LeBron\", \"NBA API person_id Jordan\", \"unresolved identity bridge\"                     |\n| draft questions             | `'draft'`           | \"first overall 2003 draft\", \"draft pick BRef vs NBA API\"                                                       |\n| data quality questions      | `'data_quality'`    | \"audit.dq_results data quality\"                                                                                |\n| cross-schema questions      | `'cross_schema'`    | \"Cross-check 2016 Finals Game 7 between main and unified_star\"                                                 |\n| general/unmatched questions | `'general'`         | \"Tell me about basketball\", \"What is the NBA?\"                                                                 |\n| context-rich questions      | `'general'`         | \"Using the api schema, show LeBron James recent game log rows\"                                                 |\n\n### Notable Patterns\n\n- **Pure unit tests** -- no DB, no mocks, no `beforeAll`/`afterAll`. The classifier is a pure function.\n- **Multiple assertions per test** -- each `test()` block has 2-4 `expect()` calls testing variations of the same category.\n- **Uses `toBe()`** for exact string matching (not `toContain` or regex).\n- **Covers 12 distinct categories** total: `career_leaders`, `season_leaders`, `awards`, `team_seasons`, `games`, `shot_charts`, `play_by_play`, `identity`, `draft`, `data_quality`, `cross_schema`, `general`.\n- **Edge case coverage:** The \"context-rich\" test verifies that a question mentioning \"api schema\" still falls back to `general` rather than being misclassified.\n\n---\n\n## 4. `src/chatbot/__tests__/executeSql.test.ts`\n\n**Full path:** `C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\__tests__\\executeSql.test.ts`\n**Line count:** 127 lines\n\n### Imports\n\n```typescript\nimport { afterAll, beforeAll, describe, expect, test } from 'bun:test';\nimport { closeDb, initDb } from '../db.js';\nimport { checkSql, executeSql } from '../utils/sql.js';\n```\n\n- **Two source modules imported:**\n  - `../db.js` -- `initDb()` and `closeDb()` for DuckDB lifecycle.\n  - `../utils/sql.js` -- `checkSql()` (dry-run validation) and `executeSql()` (full execution).\n- **No mocking** -- this test uses a **real DuckDB connection** (the CI fixture or local DB via `resolveDbPath()`).\n\n### Lifecycle Hooks\n\n```typescript\nbeforeAll(async () => { await initDb(); });\nafterAll(async () => { await closeDb(); });\n```\n\nStandard DuckDB setup/teardown. Ensures the DB is opened once before all tests and cleanly closed after.\n\n### Key Functions Under Test\n\n1. **`checkSql(sql: string): Promise<string>`** -- validates SQL without executing it (schema pre-check).\n2. **`executeSql(sql: string): Promise<string>`** -- validates, executes, and returns formatted string results.\n\n### Test Structure\n\nOne top-level `describe('executeSql', ...)` block with **17 test cases** organized into logical groups:\n\n| Group                    | Tests   | What They Verify                                                                                                                |\n| ------------------------ | ------- | ------------------------------------------------------------------------------------------------------------------------------- |\n| **Check (dry-run)**          | 2 tests | `checkSql` returns `'OK'` for valid SQL; `'Schema validation failed'` for invalid tables                                              |\n| **Happy path**               | 3 tests | Simple `SELECT 1`, table query with `COUNT(*)`, empty result set (`WHERE 1=0` returns `'no results'`)                                   |\n| **Error handling**           | 2 tests | SQL syntax error returns `'SQL Error'`; missing table returns `'Schema validation failed'` + `'does not exist'`                       |\n| **Write blocking**           | 7 tests | Blocks `DROP TABLE`, `INSERT`, `DELETE`, `CREATE TABLE`, `ALTER TABLE`, `TRUNCATE`, `ATTACH DATABASE` -- all return `'SQL Error'` + `'read-only'` |\n| **Multi-statement blocking** | 1 test  | `SELECT 1; SELECT 2` returns `'Only one SQL statement'`                                                                             |\n| **External access blocking** | 3 tests | Blocks `read_csv()`, `glob()`, `httpfs()` -- all return `'SQL Error'` + `'blocked'`                                                       |\n| **Large result**             | 1 test  | Full `dim_player` scan returns `'showing first'` (truncation message)                                                               |\n| **DESCRIBE error**           | 1 test  | `DESCRIBE nonexistent_table` returns `'Schema error'`                                                                               |\n\n### Notable Patterns\n\n- **Security-focused testing** -- the majority of tests (10 of 17) verify that dangerous SQL operations are blocked. This is a read-only SQL sandbox, and the tests rigorously enforce that contract.\n- **String matching with `toContain()`** -- results are formatted strings (not structured objects), so assertions use substring matching.\n- **`toMatch(/\\d/)`** -- one regex assertion to verify numeric content in results.\n- **Real DB integration** -- no mocks. Tests run against actual DuckDB (CI fixture `dim_player` table is referenced).\n- **Consistent error format** -- all error paths return strings prefixed with `'SQL Error'` or `'Schema error'`/`'Schema validation failed'`.\n\n---\n\n## 5. `src/chatbot/__tests__/retry.test.ts`\n\n**Full path:** `C:\\Users\\nicolas\\Documents\\GitHub\\bballgenius\\src\\chatbot\\__tests__\\retry.test.ts`\n**Line count:** 268 lines\n\n### Imports\n\n```typescript\nimport { describe, expect, test } from 'bun:test';\nimport {\n  categorizeDbError,\n  ERROR_PREFIX,\n  formatErrorForLLM,\n  formatErrorForUser,\n  isRetryableError,\n  withRetry,\n} from '../utils/retry.js';\n```\n\n- **Single source module:** `../utils/retry.js`\n- **Six named exports tested:** `categorizeDbError`, `ERROR_PREFIX`, `formatErrorForLLM`, `formatErrorForUser`, `isRetryableError`, `withRetry`.\n- **No mocking, no DB** -- all tests exercise pure functions or async functions with injected lambdas.\n\n### Test Structure\n\n**Five `describe` blocks**, one per exported function/constant:\n\n#### `describe('categorizeDbError')` -- 15 tests\n\nClassifies `Error` objects into four categories:\n\n| Category    | Error Patterns                                                                             |\n| ----------- | ------------------------------------------------------------------------------------------ |\n| `'transient'` | rate limit, timeout, connection refused, database locked, catalog conflict, database busy  |\n| `'schema'`    | table does not exist, no such table, no such column, not found in schema, ambiguous column |\n| `'syntax'`    | syntax error, parse error, parser error                                                    |\n| `'permanent'` | unknown errors, non-Error values (string, number, null)                                    |\n\n#### `describe('isRetryableError')` -- 8 tests\n\n| Returns `true`                                                 | Returns `false`                                                            |\n| ------------------------------------------------------------ | ------------------------------------------------------------------------ |\n| rate limit, timeout, ECONNREFUSED, ECONNRESET, network error | schema errors, syntax errors, non-Error values (string, undefined, null) |\n\n#### `describe('formatErrorForLLM')` -- 5 tests\n\nFormats errors with structured prefixes for LLM consumption:\n\n| Error Type | Prefix                       | Guidance                   |\n| ---------- | ---------------------------- | -------------------------- |\n| Schema     | `ERROR_PREFIX.SCHEMA_ERROR`    | \"Check table/column names\" |\n| Syntax     | `ERROR_PREFIX.SYNTAX_ERROR`    | \"Fix the SQL syntax\"       |\n| Transient  | `ERROR_PREFIX.TRANSIENT_ERROR` | \"succeed on retry\"         |\n| Permanent  | `ERROR_PREFIX.SQL_ERROR`       | (raw message)              |\n| Non-Error  | (raw string coercion)        | N/A                        |\n\n#### `describe('withRetry')` -- 5 tests\n\nTests the async retry wrapper:\n\n| Test                   | Behavior                                                 |\n| ---------------------- | -------------------------------------------------------- |\n| First success          | Returns result, 1 call                                   |\n| Transient then success | Retries until success (3 calls)                          |\n| Exhausted retries      | Throws after `maxAttempts: 2`                              |\n| Non-retryable error    | No retry, throws immediately (1 call)                    |\n| Custom options         | Respects `maxAttempts: 4, baseDelayMs: 10, maxDelayMs: 50` |\n\n#### `describe('ERROR_PREFIX')` -- 2 tests\n\nValidates the constant object itself:\n- All values are non-empty strings.\n- All values end with `:` (colon) for consistent message formatting.\n\n#### `describe('formatErrorForUser')` -- 5 tests\n\nMaps errors to user-friendly messages:\n\n| Error Type                                            | User Message                                 |\n| ----------------------------------------------------- | -------------------------------------------- |\n| Rate limit                                            | \"Rate limited. Please wait and try again.\"   |\n| Timeout                                               | \"Request timed out. Try a simpler question.\" |\n| Network (ECONNREFUSED, network failure, fetch failed) | \"Network error. Check your connection.\"      |\n| Unrecognized                                          | Original error message passthrough           |\n| Non-Error                                             | String coercion                              |\n\n### Notable Patterns\n\n- **No DB, no mocks** -- all tests are pure unit tests. `withRetry` tests inject custom async lambdas to control failure/success behavior.\n- **`toStartWith()` matcher** -- Bun-specific assertion used for prefix checking (not available in Jest).\n- **`ERROR_PREFIX` as single source of truth** -- the test validates the constant's shape and then uses it in `formatErrorForLLM` assertions via template literals (`${ERROR_PREFIX.SCHEMA_ERROR} `), preventing string drift between the constant and its consumers.\n- **Call counting pattern** -- `withRetry` tests use a `let calls = 0` counter incremented inside the injected function to verify exact retry counts.\n- **Non-Error edge cases** -- multiple tests pass strings, numbers, `null`, and `undefined` to verify graceful handling of non-`Error` inputs.\n- **Largest test file of the three** at 268 lines, reflecting the complexity of the retry module (5 exported functions vs. 1-2 in the other files).\n\n---\n\n## Cross-File Summary of Conventions\n\n| Convention        | Observed Across All Files                                                                                 |\n| ----------------- | --------------------------------------------------------------------------------------------------------- |\n| Test framework    | `bun:test` (`describe`, `test`, `expect`, `beforeAll`, `afterAll`)                                                    |\n| Import style      | `.js` extension on relative imports (ESM convention)                                                        |\n| Naming            | `camelCase` test descriptions, `describe` per function/module                                                 |\n| No `.only` / `.skip`  | None found (enforced by CI guards)                                                                        |\n| Assertion style   | `toBe()` for exact, `toContain()` for substring, `toMatch()` for regex, `toStartWith()` for prefix (Bun-specific) |\n| Type-only imports | `import type` used in source files (e.g., `types.ts`)                                                         |\n| DB lifecycle      | `beforeAll(initDb)` / `afterAll(closeDb)` when real DB is needed; no hooks for pure unit tests                |\n| Mocking           | Not used in these 3 files (but documented in AGENTS.md for `processQuestion.test.ts` using `mock.module()`)   |",
+          "time": {
+            "start": 1780002469638,
+            "end": 1780002521475
+          },
+          "id": "prt_e706a3706002lzO7NeTHc6E9Qg",
+          "sessionID": "ses_18f95ebfbfferBENj6OikdoslE",
+          "messageID": "msg_e706a2a49001Vk5HhvQ254dIiR"
+        },
+        {
+          "reason": "stop",
+          "snapshot": "5577677ef0e81b484f2f4f305bbee1c0788ac518",
+          "type": "step-finish",
+          "tokens": {
+            "total": 24904,
+            "input": 6,
+            "output": 3727,
+            "reasoning": 0,
+            "cache": {
+              "write": 11029,
+              "read": 10142
+            }
+          },
+          "cost": 0.067504125,
+          "id": "prt_e706b0245001J3lhnys6pp54P2",
+          "sessionID": "ses_18f95ebfbfferBENj6OikdoslE",
+          "messageID": "msg_e706a2a49001Vk5HhvQ254dIiR"
+        }
+      ]
+    }
+  ]
+}
