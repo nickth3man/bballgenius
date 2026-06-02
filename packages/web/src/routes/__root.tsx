@@ -9,7 +9,7 @@ interface RouterContext {
 const TABS = [
   { id: 'game-center', label: 'Game Center', path: '/game-center', enabled: true },
   { id: 'time-machine', label: 'Career Time-Machine', path: '/time-machine', enabled: false },
-  { id: 'sql-sandbox', label: 'SQL Sandbox', path: '/sql-sandbox', enabled: false },
+  { id: 'sql-sandbox', label: 'SQL Sandbox', path: '/sql-sandbox', enabled: true },
   { id: 'chat', label: 'Chat', path: '/chat', enabled: false },
 ] as const;
 
