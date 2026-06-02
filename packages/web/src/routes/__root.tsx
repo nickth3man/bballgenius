@@ -10,7 +10,7 @@ const TABS = [
   { id: 'game-center', label: 'Game Center', path: '/game-center', enabled: true },
   { id: 'time-machine', label: 'Career Time-Machine', path: '/time-machine', enabled: true },
   { id: 'sql-sandbox', label: 'SQL Sandbox', path: '/sql-sandbox', enabled: true },
-  { id: 'chat', label: 'Chat', path: '/chat', enabled: false },
+  { id: 'chat', label: 'Chat', path: '/chat', enabled: true },
 ] as const;
 
 export const Route = createRootRouteWithContext<RouterContext>()({

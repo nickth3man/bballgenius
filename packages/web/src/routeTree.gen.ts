@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as TimeMachineRouteImport } from './routes/time-machine'
 import { Route as SqlSandboxRouteImport } from './routes/sql-sandbox'
 import { Route as GameCenterRouteImport } from './routes/game-center'
+import { Route as ChatRouteImport } from './routes/chat'
 import { Route as IndexRouteImport } from './routes/index'
 
 const TimeMachineRoute = TimeMachineRouteImport.update({
@@ -29,6 +30,11 @@ const GameCenterRoute = GameCenterRouteImport.update({
   path: '/game-center',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ChatRoute = ChatRouteImport.update({
+  id: '/chat',
+  path: '/chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -37,12 +43,14 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/chat': typeof ChatRoute
   '/game-center': typeof GameCenterRoute
   '/sql-sandbox': typeof SqlSandboxRoute
   '/time-machine': typeof TimeMachineRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/chat': typeof ChatRoute
   '/game-center': typeof GameCenterRoute
   '/sql-sandbox': typeof SqlSandboxRoute
   '/time-machine': typeof TimeMachineRoute
@@ -50,20 +58,28 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/chat': typeof ChatRoute
   '/game-center': typeof GameCenterRoute
   '/sql-sandbox': typeof SqlSandboxRoute
   '/time-machine': typeof TimeMachineRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/game-center' | '/sql-sandbox' | '/time-machine'
+  fullPaths: '/' | '/chat' | '/game-center' | '/sql-sandbox' | '/time-machine'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/game-center' | '/sql-sandbox' | '/time-machine'
-  id: '__root__' | '/' | '/game-center' | '/sql-sandbox' | '/time-machine'
+  to: '/' | '/chat' | '/game-center' | '/sql-sandbox' | '/time-machine'
+  id:
+    | '__root__'
+    | '/'
+    | '/chat'
+    | '/game-center'
+    | '/sql-sandbox'
+    | '/time-machine'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ChatRoute: typeof ChatRoute
   GameCenterRoute: typeof GameCenterRoute
   SqlSandboxRoute: typeof SqlSandboxRoute
   TimeMachineRoute: typeof TimeMachineRoute
@@ -92,6 +108,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GameCenterRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/chat': {
+      id: '/chat'
+      path: '/chat'
+      fullPath: '/chat'
+      preLoaderRoute: typeof ChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -104,6 +127,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ChatRoute: ChatRoute,
   GameCenterRoute: GameCenterRoute,
   SqlSandboxRoute: SqlSandboxRoute,
   TimeMachineRoute: TimeMachineRoute,
