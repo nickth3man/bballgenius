@@ -240,8 +240,40 @@ function TimeMachinePage(): ReactNode {
         ) : selectedPlayer && !loading ? (
           <div className="text-fg-dim text-sm">No data returned for this player.</div>
         ) : (
-          <div className="flex h-full items-center justify-center text-fg-dim text-sm">
-            Search for a player to view career stats, awards, and more
+          <div className="flex h-full flex-col items-center justify-center gap-3 px-4 text-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-border bg-surface-alt/50">
+              <svg
+                className="h-8 w-8 text-fg-dim"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={1.5}
+                role="img"
+                aria-label="Search"
+              >
+                <title>Search</title>
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+                />
+              </svg>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-fg-muted">Search for a player</p>
+              <p className="mt-1 text-xs text-fg-dim">
+                View career stats, season-by-season breakdowns, awards, shot charts, and more
+              </p>
+            </div>
+            <div className="flex items-center gap-3 text-[10px] text-fg-dim">
+              <span className="rounded border border-border/60 px-2 py-0.5">
+                Type a player's name
+              </span>
+              <span className="text-fg-dim/50">or</span>
+              <span className="rounded border border-border/60 px-2 py-0.5">
+                Select from results
+              </span>
+            </div>
           </div>
         )}
       </div>
