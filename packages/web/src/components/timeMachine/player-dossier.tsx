@@ -83,12 +83,21 @@ function formatDate(value: string | null | undefined): string {
   return value;
 }
 
-function DataTable({ headers, children }: { headers: string[]; children: ReactNode }): ReactNode {
+function DataTable({
+  headers,
+  children,
+  caption,
+}: {
+  headers: string[];
+  children: ReactNode;
+  caption?: string;
+}): ReactNode {
   return (
     <div className="relative">
       {/* Right-edge fade scroll indicator */}
       <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-8 bg-gradient-to-l from-surface/80 to-transparent" />
       <table className="min-w-full font-mono text-xs [&_tbody_td:first-child]:sticky [&_tbody_td:first-child]:left-0 [&_tbody_td:first-child]:z-[5] [&_tbody_td:first-child]:bg-surface [&_tbody_td:first-child]:font-medium [&_tbody_td:first-child]:text-fg [&_thead_th:first-child]:sticky [&_thead_th:first-child]:left-0 [&_thead_th:first-child]:z-20 [&_thead_th:first-child]:bg-surface">
+        {caption ? <caption className="sr-only">{caption}</caption> : null}
         <thead className="sticky top-0 z-10">
           <tr className="bg-surface text-fg-dim">
             {headers.map((h) => (
@@ -491,6 +500,7 @@ export function PlayoffStatsCard({ rows }: { rows: CareerStatRow[] }): ReactNode
         </div>
         <div className="overflow-x-auto rounded border border-border bg-surface focus:outline-none focus:ring-2 focus:ring-primary/50">
           <DataTable
+            caption="Playoff season totals, per-game scoring, per-game assists, and advanced metrics"
             headers={[
               'Season',
               'GP',
