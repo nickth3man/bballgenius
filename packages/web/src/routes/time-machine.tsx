@@ -351,7 +351,8 @@ function TimeMachinePage(): ReactNode {
   const [players, setPlayers] = useState<PlayerResult[]>([]);
   const [selectedPlayer, setSelectedPlayer] = useState<PlayerResult | null>(null);
   const [dossier, setDossier] = useState<PlayerDossier | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [dossierLoading, setDossierLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [highlightIndex, setHighlightIndex] = useState(-1);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -370,7 +371,7 @@ function TimeMachinePage(): ReactNode {
 
   const searchPlayers = useCallback(async () => {
     if (!search.trim()) return;
-    setLoading(true);
+    setSearchLoading(true);
     setError(null);
     try {
       const result = await searchPlayersFn({ data: { search } });
@@ -378,7 +379,7 @@ function TimeMachinePage(): ReactNode {
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
-      setLoading(false);
+      setSearchLoading(false);
     }
   }, [search]);
 
@@ -386,7 +387,8 @@ function TimeMachinePage(): ReactNode {
     async (player: PlayerResult) => {
       setSelectedPlayer(player);
       setSelectedPlayerId(player.player_id);
-      setLoading(true);
+      setDossier(null);
+      setDossierLoading(true);
       setError(null);
       try {
         const result = await loadPlayerDossierFn({ data: { playerId: player.player_id } });
@@ -395,7 +397,7 @@ function TimeMachinePage(): ReactNode {
         setError(e instanceof Error ? e.message : String(e));
         setDossier(null);
       } finally {
-        setLoading(false);
+        setDossierLoading(false);
       }
     },
     [setSelectedPlayerId],
@@ -409,7 +411,7 @@ function TimeMachinePage(): ReactNode {
     const pid = urlPid;
     const setUrlPid = setSelectedPlayerId;
     (async () => {
-      setLoading(true);
+      setDossierLoading(true);
       setError(null);
       try {
         let player: PlayerResult | null = null;
@@ -430,7 +432,7 @@ function TimeMachinePage(): ReactNode {
       } catch (e: unknown) {
         if (!cancelled) setError(e instanceof Error ? e.message : String(e));
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) setDossierLoading(false);
       }
     })();
     return () => {
@@ -453,7 +455,7 @@ function TimeMachinePage(): ReactNode {
       return;
     }
     const timer = setTimeout(async () => {
-      setLoading(true);
+      setSearchLoading(true);
       setError(null);
       try {
         const result = await searchPlayersFn({ data: { search } });
@@ -463,7 +465,7 @@ function TimeMachinePage(): ReactNode {
       } catch (e: unknown) {
         setError(e instanceof Error ? e.message : String(e));
       } finally {
-        setLoading(false);
+        setSearchLoading(false);
       }
     }, 300);
     return () => clearTimeout(timer);
@@ -523,13 +525,13 @@ function TimeMachinePage(): ReactNode {
             placeholder="Search any NBA player..."
             className="w-full rounded border border-border bg-bg px-2 py-1.5 pr-7 text-xs text-fg outline-none placeholder:text-fg-dim focus:border-primary"
           />
-          {loading && (
+          {searchLoading && (
             <div className="absolute right-2 top-1/2 -translate-y-1/2">
               <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-primary border-t-transparent" />
             </div>
           )}
           <output id="time-machine-player-search-status" className="sr-only">
-            {search.trim() && !loading
+            {search.trim() && !searchLoading
               ? `${players.length} player${players.length === 1 ? '' : 's'} found for ${search.trim()}`
               : 'Type to search NBA players'}
           </output>
@@ -578,7 +580,7 @@ function TimeMachinePage(): ReactNode {
             </div>
           )}
 
-          {!loading && search.trim() && players.length === 0 && (
+          {!searchLoading && search.trim() && players.length === 0 && (
             <div className="mt-2 rounded border border-warning/20 bg-warning/5 p-2 text-xs text-warning/90">
               No players found for &ldquo;{search.trim()}&rdquo;
             </div>
@@ -626,7 +628,7 @@ function TimeMachinePage(): ReactNode {
               <DraftCombineCard draft={dossier.draft} combine={dossier.combine} />
             </SectionErrorBoundary>
           </div>
-        ) : selectedPlayer && loading ? (
+        ) : selectedPlayer && dossierLoading ? (
           <div>
             <div className="mb-4 flex items-center gap-2 text-xs text-fg-dim">
               <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-primary border-t-transparent" />
@@ -636,7 +638,7 @@ function TimeMachinePage(): ReactNode {
             </div>
             <DossierSkeleton />
           </div>
-        ) : selectedPlayer && !loading && !dossier?.meta ? (
+        ) : selectedPlayer && !dossierLoading && !dossier?.meta ? (
           <div className="flex items-center justify-center gap-2 py-20 text-sm text-danger/80">
             <svg
               className="h-5 w-5"
@@ -655,7 +657,7 @@ function TimeMachinePage(): ReactNode {
             </svg>
             No data returned for this player.
           </div>
-        ) : !selectedPlayer && !loading ? (
+        ) : !selectedPlayer && !dossierLoading ? (
           <FeaturedPlayersEmptyState
             onSelect={(p) => {
               void loadPlayerData(p);
