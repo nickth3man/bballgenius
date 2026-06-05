@@ -1,4 +1,4 @@
-import type { KeyboardEvent, ReactNode } from 'react';
+import { type KeyboardEvent, type ReactNode, useCallback, useMemo, useState } from 'react';
 
 /**
  * Player dossier subcomponents. Purely presentational: every prop is a typed
@@ -87,7 +87,9 @@ function DataTable({
     <div className="relative">
       {/* Right-edge fade scroll indicator */}
       <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-8 bg-gradient-to-l from-surface/80 to-transparent" />
-      <table className="min-w-full font-mono text-xs [&_tbody_td:first-child]:sticky [&_tbody_td:first-child]:left-0 [&_tbody_td:first-child]:z-[5] [&_tbody_td:first-child]:bg-surface [&_tbody_td:first-child]:font-medium [&_tbody_td:first-child]:text-fg [&_thead_th:first-child]:sticky [&_thead_th:first-child]:left-0 [&_thead_th:first-child]:z-20 [&_thead_th:first-child]:bg-surface">
+      {/* Bottom-edge fade scroll indicator */}
+      <div className="pointer-events-none absolute bottom-0 left-0 z-10 h-6 w-full bg-gradient-to-t from-surface/60 to-transparent" />
+      <table className="min-w-full font-mono text-xs [&_tbody_td:first-child]:sticky [&_tbody_td:first-child]:left-0 [&_tbody_td:first-child]:z-[5] [&_tbody_td:first-child]:bg-surface [&_tbody_td:first-child]:font-medium [&_tbody_td:first-child]:text-fg [&_thead_th:first-child]:sticky [&_thead_th:first-child]:left-0 [&_thead_th:first-child]:z-20 [&_thead_th:first-child]:bg-surface [&_tbody_td:nth-child(2)]:sticky [&_tbody_td:nth-child(2)]:left-[4.5rem] [&_tbody_td:nth-child(2)]:z-[5] [&_tbody_td:nth-child(2)]:bg-surface [&_thead_th:nth-child(2)]:sticky [&_thead_th:nth-child(2)]:left-[4.5rem] [&_thead_th:nth-child(2)]:z-20 [&_thead_th:nth-child(2)]:bg-surface [&_tbody_td:nth-child(3)]:sticky [&_tbody_td:nth-child(3)]:left-[7rem] [&_tbody_td:nth-child(3)]:z-[5] [&_tbody_td:nth-child(3)]:bg-surface [&_thead_th:nth-child(3)]:sticky [&_thead_th:nth-child(3)]:left-[7rem] [&_thead_th:nth-child(3)]:z-20 [&_thead_th:nth-child(3)]:bg-surface [&_tbody_td:nth-child(4)]:sticky [&_tbody_td:nth-child(4)]:left-[9.5rem] [&_tbody_td:nth-child(4)]:z-[5] [&_tbody_td:nth-child(4)]:bg-surface [&_thead_th:nth-child(4)]:sticky [&_thead_th:nth-child(4)]:left-[9.5rem] [&_thead_th:nth-child(4)]:z-20 [&_thead_th:nth-child(4)]:bg-surface">
         {caption ? <caption className="sr-only">{caption}</caption> : null}
         <thead className="sticky top-0 z-10">
           <tr className="bg-surface text-fg-dim">
@@ -404,7 +406,7 @@ export function PlayoffStatsCard({ rows }: { rows: PlayerPerGameRow[] }): ReactN
         </p>
         <p className="mb-1 text-[10px] text-fg-dim sm:hidden">Swipe sideways for more columns.</p>
         <div className="overflow-x-auto rounded border border-border bg-surface focus:outline-none focus:ring-2 focus:ring-primary/50">
-          <PerGameTable rows={rows} />
+          <PerGameTable rows={rows} awards={[]} />
         </div>
       </SectionCard>
     </section>
@@ -584,6 +586,16 @@ export function AwardVotesStrip({
 /*  Season Tabs                                                               */
 /* -------------------------------------------------------------------------- */
 
+export const PHASE_TABS = [
+  { id: 'regular', label: 'Regular Season' },
+  { id: 'playoffs', label: 'Playoffs' },
+] as const;
+export const PHASE_IDS = PHASE_TABS.map((t) => t.id) as [
+  (typeof PHASE_TABS)[number]['id'],
+  ...(typeof PHASE_TABS)[number]['id'][],
+];
+export type PhaseId = (typeof PHASE_TABS)[number]['id'];
+
 export const STATS_TABS = [
   { id: 'per-game', label: 'Per Game' },
   { id: 'totals', label: 'Totals' },
@@ -600,39 +612,85 @@ export type StatsTabId = (typeof STATS_TABS)[number]['id'];
 
 export interface SeasonTabsProps {
   perGame: PlayerPerGameRow[];
+  playoffPerGame: PlayerPerGameRow[];
   totals: PlayerTotalsRow[];
   per36: PlayerPer36Row[];
   advanced: PlayerAdvancedRow[];
   shooting: PlayerShootingRow[];
   playByPlay: PlayerPlayByPlayRow[];
+  awards: PlayerAwardRow[];
+  activePhase?: PhaseId;
   activeTab?: StatsTabId;
+  onPhaseChange?: (phase: PhaseId) => void;
   onTabChange?: (tab: StatsTabId) => void;
 }
 
 export function SeasonTabs(props: SeasonTabsProps): ReactNode {
+  const phase = props.activePhase ?? 'regular';
   const tab = props.activeTab ?? 'per-game';
+  const activePhaseIndex = PHASE_TABS.findIndex((t) => t.id === phase);
   const activeTabIndex = STATS_TABS.findIndex((t) => t.id === tab);
-  const activeTabPanelId = `season-stats-panel-${tab}`;
+
+  const handlePhaseKeyDown = (event: KeyboardEvent<HTMLButtonElement>): void => {
+    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+    event.preventDefault();
+    const direction = event.key === 'ArrowRight' ? 1 : -1;
+    const nextPhase = PHASE_TABS.at(
+      (activePhaseIndex + direction + PHASE_TABS.length) % PHASE_TABS.length,
+    );
+    if (!nextPhase) return;
+    props.onPhaseChange?.(nextPhase.id);
+    globalThis.setTimeout(() => {
+      document.getElementById(`season-phase-tab-${nextPhase.id}`)?.focus();
+    }, 0);
+  };
 
   const handleTabKeyDown = (event: KeyboardEvent<HTMLButtonElement>): void => {
     if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
     event.preventDefault();
-
     const direction = event.key === 'ArrowRight' ? 1 : -1;
     const nextTab = STATS_TABS.at(
       (activeTabIndex + direction + STATS_TABS.length) % STATS_TABS.length,
     );
     if (!nextTab) return;
-
     props.onTabChange?.(nextTab.id);
     globalThis.setTimeout(() => {
       document.getElementById(`season-stats-tab-${nextTab.id}`)?.focus();
     }, 0);
   };
 
+  // Pick the active row set based on phase
+  const activePerGame = phase === 'regular' ? props.perGame : props.playoffPerGame;
+
   return (
     <section>
       <SectionHeader>Season Stats</SectionHeader>
+
+      {/* Phase tabs: Regular Season | Playoffs */}
+      <div className="mb-3 flex gap-0" role="tablist" aria-label="Season phase">
+        {PHASE_TABS.map((p) => (
+          <button
+            key={p.id}
+            type="button"
+            role="tab"
+            id={`season-phase-tab-${p.id}`}
+            aria-selected={phase === p.id}
+            aria-controls={`season-phase-panel-${p.id}`}
+            tabIndex={phase === p.id ? 0 : -1}
+            onClick={() => props.onPhaseChange?.(p.id)}
+            onKeyDown={handlePhaseKeyDown}
+            className={`px-4 py-1.5 text-xs font-medium transition-colors border ${
+              phase === p.id
+                ? 'bg-primary text-bg border-primary'
+                : 'text-fg-muted border-border bg-surface hover:bg-surface-alt'
+            } ${p.id === 'regular' ? 'rounded-l-md' : 'rounded-r-md border-l-0'}`}
+          >
+            {p.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Sub-tabs: Per Game | Totals | Per 36 | Advanced | Shooting | Play-by-Play */}
       <div className="mb-2 flex flex-wrap gap-1" role="tablist" aria-label="Season stat table">
         {STATS_TABS.map((t) => (
           <button
@@ -657,12 +715,11 @@ export function SeasonTabs(props: SeasonTabsProps): ReactNode {
       </div>
       <p className="mb-1 text-[10px] text-fg-dim sm:hidden">Swipe sideways for more columns.</p>
       <div
-        id={activeTabPanelId}
         role="tabpanel"
-        aria-labelledby={`season-stats-tab-${tab}`}
+        aria-labelledby={`season-phase-tab-${phase}`}
         className="overflow-x-auto rounded border border-border bg-surface focus:outline-none focus:ring-2 focus:ring-primary/50"
       >
-        {tab === 'per-game' ? <PerGameTable rows={props.perGame} /> : null}
+        {tab === 'per-game' ? <PerGameTable rows={activePerGame} awards={props.awards} /> : null}
         {tab === 'totals' ? <TotalsTable rows={props.totals} /> : null}
         {tab === 'per-36' ? <Per36Table rows={props.per36} /> : null}
         {tab === 'advanced' ? <AdvancedTable rows={props.advanced} /> : null}
@@ -673,107 +730,495 @@ export function SeasonTabs(props: SeasonTabsProps): ReactNode {
   );
 }
 
-function PerGameTable({ rows }: { rows: PlayerPerGameRow[] }): ReactNode {
-  if (rows.length === 0) return <EmptyHint>No per-game data available</EmptyHint>;
-
-  const ptsValues = rows.map((r) => Number(r.pts_per_game)).filter(Number.isFinite);
-  const astValues = rows.map((r) => Number(r.ast_per_game)).filter(Number.isFinite);
-  const trbValues = rows.map((r) => Number(r.trb_per_game)).filter(Number.isFinite);
-  const stlValues = rows.map((r) => Number(r.stl_per_game)).filter(Number.isFinite);
-  const blkValues = rows.map((r) => Number(r.blk_per_game)).filter(Number.isFinite);
-  const mpValues = rows.map((r) => Number(r.mp_per_game)).filter(Number.isFinite);
+function PerGameTable({
+  rows,
+  awards,
+}: {
+  rows: PlayerPerGameRow[];
+  awards: PlayerAwardRow[];
+}): ReactNode {
   const best = (arr: number[]) => (arr.length > 1 ? Math.max(...arr) : null);
   const worst = (arr: number[]) => (arr.length > 1 ? Math.min(...arr) : null);
 
-  return (
-    <DataTable
-      headers={[
-        'Season',
-        'Age',
-        'Tm',
-        'Pos',
-        'G',
-        'GS',
-        'MP',
-        'FG',
-        'FGA',
-        'FG%',
-        '3P',
-        '3PA',
-        '3P%',
-        'FT',
-        'FTA',
-        'FT%',
-        'ORB',
-        'DRB',
-        'TRB',
-        'AST',
-        'STL',
-        'BLK',
-        'TOV',
-        'PF',
-        'PTS',
-      ]}
-    >
-      {rows.map((r) => (
-        <tr
-          key={`per-game-${r.season_end_year}-${r.team ?? ''}-${r.pos ?? ''}`}
-          className="border-b border-surface-alt/50 text-fg-muted even:bg-surface-alt/20 last:border-b-0 hover:bg-surface-alt/40 transition-colors"
-        >
-          <td className="sticky left-0 z-[5] whitespace-nowrap bg-surface px-2 py-0.5 font-medium text-fg">
-            {formatSeason(r.season_end_year)}
-          </td>
-          <td className="px-2 py-0.5">{r.age ?? '—'}</td>
-          <td className="px-2 py-0.5">{r.team ?? '—'}</td>
-          <td className="px-2 py-0.5">{r.pos ?? '—'}</td>
-          <td className="px-2 py-0.5">{r.g ?? '—'}</td>
-          <td className="px-2 py-0.5">{r.gs ?? '—'}</td>
-          <td
-            className={`px-2 py-0.5 ${highlightClass(r.mp_per_game, best(mpValues), worst(mpValues))}`}
-          >
+  // Hooks must be called unconditionally, before any early returns
+  const ptsValues = useMemo(
+    () => rows.map((r) => Number(r.pts_per_game)).filter(Number.isFinite),
+    [rows],
+  );
+  const astValues = useMemo(
+    () => rows.map((r) => Number(r.ast_per_game)).filter(Number.isFinite),
+    [rows],
+  );
+  const trbValues = useMemo(
+    () => rows.map((r) => Number(r.trb_per_game)).filter(Number.isFinite),
+    [rows],
+  );
+  const stlValues = useMemo(
+    () => rows.map((r) => Number(r.stl_per_game)).filter(Number.isFinite),
+    [rows],
+  );
+  const blkValues = useMemo(
+    () => rows.map((r) => Number(r.blk_per_game)).filter(Number.isFinite),
+    [rows],
+  );
+  const mpValues = useMemo(
+    () => rows.map((r) => Number(r.mp_per_game)).filter(Number.isFinite),
+    [rows],
+  );
+
+  // Build awards lookup by season_end_year
+  const awardsBySeason = useMemo(() => {
+    const map = new Map<number, string[]>();
+    for (const a of awards) {
+      // Extract year from season label like "1975-76"
+      const seasonStr = typeof a.season_year === 'string' ? a.season_year : String(a.season_year);
+      const match = seasonStr.match(/(\d{4})-\d{2}/);
+      if (match) {
+        const endYear = Number(match[1]) + 1;
+        const existing = map.get(endYear) ?? [];
+        existing.push(String(a.award));
+        map.set(endYear, existing);
+      }
+    }
+    return map;
+  }, [awards]);
+
+  // Column sorting state
+  const [sortCol, setSortCol] = useState<string | null>(null);
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
+
+  const sortedRows = useMemo(() => {
+    if (!sortCol) return rows;
+    const getVal = (r: PlayerPerGameRow): number => {
+      const v = (r as unknown as Record<string, unknown>)[sortCol];
+      return typeof v === 'number' ? v : Number(v) || 0;
+    };
+    const sorted = [...rows].sort((a, b) => {
+      const va = getVal(a);
+      const vb = getVal(b);
+      return sortDir === 'asc' ? va - vb : vb - va;
+    });
+    return sorted;
+  }, [rows, sortCol, sortDir]);
+
+  const handleSort = useCallback((col: string) => {
+    setSortCol((prev) => {
+      if (prev === col) {
+        setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+        return col;
+      }
+      setSortDir('desc'); // default to descending for new column
+      return col;
+    });
+  }, []);
+
+  // Compute career summary rows
+  const summaryRows = useMemo(() => {
+    if (rows.length === 0) return [];
+    const validRows = rows.filter((r) => r.g != null && Number(r.g) > 0);
+    if (validRows.length === 0) return [];
+
+    // Career totals (games-weighted)
+    const totalG = validRows.reduce((sum, r) => sum + (Number(r.g) || 0), 0);
+    const avg = (key: keyof PlayerPerGameRow): number => {
+      const weighted = validRows.reduce(
+        (sum, r) => sum + (Number(r[key]) || 0) * (Number(r.g) || 0),
+        0,
+      );
+      return totalG > 0 ? weighted / totalG : 0;
+    };
+    const avgPct = (key: keyof PlayerPerGameRow): number => {
+      // For pct columns, compute from totals
+      const attemptsKey =
+        key === 'fg_percent'
+          ? 'fga_per_game'
+          : key === 'x3p_percent'
+            ? 'x3pa_per_game'
+            : key === 'x2p_percent'
+              ? 'x2pa_per_game'
+              : key === 'ft_percent'
+                ? 'fta_per_game'
+                : null;
+      const makesKey =
+        key === 'fg_percent'
+          ? 'fg_per_game'
+          : key === 'x3p_percent'
+            ? 'x3p_per_game'
+            : key === 'x2p_percent'
+              ? 'x2p_per_game'
+              : key === 'ft_percent'
+                ? 'ft_per_game'
+                : null;
+      if (!attemptsKey || !makesKey) return avg(key);
+      const totalMakes = validRows.reduce(
+        (sum, r) => sum + (Number(r[makesKey]) || 0) * (Number(r.g) || 0),
+        0,
+      );
+      const totalAttempts = validRows.reduce(
+        (sum, r) => sum + (Number(r[attemptsKey]) || 0) * (Number(r.g) || 0),
+        0,
+      );
+      return totalAttempts > 0 ? totalMakes / totalAttempts : 0;
+    };
+
+    // Per-team summary
+    const teamGroups = new Map<string, PlayerPerGameRow[]>();
+    for (const r of validRows) {
+      const tm = String(r.team ?? 'TOT');
+      const existing = teamGroups.get(tm) ?? [];
+      existing.push(r);
+      teamGroups.set(tm, existing);
+    }
+
+    const summaries: Array<{ label: string; isBold: boolean; row: Partial<PlayerPerGameRow> }> = [];
+
+    // Career row
+    const careerRow: Partial<PlayerPerGameRow> = {
+      season_end_year: 0,
+      age: null,
+      team: '',
+      pos: '',
+      lg: '',
+      g: totalG,
+      gs: null,
+      mp_per_game: avg('mp_per_game'),
+      fg_per_game: avg('fg_per_game'),
+      fga_per_game: avg('fga_per_game'),
+      fg_percent: avgPct('fg_percent'),
+      x3p_per_game: avg('x3p_per_game'),
+      x3pa_per_game: avg('x3pa_per_game'),
+      x3p_percent: avgPct('x3p_percent'),
+      x2p_per_game: avg('x2p_per_game'),
+      x2pa_per_game: avg('x2pa_per_game'),
+      x2p_percent: avgPct('x2p_percent'),
+      e_fg_percent: avg('e_fg_percent'),
+      ft_per_game: avg('ft_per_game'),
+      fta_per_game: avg('fta_per_game'),
+      ft_percent: avgPct('ft_percent'),
+      orb_per_game: avg('orb_per_game'),
+      drb_per_game: avg('drb_per_game'),
+      trb_per_game: avg('trb_per_game'),
+      ast_per_game: avg('ast_per_game'),
+      stl_per_game: avg('stl_per_game'),
+      blk_per_game: avg('blk_per_game'),
+      tov_per_game: avg('tov_per_game'),
+      pf_per_game: avg('pf_per_game'),
+      pts_per_game: avg('pts_per_game'),
+    };
+    summaries.push({
+      label: `${validRows.length > 0 ? validRows.length : rows.length} Yrs`,
+      isBold: true,
+      row: careerRow,
+    });
+
+    // Per-team rows (only if player played for multiple teams, skip aggregate markers)
+    if (teamGroups.size > 1) {
+      for (const [team, teamRows] of teamGroups) {
+        if (team === '2TM' || team === 'TOT') continue;
+        const tG = teamRows.reduce((s, r) => s + (Number(r.g) || 0), 0);
+        if (tG === 0) continue;
+        const tAvg = (key: keyof PlayerPerGameRow): number =>
+          teamRows.reduce((s, r) => s + (Number(r[key]) || 0) * (Number(r.g) || 0), 0) / tG;
+        const tRow: Partial<PlayerPerGameRow> = {
+          season_end_year: 0,
+          age: null,
+          team,
+          pos: '',
+          lg: '',
+          g: tG,
+          gs: null,
+          mp_per_game: tAvg('mp_per_game'),
+          fg_per_game: tAvg('fg_per_game'),
+          fga_per_game: tAvg('fga_per_game'),
+          fg_percent: tAvg('fg_percent'),
+          x3p_per_game: tAvg('x3p_per_game'),
+          x3pa_per_game: tAvg('x3pa_per_game'),
+          x3p_percent: tAvg('x3p_percent'),
+          x2p_per_game: tAvg('x2p_per_game'),
+          x2pa_per_game: tAvg('x2pa_per_game'),
+          x2p_percent: tAvg('x2p_percent'),
+          e_fg_percent: tAvg('e_fg_percent'),
+          ft_per_game: tAvg('ft_per_game'),
+          fta_per_game: tAvg('fta_per_game'),
+          ft_percent: tAvg('ft_percent'),
+          orb_per_game: tAvg('orb_per_game'),
+          drb_per_game: tAvg('drb_per_game'),
+          trb_per_game: tAvg('trb_per_game'),
+          ast_per_game: tAvg('ast_per_game'),
+          stl_per_game: tAvg('stl_per_game'),
+          blk_per_game: tAvg('blk_per_game'),
+          tov_per_game: tAvg('tov_per_game'),
+          pf_per_game: tAvg('pf_per_game'),
+          pts_per_game: tAvg('pts_per_game'),
+        };
+        const yrLabel = teamRows.length === 1 ? '1 Yr' : `${teamRows.length} Yrs`;
+        summaries.push({ label: `${team} (${yrLabel})`, isBold: true, row: tRow });
+      }
+    }
+
+    return summaries;
+  }, [rows]);
+
+  const perGameHeaders = [
+    'Season',
+    'Age',
+    'Tm',
+    'Lg',
+    'Pos',
+    'G',
+    'GS',
+    'MP',
+    'FG',
+    'FGA',
+    'FG%',
+    '3P',
+    '3PA',
+    '3P%',
+    '2P',
+    '2PA',
+    '2P%',
+    'eFG%',
+    'FT',
+    'FTA',
+    'FT%',
+    'ORB',
+    'DRB',
+    'TRB',
+    'AST',
+    'STL',
+    'BLK',
+    'TOV',
+    'PF',
+    'PTS',
+    'Awards',
+  ];
+
+  const sortKeyMap: Record<string, string> = {
+    Season: 'season_end_year',
+    Age: 'age',
+    Tm: 'team',
+    Lg: 'lg',
+    Pos: 'pos',
+    G: 'g',
+    GS: 'gs',
+    MP: 'mp_per_game',
+    FG: 'fg_per_game',
+    FGA: 'fga_per_game',
+    'FG%': 'fg_percent',
+    '3P': 'x3p_per_game',
+    '3PA': 'x3pa_per_game',
+    '3P%': 'x3p_percent',
+    '2P': 'x2p_per_game',
+    '2PA': 'x2pa_per_game',
+    '2P%': 'x2p_percent',
+    'eFG%': 'e_fg_percent',
+    FT: 'ft_per_game',
+    FTA: 'fta_per_game',
+    'FT%': 'ft_percent',
+    ORB: 'orb_per_game',
+    DRB: 'drb_per_game',
+    TRB: 'trb_per_game',
+    AST: 'ast_per_game',
+    STL: 'stl_per_game',
+    BLK: 'blk_per_game',
+    TOV: 'tov_per_game',
+    PF: 'pf_per_game',
+    PTS: 'pts_per_game',
+  };
+
+  const renderCell = (r: PlayerPerGameRow | Partial<PlayerPerGameRow>, col: string) => {
+    switch (col) {
+      case 'Season':
+        if ('season_end_year' in r && r.season_end_year && r.season_end_year > 0)
+          return formatSeason(r.season_end_year);
+        return (r as { label?: string }).label ?? '—';
+      case 'Age':
+        return r.age ?? '—';
+      case 'Tm':
+        return r.team === '2TM' ? (
+          <span className="italic text-fg-dim">{r.team}</span>
+        ) : (
+          (r.team ?? '—')
+        );
+      case 'Lg':
+        return ('lg' in r ? r.lg : '—') ?? '—';
+      case 'Pos':
+        return r.pos ?? '—';
+      case 'G':
+        return r.g ?? '—';
+      case 'GS':
+        return r.gs ?? '—';
+      case 'MP':
+        return (
+          <span className={highlightClass(r.mp_per_game, best(mpValues), worst(mpValues))}>
             {formatNumber(r.mp_per_game)}
-          </td>
-          <td className="px-2 py-0.5">{formatNumber(r.fg_per_game)}</td>
-          <td className="px-2 py-0.5">{formatNumber(r.fga_per_game)}</td>
-          <td className="px-2 py-0.5">{formatPct(r.fg_percent)}</td>
-          <td className="px-2 py-0.5">{formatNumber(r.x3p_per_game, 1)}</td>
-          <td className="px-2 py-0.5">{formatNumber(r.x3pa_per_game, 1)}</td>
-          <td className="px-2 py-0.5">{formatPct(r.x3p_percent)}</td>
-          <td className="px-2 py-0.5">{formatNumber(r.ft_per_game, 1)}</td>
-          <td className="px-2 py-0.5">{formatNumber(r.fta_per_game, 1)}</td>
-          <td className="px-2 py-0.5">{formatPct(r.ft_percent)}</td>
-          <td className="px-2 py-0.5">{formatNumber(r.orb_per_game, 1)}</td>
-          <td className="px-2 py-0.5">{formatNumber(r.drb_per_game, 1)}</td>
-          <td
-            className={`px-2 py-0.5 ${highlightClass(r.trb_per_game, best(trbValues), worst(trbValues))}`}
-          >
+          </span>
+        );
+      case 'FG':
+        return formatNumber(r.fg_per_game);
+      case 'FGA':
+        return formatNumber(r.fga_per_game);
+      case 'FG%':
+        return formatPct(r.fg_percent);
+      case '3P':
+        return formatNumber(r.x3p_per_game, 1);
+      case '3PA':
+        return formatNumber(r.x3pa_per_game, 1);
+      case '3P%':
+        return formatPct(r.x3p_percent);
+      case '2P':
+        return formatNumber(r.x2p_per_game, 1);
+      case '2PA':
+        return formatNumber(r.x2pa_per_game, 1);
+      case '2P%':
+        return formatPct(r.x2p_percent);
+      case 'eFG%':
+        return formatPct(r.e_fg_percent);
+      case 'FT':
+        return formatNumber(r.ft_per_game, 1);
+      case 'FTA':
+        return formatNumber(r.fta_per_game, 1);
+      case 'FT%':
+        return formatPct(r.ft_percent);
+      case 'ORB':
+        return formatNumber(r.orb_per_game, 1);
+      case 'DRB':
+        return formatNumber(r.drb_per_game, 1);
+      case 'TRB':
+        return (
+          <span className={highlightClass(r.trb_per_game, best(trbValues), worst(trbValues))}>
             {formatNumber(r.trb_per_game, 1)}
-          </td>
-          <td
-            className={`px-2 py-0.5 ${highlightClass(r.ast_per_game, best(astValues), worst(astValues))}`}
-          >
+          </span>
+        );
+      case 'AST':
+        return (
+          <span className={highlightClass(r.ast_per_game, best(astValues), worst(astValues))}>
             {formatNumber(r.ast_per_game, 1)}
-          </td>
-          <td
-            className={`px-2 py-0.5 ${highlightClass(r.stl_per_game, best(stlValues), worst(stlValues))}`}
-          >
+          </span>
+        );
+      case 'STL':
+        return (
+          <span className={highlightClass(r.stl_per_game, best(stlValues), worst(stlValues))}>
             {formatNumber(r.stl_per_game, 1)}
-          </td>
-          <td
-            className={`px-2 py-0.5 ${highlightClass(r.blk_per_game, best(blkValues), worst(blkValues))}`}
-          >
+          </span>
+        );
+      case 'BLK':
+        return (
+          <span className={highlightClass(r.blk_per_game, best(blkValues), worst(blkValues))}>
             {formatNumber(r.blk_per_game, 1)}
-          </td>
-          <td className="px-2 py-0.5">{formatNumber(r.tov_per_game, 1)}</td>
-          <td className="px-2 py-0.5">{formatNumber(r.pf_per_game, 1)}</td>
-          <td
-            className={`px-2 py-0.5 ${highlightClass(r.pts_per_game, best(ptsValues), worst(ptsValues))}`}
-          >
+          </span>
+        );
+      case 'TOV':
+        return formatNumber(r.tov_per_game, 1);
+      case 'PF':
+        return formatNumber(r.pf_per_game, 1);
+      case 'PTS':
+        return (
+          <span className={highlightClass(r.pts_per_game, best(ptsValues), worst(ptsValues))}>
             {formatNumber(r.pts_per_game, 1)}
-          </td>
-        </tr>
-      ))}
-    </DataTable>
+          </span>
+        );
+      case 'Awards':
+        if ('season_end_year' in r && r.season_end_year && r.season_end_year > 0) {
+          const yrAwards = awardsBySeason.get(Number(r.season_end_year));
+          return yrAwards?.length ? yrAwards.join(', ') : '';
+        }
+        return '';
+      default:
+        return '';
+    }
+  };
+
+  const getStickyClass = (col: string): string => {
+    switch (col) {
+      case 'Season':
+        return 'sticky left-0 z-[5] bg-surface';
+      case 'Age':
+        return 'sticky left-[4.5rem] z-[5] bg-surface';
+      case 'Tm':
+        return 'sticky left-[7rem] z-[5] bg-surface';
+      case 'G':
+        return 'sticky left-[9.5rem] z-[5] bg-surface';
+      default:
+        return '';
+    }
+  };
+
+  return (
+    <div className="relative">
+      {/* Right-edge fade scroll indicator */}
+      <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-8 bg-gradient-to-l from-surface/80 to-transparent" />
+      {/* Bottom-edge fade scroll indicator */}
+      <div className="pointer-events-none absolute bottom-0 left-0 z-10 h-6 w-full bg-gradient-to-t from-surface/60 to-transparent" />
+      <table className="min-w-full font-mono text-xs">
+        <thead className="sticky top-0 z-10">
+          <tr className="bg-surface text-fg-dim">
+            {perGameHeaders.map((h) => {
+              const sortKey = sortKeyMap[h];
+              const isActive = sortCol === sortKey;
+              return (
+                <th
+                  key={h}
+                  onClick={sortKey ? () => handleSort(sortKey) : undefined}
+                  className={`border-b-2 border-border px-2 py-1.5 text-left font-semibold whitespace-nowrap ${getStickyClass(h)} ${sortKey ? 'cursor-pointer hover:text-fg select-none' : ''}`}
+                >
+                  <span className="inline-flex items-center gap-0.5">
+                    {h}
+                    {isActive && (
+                      <span className="text-[8px] leading-none">
+                        {sortDir === 'desc' ? '▼' : '▲'}
+                      </span>
+                    )}
+                  </span>
+                </th>
+              );
+            })}
+          </tr>
+        </thead>
+        <tbody>
+          {/* Season rows */}
+          {sortedRows.map((r) => (
+            <tr
+              key={`per-game-${r.season_end_year}-${r.team ?? ''}-${r.pos ?? ''}`}
+              className="border-b border-surface-alt/50 text-fg-muted last:border-b-0 hover:bg-surface-alt/40 transition-colors even:bg-surface-alt/20"
+            >
+              {perGameHeaders.map((col) => (
+                <td
+                  key={col}
+                  className={`px-2 py-0.5 ${getStickyClass(col)} ${col === 'Season' ? 'font-medium text-fg whitespace-nowrap' : ''}`}
+                >
+                  {renderCell(r, col)}
+                </td>
+              ))}
+            </tr>
+          ))}
+          {/* Summary rows */}
+          {summaryRows.map((s) => (
+            <tr
+              key={`summary-pergame-${s.label.replace(/\s+/g, '-')}`}
+              className={`border-t-2 border-border text-fg last:border-b-0 ${
+                s.isBold ? 'font-bold' : 'font-medium'
+              } bg-surface-alt/40`}
+            >
+              {perGameHeaders.map((col) => (
+                <td
+                  key={col}
+                  className={`px-2 py-0.5 ${getStickyClass(col)} ${
+                    col === 'Season'
+                      ? 'font-bold text-fg whitespace-nowrap'
+                      : col === 'Age' || col === 'Tm' || col === 'G'
+                        ? 'text-fg-muted'
+                        : ''
+                  }`}
+                >
+                  {col === 'Season' ? s.label : renderCell(s.row as PlayerPerGameRow, col)}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
 

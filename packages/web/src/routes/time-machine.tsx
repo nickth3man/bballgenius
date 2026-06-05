@@ -20,7 +20,8 @@ import {
   DossierHeader,
   DraftCombineCard,
   GameLogCard,
-  PlayoffStatsCard,
+  PHASE_IDS,
+  type PhaseId,
   SeasonTabs,
   ShotZonesCard,
   STATS_TAB_IDS,
@@ -341,6 +342,7 @@ const timeMachineSearchSchema = z.object({
     .transform((v) => String(v))
     .optional(),
   tab: z.enum(STATS_TAB_IDS).optional().catch(undefined),
+  phase: z.enum(PHASE_IDS).optional().catch(undefined),
 });
 
 export const Route = createFileRoute('/time-machine')({
@@ -350,7 +352,11 @@ export const Route = createFileRoute('/time-machine')({
 
 function TimeMachinePage(): ReactNode {
   const navigate = useNavigate({ from: Route.fullPath });
-  const { pid: urlPid, tab: seasonStatsTab = 'per-game' } = Route.useSearch();
+  const {
+    pid: urlPid,
+    tab: seasonStatsTab = 'per-game',
+    phase: seasonPhase = 'regular',
+  } = Route.useSearch();
   const [search, setSearch] = useState('');
   const [players, setPlayers] = useState<PlayerResult[]>([]);
   const [selectedPlayer, setSelectedPlayer] = useState<PlayerResult | null>(null);
@@ -377,6 +383,16 @@ function TimeMachinePage(): ReactNode {
     (tab: StatsTabId) => {
       navigate({
         search: (prev) => ({ ...prev, tab }),
+        replace: true,
+      });
+    },
+    [navigate],
+  );
+
+  const setSeasonPhase = useCallback(
+    (phase: PhaseId) => {
+      navigate({
+        search: (prev) => ({ ...prev, phase }),
         replace: true,
       });
     },
@@ -616,9 +632,6 @@ function TimeMachinePage(): ReactNode {
             <SectionErrorBoundary sectionName="Career trajectory">
               <CareerTrajectory perGame={dossier.perGame} />
             </SectionErrorBoundary>
-            <SectionErrorBoundary sectionName="Playoff stats">
-              <PlayoffStatsCard rows={dossier.playoffPerGame} />
-            </SectionErrorBoundary>
             <SectionErrorBoundary sectionName="Awards">
               <AwardsGrouped groups={awardsGrouped} />
             </SectionErrorBoundary>
@@ -628,12 +641,16 @@ function TimeMachinePage(): ReactNode {
             <SectionErrorBoundary sectionName="Season stats">
               <SeasonTabs
                 perGame={dossier.perGame}
+                playoffPerGame={dossier.playoffPerGame}
                 totals={dossier.totalsSeason}
                 per36={dossier.per36}
                 advanced={dossier.advanced}
                 shooting={dossier.shooting}
                 playByPlay={dossier.playByPlay}
+                awards={dossier.awards}
+                activePhase={seasonPhase}
                 activeTab={seasonStatsTab}
+                onPhaseChange={setSeasonPhase}
                 onTabChange={setSeasonStatsTab}
               />
             </SectionErrorBoundary>

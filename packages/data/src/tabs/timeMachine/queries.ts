@@ -169,6 +169,10 @@ export interface PlayerPerGameRow {
   x3p_per_game: number | null;
   x3pa_per_game: number | null;
   x3p_percent: number | null;
+  x2p_per_game: number | null;
+  x2pa_per_game: number | null;
+  x2p_percent: number | null;
+  e_fg_percent: number | null;
   ft_per_game: number | null;
   fta_per_game: number | null;
   ft_percent: number | null;
@@ -181,6 +185,8 @@ export interface PlayerPerGameRow {
   tov_per_game: number | null;
   pf_per_game: number | null;
   pts_per_game: number | null;
+  lg: string | null;
+  is_playoffs: boolean | null;
 }
 
 export interface PlayerTotalsRow {
@@ -670,6 +676,10 @@ export async function loadPlayerPerGame(playerId: string): Promise<PlayerPerGame
       x3p_per_game,
       x3pa_per_game,
       x3p_percent,
+      x2p_per_game,
+      x2pa_per_game,
+      x2p_percent,
+      e_fg_percent,
       ft_per_game,
       fta_per_game,
       ft_percent,
@@ -681,9 +691,11 @@ export async function loadPlayerPerGame(playerId: string): Promise<PlayerPerGame
       blk_per_game,
       tov_per_game,
       pf_per_game,
-      pts_per_game
+      pts_per_game,
+      lg,
+      is_playoffs
     FROM main.fact_bref_player_season_per_game
-    WHERE person_id = CAST($1 AS INTEGER)
+    WHERE person_id = CAST($1 AS INTEGER) AND is_playoffs = false
     ORDER BY season_end_year ASC
   `,
     [playerId],
@@ -1213,12 +1225,12 @@ export async function loadPlayerPlayoffPerGame(playerId: string): Promise<Player
   return query<PlayerPerGameRow>(
     `
     SELECT
-      RIGHT(g.season_year, 2)::INTEGER + 2000 AS season_end_year,
+      LEFT(g.season_year, 4)::INTEGER + 1 AS season_end_year,
       NULL::DOUBLE AS age,
       '—' AS team,
       '—' AS pos,
-      COUNT(*)::DOUBLE AS g,
-      NULL::DOUBLE AS gs,
+      COUNT(*)::INTEGER AS g,
+      NULL::INTEGER AS gs,
       ROUND(AVG(COALESCE(b.min, 0)), 1) AS mp_per_game,
       ROUND(AVG(COALESCE(b.fgm, 0)), 1) AS fg_per_game,
       ROUND(AVG(COALESCE(b.fga, 0)), 1) AS fga_per_game,
@@ -1226,6 +1238,10 @@ export async function loadPlayerPlayoffPerGame(playerId: string): Promise<Player
       ROUND(AVG(COALESCE(b.fg3m, 0)), 1) AS x3p_per_game,
       ROUND(AVG(COALESCE(b.fg3a, 0)), 1) AS x3pa_per_game,
       ROUND(SUM(COALESCE(b.fg3m, 0)) / NULLIF(SUM(COALESCE(b.fg3a, 0)), 0), 3) AS x3p_percent,
+      ROUND(AVG(COALESCE(b.fgm, 0) - COALESCE(b.fg3m, 0)), 1) AS x2p_per_game,
+      ROUND(AVG(COALESCE(b.fga, 0) - COALESCE(b.fg3a, 0)), 1) AS x2pa_per_game,
+      ROUND(SUM(COALESCE(b.fgm, 0) - COALESCE(b.fg3m, 0)) / NULLIF(SUM(COALESCE(b.fga, 0) - COALESCE(b.fg3a, 0)), 0), 3) AS x2p_percent,
+      ROUND((SUM(COALESCE(b.fgm, 0)) + 0.5 * SUM(COALESCE(b.fg3m, 0))) / NULLIF(SUM(COALESCE(b.fga, 0)), 0), 3) AS e_fg_percent,
       ROUND(AVG(COALESCE(b.ftm, 0)), 1) AS ft_per_game,
       ROUND(AVG(COALESCE(b.fta, 0)), 1) AS fta_per_game,
       ROUND(SUM(COALESCE(b.ftm, 0)) / NULLIF(SUM(COALESCE(b.fta, 0)), 0), 3) AS ft_percent,
@@ -1237,7 +1253,9 @@ export async function loadPlayerPlayoffPerGame(playerId: string): Promise<Player
       ROUND(AVG(COALESCE(b.blocks, 0)), 1) AS blk_per_game,
       ROUND(AVG(COALESCE(b.turnovers, 0)), 1) AS tov_per_game,
       ROUND(AVG(COALESCE(b.fouls_personal, 0)), 1) AS pf_per_game,
-      ROUND(AVG(COALESCE(b.points, 0)), 1) AS pts_per_game
+      ROUND(AVG(COALESCE(b.points, 0)), 1) AS pts_per_game,
+      'NBA' AS lg,
+      true AS is_playoffs
     FROM unified_star.fact_player_game_boxscore b
     JOIN unified_star.dim_game g ON b.game_id = g.game_id
     WHERE b.player_id = CAST($1 AS INTEGER) AND g.season_type = 'Playoffs'
