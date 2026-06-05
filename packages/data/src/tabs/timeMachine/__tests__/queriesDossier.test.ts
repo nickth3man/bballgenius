@@ -3,7 +3,11 @@ import { beforeEach, describe, expect, mock, test } from 'bun:test';
 let queries: string[] = [];
 
 mock.module('../../../core/db.js', () => ({
-  query: async (sql: string, _params?: unknown[]) => {
+  query: async (sql: string, params?: unknown[]) => {
+    if (params?.[0] === '99999') {
+      throw new Error('Simulated DB error');
+    }
+
     queries.push(sql);
 
     // loadPlayerMeta — enriched
@@ -352,6 +356,44 @@ mock.module('../../../core/db.js', () => ({
       ];
     }
 
+    // loadCareerStats — fact_player_season_stats with is_playoffs
+    if (sql.includes('fact_player_season_stats')) {
+      return [
+        {
+          season_year: '1970-71',
+          is_playoffs: false,
+          gp: 81,
+          gs: null,
+          min: 2924,
+          pts: 1881,
+          ast: 358,
+          reb: 299,
+          stl: null,
+          blk: null,
+          ts_pct: 0.512,
+          per: 17.8,
+          bpm: null,
+          vorp: null,
+        },
+        {
+          season_year: '1970-71',
+          is_playoffs: true,
+          gp: 5,
+          gs: null,
+          min: 180,
+          pts: 110,
+          ast: 20,
+          reb: 18,
+          stl: null,
+          blk: null,
+          ts_pct: 0.48,
+          per: 15.2,
+          bpm: null,
+          vorp: null,
+        },
+      ];
+    }
+
     // Default fallback for fact_player_awards
     return [
       { award: 'nba mvp', season_year: '1976-77', count: 1 },
@@ -441,6 +483,18 @@ describe('loadPlayerDossier', () => {
     expect(dossier.shotZones.length).toBe(2);
     expect(dossier.shotZones[0].zone).toBe('Mid-Range');
     expect(dossier.shotZones[0].fg_pct).toBeCloseTo(0.45, 2);
+
+    // Career stats — regular season + playoffs
+    expect(dossier.careerStats).toBeDefined();
+    expect(dossier.careerStats.length).toBe(2);
+    const reg = dossier.careerStats.find((s) => !s.is_playoffs);
+    const poff = dossier.careerStats.find((s) => s.is_playoffs);
+    expect(reg).toBeDefined();
+    expect(reg!.season_year).toBe('1970-71');
+    expect(reg!.pts).toBe(1881);
+    expect(poff).toBeDefined();
+    expect(poff!.season_year).toBe('1970-71');
+    expect(poff!.pts).toBe(110);
   });
 });
 
@@ -450,15 +504,6 @@ describe('loadPlayerDossier with errors', () => {
   });
 
   test('returns defaults when every query throws', async () => {
-    // Override the mock for this test to throw on everything except v_player_honors_full
-    // (which is checked first) and the fallback fact_player_awards path.
-    // We do this by clearing and re-mocking.
-    mock.module('../../../core/db.js', () => ({
-      query: async () => {
-        throw new Error('Simulated DB error');
-      },
-    }));
-
     const { loadPlayerDossier } = await import('../queries.js');
     const dossier = await loadPlayerDossier('99999');
 
@@ -478,6 +523,7 @@ describe('loadPlayerDossier with errors', () => {
     expect(dossier.gameLog).toEqual([]);
     expect(dossier.franchise).toEqual([]);
     expect(dossier.shotZones).toEqual([]);
+    expect(dossier.careerStats).toEqual([]);
   });
 });
 

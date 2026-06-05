@@ -388,6 +388,7 @@ export interface PlayerDossier {
   gameLog: PlayerGameLogRow[];
   franchise: PlayerFranchiseStandingRow[];
   shotZones: PlayerShotZoneRow[];
+  careerStats: CareerStatRow[];
 }
 
 /* ───────────────────────────────────────────────
@@ -1041,6 +1042,7 @@ export async function loadPlayerDossier(playerId: string): Promise<PlayerDossier
     loadPlayerGameLog(playerId),
     loadPlayerFranchiseStanding(playerId),
     loadPlayerShotZones(playerId),
+    loadCareerStats(playerId),
   ]);
 
   const settled = <T>(r: PromiseSettledResult<T>, fallback: T): T => {
@@ -1066,6 +1068,7 @@ export async function loadPlayerDossier(playerId: string): Promise<PlayerDossier
     gameLog: settled(results[13], []),
     franchise: settled(results[14], []),
     shotZones: settled(results[15], []),
+    careerStats: settled(results[16], []),
   };
 }
 

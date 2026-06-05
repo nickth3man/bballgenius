@@ -20,6 +20,7 @@ import {
   DossierHeader,
   DraftCombineCard,
   GameLogCard,
+  PlayoffStatsCard,
   SeasonTabs,
   ShotZonesCard,
   STATS_TAB_IDS,
@@ -614,6 +615,9 @@ function TimeMachinePage(): ReactNode {
             </SectionErrorBoundary>
             <SectionErrorBoundary sectionName="Career trajectory">
               <CareerTrajectory perGame={dossier.perGame} />
+            </SectionErrorBoundary>
+            <SectionErrorBoundary sectionName="Playoff stats">
+              <PlayoffStatsCard rows={dossier.careerStats} />
             </SectionErrorBoundary>
             <SectionErrorBoundary sectionName="Awards">
               <AwardsGrouped groups={awardsGrouped} />

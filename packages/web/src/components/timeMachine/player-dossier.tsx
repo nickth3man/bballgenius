@@ -7,6 +7,7 @@ import type { KeyboardEvent, ReactNode } from 'react';
  */
 
 import type {
+  CareerStatRow,
   GroupedAward,
   PlayerAdvancedRow,
   PlayerAllStarRow,
@@ -66,6 +67,15 @@ function formatSeason(seasonEndYear: number | string | null | undefined): string
   const y = Number(seasonEndYear);
   if (!Number.isFinite(y)) return String(seasonEndYear);
   return `${y - 1}-${String(y).slice(-2)}`;
+}
+
+function formatSeasonLabel(seasonYear: number | string | null | undefined): string {
+  if (seasonYear == null) return '—';
+  const value = String(seasonYear);
+  if (/^\d{4}-\d{2,4}$/.test(value)) return value;
+  const y = Number(value);
+  if (!Number.isFinite(y)) return value;
+  return formatSeason(y);
 }
 
 function formatDate(value: string | null | undefined): string {
@@ -343,7 +353,8 @@ function CareerSparkline({
 }
 
 export function CareerTrajectory({ perGame }: { perGame: PlayerPerGameRow[] }): ReactNode {
-  if (perGame.length === 0) return null;
+  const regularSeasonRows = perGame.filter((row) => !('is_playoffs' in row) || !row.is_playoffs);
+  if (regularSeasonRows.length === 0) return null;
   return (
     <section>
       <SectionHeader>Career Trajectory</SectionHeader>
@@ -351,20 +362,99 @@ export function CareerTrajectory({ perGame }: { perGame: PlayerPerGameRow[] }): 
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           <div>
             <div className="mb-1 text-[10px] uppercase tracking-widest text-fg-dim">PPG</div>
-            <CareerSparkline rows={perGame} valueKey="pts_per_game" />
+            <CareerSparkline rows={regularSeasonRows} valueKey="pts_per_game" />
           </div>
           <div>
             <div className="mb-1 text-[10px] uppercase tracking-widest text-fg-dim">RPG</div>
-            <CareerSparkline rows={perGame} valueKey="trb_per_game" />
+            <CareerSparkline rows={regularSeasonRows} valueKey="trb_per_game" />
           </div>
           <div>
             <div className="mb-1 text-[10px] uppercase tracking-widest text-fg-dim">APG</div>
-            <CareerSparkline rows={perGame} valueKey="ast_per_game" />
+            <CareerSparkline rows={regularSeasonRows} valueKey="ast_per_game" />
           </div>
           <div>
             <div className="mb-1 text-[10px] uppercase tracking-widest text-fg-dim">MPG</div>
-            <CareerSparkline rows={perGame} valueKey="mp_per_game" />
+            <CareerSparkline rows={regularSeasonRows} valueKey="mp_per_game" />
           </div>
+        </div>
+      </SectionCard>
+    </section>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Playoff Stats                                                             */
+/* -------------------------------------------------------------------------- */
+
+function safeRate(numerator: number, denominator: number): number | null {
+  if (denominator <= 0) return null;
+  return numerator / denominator;
+}
+
+function sumStat(rows: CareerStatRow[], key: keyof CareerStatRow): number {
+  return rows.reduce((sum, row) => {
+    const value = Number(row[key]);
+    return Number.isFinite(value) ? sum + value : sum;
+  }, 0);
+}
+
+function averagePerGame(
+  rows: CareerStatRow[],
+  key: keyof CareerStatRow,
+  games: number,
+): number | null {
+  if (games <= 0 || !rows.some((row) => row[key] != null && Number.isFinite(Number(row[key])))) {
+    return null;
+  }
+  return safeRate(sumStat(rows, key), games);
+}
+
+export function PlayoffStatsCard({ rows }: { rows: CareerStatRow[] }): ReactNode {
+  const playoffRows = rows.filter((row) => row.is_playoffs);
+  if (playoffRows.length === 0) return null;
+
+  const games = sumStat(playoffRows, 'gp');
+  const points = sumStat(playoffRows, 'pts');
+
+  return (
+    <section>
+      <SectionHeader>Playoff Stats</SectionHeader>
+      <SectionCard>
+        <div className="mb-3 grid grid-cols-3 gap-2 sm:grid-cols-6">
+          <StatCard label="PO GP" value={formatNumber(games, 0)} />
+          <StatCard label="PPG" value={formatNumber(safeRate(points, games))} />
+          <StatCard label="RPG" value={formatNumber(averagePerGame(playoffRows, 'reb', games))} />
+          <StatCard label="APG" value={formatNumber(averagePerGame(playoffRows, 'ast', games))} />
+          <StatCard label="SPG" value={formatNumber(averagePerGame(playoffRows, 'stl', games))} />
+          <StatCard label="BPG" value={formatNumber(averagePerGame(playoffRows, 'blk', games))} />
+        </div>
+        <div className="overflow-x-auto rounded border border-border bg-surface focus:outline-none focus:ring-2 focus:ring-primary/50">
+          <DataTable
+            headers={['Season', 'GP', 'PTS', 'REB', 'AST', 'STL', 'BLK', 'PER', 'BPM', 'VORP']}
+          >
+            {playoffRows.map((row) => (
+              <tr
+                key={`career-playoffs-${row.season_year}`}
+                className="border-b border-surface-alt/50 text-fg-muted even:bg-surface-alt/20 last:border-b-0 hover:bg-surface-alt/40 transition-colors"
+              >
+                <th
+                  scope="row"
+                  className="sticky left-0 z-[5] whitespace-nowrap bg-surface px-2 py-0.5 text-left font-medium text-fg"
+                >
+                  {formatSeasonLabel(row.season_year)}
+                </th>
+                <td className="px-2 py-0.5">{formatNumber(row.gp, 0)}</td>
+                <td className="px-2 py-0.5">{formatNumber(row.pts, 0)}</td>
+                <td className="px-2 py-0.5">{formatNumber(row.reb, 0)}</td>
+                <td className="px-2 py-0.5">{formatNumber(row.ast, 0)}</td>
+                <td className="px-2 py-0.5">{formatNumber(row.stl, 0)}</td>
+                <td className="px-2 py-0.5">{formatNumber(row.blk, 0)}</td>
+                <td className="px-2 py-0.5">{formatNumber(row.per, 1)}</td>
+                <td className="px-2 py-0.5">{formatNumber(row.bpm, 1)}</td>
+                <td className="px-2 py-0.5">{formatNumber(row.vorp, 1)}</td>
+              </tr>
+            ))}
+          </DataTable>
         </div>
       </SectionCard>
     </section>
@@ -1250,6 +1340,7 @@ export function DraftCombineCard({ draft, combine }: DraftCombineProps): ReactNo
 
 /* Re-export types so consumers can use the prop shapes directly. */
 export type {
+  CareerStatRow,
   GroupedAward,
   PlayerAdvancedRow,
   PlayerAllStarRow,
