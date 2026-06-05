@@ -142,10 +142,17 @@ function ageString(birthDate: string | null | undefined): string {
 /*  Section primitives                                                        */
 /* -------------------------------------------------------------------------- */
 
-function SectionHeader({ children }: { children: ReactNode }): ReactNode {
+function SectionHeader({
+  children,
+  variant = 'primary',
+}: {
+  children: ReactNode;
+  variant?: 'primary' | 'accent';
+}): ReactNode {
+  const accentBar = variant === 'accent' ? 'bg-accent/60' : 'bg-primary/60';
   return (
     <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-fg-muted">
-      <span className="inline-block h-3.5 w-0.5 rounded-full bg-primary/60" />
+      <span className={`inline-block h-3.5 w-0.5 rounded-full ${accentBar}`} />
       {children}
     </div>
   );
@@ -418,10 +425,14 @@ export function PlayoffStatsCard({ rows }: { rows: CareerStatRow[] }): ReactNode
 
   return (
     <section>
-      <SectionHeader>Playoff Stats</SectionHeader>
+      <SectionHeader variant="accent">Playoff Stats</SectionHeader>
       <SectionCard>
+        <p className="mb-3 text-[10px] leading-relaxed text-fg-dim">
+          Season-level postseason data. Values shown as <span className="text-fg-dim/60">—</span>{' '}
+          indicate unavailable stats in the source database for that season.
+        </p>
         <div className="mb-3 grid grid-cols-3 gap-2 sm:grid-cols-6">
-          <StatCard label="PO GP" value={formatNumber(games, 0)} />
+          <StatCard label="GP" value={formatNumber(games, 0)} />
           <StatCard label="PPG" value={formatNumber(safeRate(points, games))} />
           <StatCard label="RPG" value={formatNumber(averagePerGame(playoffRows, 'reb', games))} />
           <StatCard label="APG" value={formatNumber(averagePerGame(playoffRows, 'ast', games))} />
