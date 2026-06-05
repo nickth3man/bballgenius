@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { KeyboardEvent, ReactNode } from 'react';
 
 /**
  * Player dossier subcomponents. Purely presentational: every prop is a typed
@@ -78,7 +78,7 @@ function DataTable({ headers, children }: { headers: string[]; children: ReactNo
     <div className="relative">
       {/* Right-edge fade scroll indicator */}
       <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-8 bg-gradient-to-l from-surface/80 to-transparent" />
-      <table className="min-w-full font-mono text-xs">
+      <table className="min-w-full font-mono text-xs [&_tbody_td:first-child]:sticky [&_tbody_td:first-child]:left-0 [&_tbody_td:first-child]:z-[5] [&_tbody_td:first-child]:bg-surface [&_tbody_td:first-child]:font-medium [&_tbody_td:first-child]:text-fg [&_thead_th:first-child]:sticky [&_thead_th:first-child]:left-0 [&_thead_th:first-child]:z-20 [&_thead_th:first-child]:bg-surface">
         <thead className="sticky top-0 z-10">
           <tr className="bg-surface text-fg-dim">
             {headers.map((h) => (
@@ -571,6 +571,25 @@ export interface SeasonTabsProps {
 
 export function SeasonTabs(props: SeasonTabsProps): ReactNode {
   const tab = props.activeTab ?? 'per-game';
+  const activeTabIndex = STATS_TABS.findIndex((t) => t.id === tab);
+  const activeTabPanelId = `season-stats-panel-${tab}`;
+
+  const handleTabKeyDown = (event: KeyboardEvent<HTMLButtonElement>): void => {
+    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+    event.preventDefault();
+
+    const direction = event.key === 'ArrowRight' ? 1 : -1;
+    const nextTab = STATS_TABS.at(
+      (activeTabIndex + direction + STATS_TABS.length) % STATS_TABS.length,
+    );
+    if (!nextTab) return;
+
+    props.onTabChange?.(nextTab.id);
+    globalThis.setTimeout(() => {
+      document.getElementById(`season-stats-tab-${nextTab.id}`)?.focus();
+    }, 0);
+  };
+
   return (
     <section>
       <SectionHeader>Season Stats</SectionHeader>
@@ -580,8 +599,12 @@ export function SeasonTabs(props: SeasonTabsProps): ReactNode {
             key={t.id}
             type="button"
             role="tab"
+            id={`season-stats-tab-${t.id}`}
             aria-selected={tab === t.id}
+            aria-controls={`season-stats-panel-${t.id}`}
+            tabIndex={tab === t.id ? 0 : -1}
             onClick={() => props.onTabChange?.(t.id)}
+            onKeyDown={handleTabKeyDown}
             className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
               tab === t.id
                 ? 'bg-primary text-bg'
@@ -592,7 +615,13 @@ export function SeasonTabs(props: SeasonTabsProps): ReactNode {
           </button>
         ))}
       </div>
-      <div className="overflow-x-auto rounded border border-border bg-surface">
+      <p className="mb-1 text-[10px] text-fg-dim sm:hidden">Swipe sideways for more columns.</p>
+      <div
+        id={activeTabPanelId}
+        role="tabpanel"
+        aria-labelledby={`season-stats-tab-${tab}`}
+        className="overflow-x-auto rounded border border-border bg-surface focus:outline-none focus:ring-2 focus:ring-primary/50"
+      >
         {tab === 'per-game' ? <PerGameTable rows={props.perGame} /> : null}
         {tab === 'totals' ? <TotalsTable rows={props.totals} /> : null}
         {tab === 'per-36' ? <Per36Table rows={props.per36} /> : null}
@@ -977,7 +1006,7 @@ function ShootingTable({ rows }: { rows: PlayerShootingRow[] }): ReactNode {
           <td className="px-2 py-0.5">{formatPct(r.percent_assisted_x3p_fg)}</td>
           <td className="px-2 py-0.5">{formatPct(r.percent_dunks_of_fga)}</td>
           <td className="px-2 py-0.5">{r.num_of_dunks ?? '—'}</td>
-          <td className="px-2 py-0.5">{r.percent_corner_3s_of_3pa ?? '—'}</td>
+          <td className="px-2 py-0.5">{formatPct(r.percent_corner_3s_of_3pa)}</td>
         </tr>
       ))}
     </DataTable>
@@ -1013,11 +1042,11 @@ function PlayByPlayTable({ rows }: { rows: PlayerPlayByPlayRow[] }): ReactNode {
           <td className="px-2 py-0.5">{r.team ?? '—'}</td>
           <td className="px-2 py-0.5">{r.g ?? '—'}</td>
           <td className="px-2 py-0.5">{r.mp ?? '—'}</td>
-          <td className="px-2 py-0.5">{formatPct(r.pg_percent)}</td>
-          <td className="px-2 py-0.5">{formatPct(r.sg_percent)}</td>
-          <td className="px-2 py-0.5">{formatPct(r.sf_percent)}</td>
-          <td className="px-2 py-0.5">{formatPct(r.pf_percent)}</td>
-          <td className="px-2 py-0.5">{formatPct(r.c_percent)}</td>
+          <td className="px-2 py-0.5">{formatPctValue(r.pg_percent)}</td>
+          <td className="px-2 py-0.5">{formatPctValue(r.sg_percent)}</td>
+          <td className="px-2 py-0.5">{formatPctValue(r.sf_percent)}</td>
+          <td className="px-2 py-0.5">{formatPctValue(r.pf_percent)}</td>
+          <td className="px-2 py-0.5">{formatPctValue(r.c_percent)}</td>
           <td className="px-2 py-0.5">{formatNumber(r.on_court_plus_minus_per_100_poss, 1)}</td>
           <td className="px-2 py-0.5">{formatNumber(r.net_plus_minus_per_100_poss, 1)}</td>
           <td className="px-2 py-0.5">{formatNumber(r.points_generated_by_assists, 0)}</td>
