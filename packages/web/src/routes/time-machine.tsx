@@ -135,7 +135,8 @@ function TimeMachinePage(): ReactNode {
   return (
     <div className="flex h-full">
       <div className="w-72 shrink-0 overflow-auto border-r border-border bg-surface p-2">
-        <h2 className="mb-2 text-sm font-bold text-primary">Player Search</h2>
+        <h2 className="mb-1 text-sm font-bold text-primary">Player Search</h2>
+        <p className="mb-2 text-[10px] text-fg-dim">Start typing to find any NBA player</p>
         <div className="relative mb-2">
           <input
             type="text"
@@ -236,9 +237,29 @@ function TimeMachinePage(): ReactNode {
             <DraftCombineCard draft={dossier.draft} combine={dossier.combine} />
           </div>
         ) : selectedPlayer && loading ? (
-          <div className="text-fg-dim text-sm">Loading player dossier…</div>
+          <div className="flex items-center justify-center gap-2 py-20 text-sm text-fg-dim">
+            <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            Loading player dossier…
+          </div>
         ) : selectedPlayer && !loading ? (
-          <div className="text-fg-dim text-sm">No data returned for this player.</div>
+          <div className="flex items-center justify-center gap-2 py-20 text-sm text-danger/80">
+            <svg
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.5}
+              role="img"
+              aria-label="Error"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"
+              />
+            </svg>
+            No data returned for this player.
+          </div>
         ) : (
           <div className="flex h-full flex-col items-center justify-center gap-3 px-4 text-center">
             <div className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-border bg-surface-alt/50">
