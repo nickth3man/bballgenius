@@ -1,4 +1,4 @@
-import type { KeyboardEvent, ReactNode } from 'react';
+import { type KeyboardEvent, type ReactNode, useState } from 'react';
 
 /**
  * Player dossier subcomponents. Purely presentational: every prop is a typed
@@ -417,8 +417,12 @@ function averagePerGame(
 }
 
 export function PlayoffStatsCard({ rows }: { rows: CareerStatRow[] }): ReactNode {
+  const [showAllRows, setShowAllRows] = useState(false);
   const playoffRows = rows.filter((row) => row.is_playoffs);
   if (playoffRows.length === 0) return null;
+
+  const visibleRows = showAllRows ? playoffRows : playoffRows.slice(0, 8);
+  const hiddenCount = playoffRows.length - visibleRows.length;
 
   const games = sumStat(playoffRows, 'gp');
   const points = sumStat(playoffRows, 'pts');
@@ -443,7 +447,7 @@ export function PlayoffStatsCard({ rows }: { rows: CareerStatRow[] }): ReactNode
           <DataTable
             headers={['Season', 'GP', 'PTS', 'REB', 'AST', 'STL', 'BLK', 'PER', 'BPM', 'VORP']}
           >
-            {playoffRows.map((row) => (
+            {visibleRows.map((row) => (
               <tr
                 key={`career-playoffs-${row.season_year}`}
                 className="border-b border-surface-alt/50 text-fg-muted even:bg-surface-alt/20 last:border-b-0 hover:bg-surface-alt/40 transition-colors"
@@ -467,6 +471,20 @@ export function PlayoffStatsCard({ rows }: { rows: CareerStatRow[] }): ReactNode
             ))}
           </DataTable>
         </div>
+        {hiddenCount > 0 || showAllRows ? (
+          <div className="mt-2 flex items-center justify-between gap-3 text-[10px] text-fg-dim">
+            <span>
+              Showing {visibleRows.length} of {playoffRows.length} playoff seasons
+            </span>
+            <button
+              type="button"
+              onClick={() => setShowAllRows((value) => !value)}
+              className="rounded-full border border-border bg-surface-alt px-2.5 py-1 font-medium text-fg-muted transition-colors hover:border-accent/50 hover:text-accent"
+            >
+              {showAllRows ? 'Show latest 8' : `Show all ${playoffRows.length}`}
+            </button>
+          </div>
+        ) : null}
       </SectionCard>
     </section>
   );
