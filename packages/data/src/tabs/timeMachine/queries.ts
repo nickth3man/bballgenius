@@ -415,9 +415,14 @@ function mapAwardRows(rows: HonorsRow[]): PlayerAwardRow[] {
 /** Loads the default startup player (LeBron James) when present in dim_player. */
 export async function loadDefaultPlayer(): Promise<PlayerSuggestion | null> {
   const rows = await query<PlayerSuggestion>(`
-    SELECT player_id, full_name, from_year, to_year, is_active
-    FROM dim_player
-    WHERE full_name = 'LeBron James'
+    SELECT
+      person_id AS player_id,
+      first_name || ' ' || last_name AS full_name,
+      from_year,
+      to_year,
+      to_year >= 2025 AS is_active
+    FROM main.dim_player
+    WHERE first_name = 'LeBron' AND last_name = 'James'
     LIMIT 1
   `);
   return rows[0] ?? null;
@@ -427,10 +432,15 @@ export async function loadDefaultPlayer(): Promise<PlayerSuggestion | null> {
 export async function searchPlayerSuggestions(q: string): Promise<PlayerSuggestion[]> {
   return query<PlayerSuggestion>(
     `
-    SELECT player_id, full_name, from_year, to_year, is_active
-    FROM dim_player
-    WHERE lower(full_name) LIKE lower($1)
-    ORDER BY to_year DESC, full_name ASC
+    SELECT
+      person_id AS player_id,
+      first_name || ' ' || last_name AS full_name,
+      from_year,
+      to_year,
+      to_year >= 2025 AS is_active
+    FROM main.dim_player
+    WHERE lower(first_name || ' ' || last_name) LIKE lower($1)
+    ORDER BY to_year DESC, first_name ASC, last_name ASC
     LIMIT 8
   `,
     [`%${q}%`],
@@ -448,8 +458,20 @@ export async function loadFeaturedPlayers(): Promise<PlayerSuggestion[]> {
   const featuredIds = [2544, 201939, 203507, 203999, 1628369, 2546, 406, 893];
   const rows = await query<PlayerSuggestion>(
     `
-    SELECT player_id, full_name, from_year::VARCHAR, to_year::VARCHAR, is_active, primary_position
-    FROM dim_player
+    SELECT
+      person_id AS player_id,
+      first_name || ' ' || last_name AS full_name,
+      from_year::VARCHAR,
+      to_year::VARCHAR,
+      to_year >= 2025 AS is_active,
+      (SELECT bp.primary_position
+         FROM main.bridge_player_source_id src
+         JOIN main.dim_bref_player bp
+           ON bp.bref_player_id = src.source_player_id
+        WHERE src.person_id = p.person_id
+          AND src.source_system = 'basketball_reference'
+        LIMIT 1) AS position
+    FROM main.dim_player p
     WHERE person_id IN (${featuredIds.map((_, i) => `$${i + 1}`).join(', ')})
     `,
     featuredIds,

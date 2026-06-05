@@ -239,8 +239,12 @@ const searchPlayersFn = createServerFn({ method: 'POST', strict: { output: false
   .handler(async ({ data }) => {
     const { query } = await import('data');
     const rows = await query<Record<string, unknown>>(
-      `SELECT DISTINCT p.player_id, p.full_name, p.from_year::VARCHAR, p.to_year::VARCHAR,
-              p.is_active,
+      `SELECT DISTINCT
+              p.person_id AS player_id,
+              p.first_name || ' ' || p.last_name AS full_name,
+              p.from_year::VARCHAR,
+              p.to_year::VARCHAR,
+              p.to_year >= 2025 AS is_active,
               (SELECT bp.primary_position
                  FROM main.bridge_player_source_id src
                  JOIN main.dim_bref_player bp
@@ -249,8 +253,8 @@ const searchPlayersFn = createServerFn({ method: 'POST', strict: { output: false
                   AND src.source_system = 'basketball_reference'
                 LIMIT 1) AS primary_position
        FROM main.dim_player p
-       WHERE p.full_name ILIKE $1
-       ORDER BY p.full_name
+       WHERE p.first_name || ' ' || p.last_name ILIKE $1
+       ORDER BY p.first_name, p.last_name
        LIMIT 25`,
       [`%${data.search.trim()}%`],
     );
@@ -306,9 +310,14 @@ const loadPlayerByIdFn = createServerFn({ method: 'POST', strict: { output: fals
   .handler(async ({ data }): Promise<PlayerResult | null> => {
     const { query } = await import('data');
     const rows = await query<Record<string, unknown>>(
-      `SELECT DISTINCT p.player_id, p.full_name, p.from_year::VARCHAR, p.to_year::VARCHAR, p.is_active
-       FROM dim_player p
-       WHERE p.player_id = CAST($1 AS INTEGER)
+      `SELECT DISTINCT
+              p.person_id AS player_id,
+              p.first_name || ' ' || p.last_name AS full_name,
+              p.from_year::VARCHAR,
+              p.to_year::VARCHAR,
+              p.to_year >= 2025 AS is_active
+       FROM main.dim_player p
+       WHERE p.person_id = CAST($1 AS INTEGER)
        LIMIT 1`,
       [data.playerId],
     );
