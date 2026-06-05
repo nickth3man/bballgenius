@@ -439,6 +439,11 @@ function TimeMachinePage(): ReactNode {
   }, [urlPid, setSelectedPlayerId]);
 
   const awardsGrouped = dossier ? groupAwardsByCategory(dossier.awards) : [];
+  const searchListboxId = 'time-machine-player-search-listbox';
+  const activePlayerOptionId =
+    showDropdown && highlightIndex >= 0 && players[highlightIndex]
+      ? `time-machine-player-option-${players[highlightIndex].player_id}`
+      : undefined;
 
   // Debounced auto-search: fires 300ms after typing stops
   useEffect(() => {
@@ -481,9 +486,15 @@ function TimeMachinePage(): ReactNode {
       <div className="w-72 shrink-0 overflow-auto border-r border-border bg-surface p-2">
         <h2 className="mb-1 text-sm font-bold text-primary">Player Search</h2>
         <p className="mb-2 text-[10px] text-fg-dim">Start typing to find any NBA player</p>
-        <div className="relative mb-2">
+        <div ref={searchRef} className="relative mb-2">
           <input
             type="text"
+            role="combobox"
+            aria-autocomplete="list"
+            aria-controls={searchListboxId}
+            aria-expanded={showDropdown && players.length > 0}
+            aria-activedescendant={activePlayerOptionId}
+            aria-describedby="time-machine-player-search-status"
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
@@ -517,18 +528,28 @@ function TimeMachinePage(): ReactNode {
               <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-primary border-t-transparent" />
             </div>
           )}
-        </div>
-        <div ref={searchRef} className="relative">
+          <output id="time-machine-player-search-status" className="sr-only">
+            {search.trim() && !loading
+              ? `${players.length} player${players.length === 1 ? '' : 's'} found for ${search.trim()}`
+              : 'Type to search NBA players'}
+          </output>
           {error && (
             <div className="mb-2 rounded bg-danger/10 p-2 text-xs text-danger">{error}</div>
           )}
 
           {showDropdown && players.length > 0 && (
-            <div className="absolute left-0 right-0 top-full z-50 mt-0.5 max-h-64 overflow-auto rounded border border-border bg-surface shadow-lg">
+            <div
+              id={searchListboxId}
+              role="listbox"
+              className="absolute left-0 right-0 top-full z-50 mt-0.5 max-h-64 overflow-auto rounded border border-border bg-surface shadow-lg"
+            >
               {players.map((p, idx) => (
-                <button
+                <div
                   key={p.player_id}
-                  type="button"
+                  id={`time-machine-player-option-${p.player_id}`}
+                  role="option"
+                  aria-selected={idx === highlightIndex}
+                  tabIndex={-1}
                   onMouseDown={() => {
                     void loadPlayerData(p);
                     setShowDropdown(false);
@@ -552,7 +573,7 @@ function TimeMachinePage(): ReactNode {
                     {p.from_year}–{p.is_active ? 'Present' : p.to_year}
                     {p.is_active && <span className="ml-1 text-success">●</span>}
                   </div>
-                </button>
+                </div>
               ))}
             </div>
           )}
