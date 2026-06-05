@@ -213,7 +213,7 @@ function TimeMachinePage(): ReactNode {
 
       <div className="flex-1 overflow-auto p-4">
         {selectedPlayer && dossier ? (
-          <div className="space-y-6">
+          <div className="space-y-8">
             <DossierHeader
               meta={dossier.meta}
               totals={dossier.totals}

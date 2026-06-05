@@ -122,14 +122,20 @@ function ageString(birthDate: string | null | undefined): string {
 
 function SectionHeader({ children }: { children: ReactNode }): ReactNode {
   return (
-    <div className="mb-2 border-b border-border pb-1 text-xs uppercase tracking-wide text-fg-muted">
+    <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-fg-muted">
+      <span className="inline-block h-3.5 w-0.5 rounded-full bg-primary/60" />
       {children}
     </div>
   );
 }
 
 function SectionCard({ children }: { children: ReactNode }): ReactNode {
-  return <section className="rounded border border-border bg-surface p-3">{children}</section>;
+  return (
+    <section className="overflow-hidden rounded-lg border border-border bg-surface shadow-sm">
+      <div className="h-0.5 w-full bg-gradient-to-r from-primary/60 to-transparent" />
+      <div className="p-3">{children}</div>
+    </section>
+  );
 }
 
 function EmptyHint({ children }: { children: ReactNode }): ReactNode {
