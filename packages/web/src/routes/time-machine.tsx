@@ -533,7 +533,7 @@ function TimeMachinePage(): ReactNode {
 
   return (
     <div className="flex h-full">
-      <div className="w-72 shrink-0 overflow-auto border-r border-border bg-surface p-2">
+      <div className="w-80 shrink-0 overflow-auto border-r border-border bg-surface p-3">
         <h2 className="mb-1 text-sm font-bold text-primary">Player Search</h2>
         <p className="mb-2 text-[10px] text-fg-dim">Start typing to find any NBA player</p>
         <div ref={searchRef} className="relative mb-2">

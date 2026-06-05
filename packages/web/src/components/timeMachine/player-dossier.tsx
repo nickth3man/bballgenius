@@ -236,6 +236,7 @@ export function DossierHeader({
   franchise,
   isActive,
 }: DossierHeaderProps): ReactNode {
+  const [imgError, setImgError] = useState(false);
   const fullName = meta?.full_name ?? '—';
   const position = meta?.primary_position ?? '—';
   const heightFt = heightInchesToFtIn(meta?.height_inches);
@@ -278,16 +279,33 @@ export function DossierHeader({
       />
 
       <div className="mb-3 flex items-start gap-4">
-        {/* Player avatar placeholder */}
-        <div
-          className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full border-2 text-2xl font-black text-white shadow-md"
-          style={{
-            background: `linear-gradient(135deg, ${playerColor}, ${adjustColor(playerColor, -30)})`,
-            borderColor: adjustColor(playerColor, -20),
-          }}
-          aria-hidden="true"
-        >
-          {getInitials(fullName)}
+        {/* Player headshot with initials fallback */}
+        <div className="relative h-24 w-24 shrink-0">
+          {meta?.person_id && !imgError ? (
+            <img
+              src={`https://cdn.nba.com/headshots/nba/latest/260x190/${meta.person_id}.png`}
+              alt={fullName}
+              className="h-full w-full rounded-full border-2 object-cover shadow-md"
+              style={{
+                borderColor: adjustColor(playerColor, -20),
+                background: `linear-gradient(135deg, ${playerColor}, ${adjustColor(playerColor, -30)})`,
+              }}
+              onError={() => setImgError(true)}
+              loading="lazy"
+            />
+          ) : null}
+          {imgError || !meta?.person_id ? (
+            <div
+              className="flex h-full w-full items-center justify-center rounded-full border-2 text-2xl font-black text-white shadow-md"
+              style={{
+                background: `linear-gradient(135deg, ${playerColor}, ${adjustColor(playerColor, -30)})`,
+                borderColor: adjustColor(playerColor, -20),
+              }}
+              aria-hidden="true"
+            >
+              {getInitials(fullName)}
+            </div>
+          ) : null}
         </div>
 
         <div className="flex-1 min-w-0">
@@ -414,21 +432,34 @@ function CareerLineChart({
         <span className="text-fg-dim/50">{formatNumber(min, 1)}</span>
       </div>
       <svg viewBox={`0 0 ${W} ${H}`} className="h-16 w-full overflow-visible" aria-hidden="true">
-        {/* Honor season star markers */}
-        {values.map((v, i) =>
-          honorSeasons?.has(Number(rows[i].season_end_year)) ? (
+        {/* Honor season star markers — only for first, last, and peak seasons */}
+        {(() => {
+          if (!honorSeasons || honorSeasons.size === 0) return null;
+          const honorIndices = values
+            .map((_, i) => i)
+            .filter((i) => honorSeasons.has(Number(rows[i].season_end_year)));
+          if (honorIndices.length === 0) return null;
+          const maxVal = Math.max(...values);
+          const peakIndex = values.indexOf(maxVal);
+          const showIndices = new Set([honorIndices[0], honorIndices[honorIndices.length - 1]]);
+          // Also show the peak season if it's a honor season
+          if (honorSeasons.has(Number(rows[peakIndex]?.season_end_year))) {
+            showIndices.add(peakIndex);
+          }
+          return [...showIndices].map((i) => (
             <text
               key={`star-${rows[i].season_end_year}`}
               x={values.length > 1 ? (i / (values.length - 1)) * W : W / 2}
-              y={H - ((v - min) / range) * H - 8}
+              y={H - ((values[i] - min) / range) * H - 8}
               textAnchor="middle"
-              fontSize={10}
+              fontSize={8}
               fill="#f59e0b"
+              opacity={0.8}
             >
               ★
             </text>
-          ) : null,
-        )}
+          ));
+        })()}
         {/* Area fill */}
         <polygon fill={color} fillOpacity={0.1} points={areaPath} />
         {/* Line */}
@@ -502,8 +533,9 @@ function CareerSparkline({
             const isPeak = v === max;
             return (
               <div key={season} className="group relative flex flex-col items-center">
-                {honorSeasons?.has(Number(season)) ? (
-                  <span className="mb-0.5 text-[8px] text-warning" title="All-Star">
+                {honorSeasons?.has(Number(season)) &&
+                (v === max || i === 0 || i === values.length - 1) ? (
+                  <span className="mb-0.5 text-[8px] text-warning/70" title="All-Star">
                     ★
                   </span>
                 ) : (
@@ -1481,6 +1513,15 @@ function PerGameTable({
                   <th
                     key={h}
                     onClick={sortKey ? () => handleSort(sortKey) : undefined}
+                    aria-sort={
+                      isActive
+                        ? sortDir === 'asc'
+                          ? 'ascending'
+                          : 'descending'
+                        : sortKey
+                          ? 'none'
+                          : undefined
+                    }
                     className={`border-b-2 border-border px-2 py-1.5 text-left font-semibold whitespace-nowrap ${getStickyClass(h)} ${sortKey ? 'cursor-pointer hover:text-fg select-none' : ''}`}
                   >
                     <span className="inline-flex items-center gap-0.5">
