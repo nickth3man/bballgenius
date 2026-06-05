@@ -65,6 +65,41 @@ function formatDate(value: string | null | undefined): string {
   return value;
 }
 
+function DataTable({ headers, children }: { headers: string[]; children: ReactNode }): ReactNode {
+  return (
+    <table className="min-w-full font-mono text-xs">
+      <thead className="sticky top-0 z-10">
+        <tr className="bg-surface text-fg-dim">
+          {headers.map((h) => (
+            <th
+              key={h}
+              className="border-b-2 border-border px-2 py-1.5 text-left font-semibold whitespace-nowrap"
+            >
+              {h}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>{children}</tbody>
+    </table>
+  );
+}
+
+function highlightClass(
+  value: number | string | null | undefined,
+  best: number | null,
+  worst: number | null,
+  higherIsBetter: boolean = true,
+): string {
+  if (value == null || best == null || worst == null || best === worst) return '';
+  const n = Number(value);
+  if (!Number.isFinite(n)) return '';
+  if (higherIsBetter && n === best) return 'font-bold text-primary';
+  if (!higherIsBetter && n === best) return 'font-bold text-primary';
+  if (n === worst) return 'text-danger/70';
+  return '';
+}
+
 function formatBirthDate(value: string | null | undefined): string {
   if (!value) return '—';
   const d = new Date(value);
@@ -133,7 +168,7 @@ export function DossierHeader({
       : 'Undrafted';
 
   const seasonSpan =
-    totals != null && totals.first_season && totals.last_season
+    totals?.first_season && totals.last_season
       ? `${totals.first_season} → ${totals.last_season} · ${totals.seasons_played ?? '?'} seasons`
       : meta?.from_year != null && meta?.to_year != null
         ? `${meta.from_year} → ${isActive ? 'Present' : meta.to_year}`
@@ -343,426 +378,425 @@ export function SeasonTabs(props: SeasonTabsProps): ReactNode {
 
 function PerGameTable({ rows }: { rows: PlayerPerGameRow[] }): ReactNode {
   if (rows.length === 0) return <EmptyHint>No per-game data available</EmptyHint>;
+
+  const ptsValues = rows.map((r) => Number(r.pts_per_game)).filter(Number.isFinite);
+  const astValues = rows.map((r) => Number(r.ast_per_game)).filter(Number.isFinite);
+  const trbValues = rows.map((r) => Number(r.trb_per_game)).filter(Number.isFinite);
+  const stlValues = rows.map((r) => Number(r.stl_per_game)).filter(Number.isFinite);
+  const blkValues = rows.map((r) => Number(r.blk_per_game)).filter(Number.isFinite);
+  const mpValues = rows.map((r) => Number(r.mp_per_game)).filter(Number.isFinite);
+  const best = (arr: number[]) => (arr.length > 1 ? Math.max(...arr) : null);
+  const worst = (arr: number[]) => (arr.length > 1 ? Math.min(...arr) : null);
+
   return (
-    <table className="min-w-full font-mono text-xs">
-      <thead>
-        <tr className="text-fg-dim">
-          {[
-            'Season',
-            'Age',
-            'Tm',
-            'Pos',
-            'G',
-            'GS',
-            'MP',
-            'FG',
-            'FGA',
-            'FG%',
-            '3P',
-            '3PA',
-            '3P%',
-            'FT',
-            'FTA',
-            'FT%',
-            'ORB',
-            'DRB',
-            'TRB',
-            'AST',
-            'STL',
-            'BLK',
-            'TOV',
-            'PF',
-            'PTS',
-          ].map((h) => (
-            <th key={h} className="border-b border-surface-alt px-2 py-1 text-left font-semibold">
-              {h}
-            </th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map((r) => (
-          <tr
-            key={`per-game-${r.season_end_year}-${r.team ?? ''}-${r.pos ?? ''}`}
-            className="border-b border-surface-alt text-fg-muted last:border-b-0"
+    <DataTable
+      headers={[
+        'Season',
+        'Age',
+        'Tm',
+        'Pos',
+        'G',
+        'GS',
+        'MP',
+        'FG',
+        'FGA',
+        'FG%',
+        '3P',
+        '3PA',
+        '3P%',
+        'FT',
+        'FTA',
+        'FT%',
+        'ORB',
+        'DRB',
+        'TRB',
+        'AST',
+        'STL',
+        'BLK',
+        'TOV',
+        'PF',
+        'PTS',
+      ]}
+    >
+      {rows.map((r) => (
+        <tr
+          key={`per-game-${r.season_end_year}-${r.team ?? ''}-${r.pos ?? ''}`}
+          className="border-b border-surface-alt/50 text-fg-muted even:bg-surface-alt/20 last:border-b-0 hover:bg-surface-alt/40 transition-colors"
+        >
+          <td className="sticky left-0 z-[5] bg-surface px-2 py-0.5 font-medium text-fg">
+            {formatSeason(r.season_end_year)}
+          </td>
+          <td className="px-2 py-0.5">{r.age ?? '—'}</td>
+          <td className="px-2 py-0.5">{r.team ?? '—'}</td>
+          <td className="px-2 py-0.5">{r.pos ?? '—'}</td>
+          <td className="px-2 py-0.5">{r.g ?? '—'}</td>
+          <td className="px-2 py-0.5">{r.gs ?? '—'}</td>
+          <td
+            className={`px-2 py-0.5 ${highlightClass(r.mp_per_game, best(mpValues), worst(mpValues))}`}
           >
-            <td className="px-2 py-0.5">{formatSeason(r.season_end_year)}</td>
-            <td className="px-2 py-0.5">{r.age ?? '—'}</td>
-            <td className="px-2 py-0.5">{r.team ?? '—'}</td>
-            <td className="px-2 py-0.5">{r.pos ?? '—'}</td>
-            <td className="px-2 py-0.5">{r.g ?? '—'}</td>
-            <td className="px-2 py-0.5">{r.gs ?? '—'}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.mp_per_game)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.fg_per_game)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.fga_per_game)}</td>
-            <td className="px-2 py-0.5">{formatPct(r.fg_percent)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.x3p_per_game, 1)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.x3pa_per_game, 1)}</td>
-            <td className="px-2 py-0.5">{formatPct(r.x3p_percent)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.ft_per_game, 1)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.fta_per_game, 1)}</td>
-            <td className="px-2 py-0.5">{formatPct(r.ft_percent)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.orb_per_game, 1)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.drb_per_game, 1)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.trb_per_game, 1)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.ast_per_game, 1)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.stl_per_game, 1)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.blk_per_game, 1)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.tov_per_game, 1)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.pf_per_game, 1)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.pts_per_game, 1)}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+            {formatNumber(r.mp_per_game)}
+          </td>
+          <td className="px-2 py-0.5">{formatNumber(r.fg_per_game)}</td>
+          <td className="px-2 py-0.5">{formatNumber(r.fga_per_game)}</td>
+          <td className="px-2 py-0.5">{formatPct(r.fg_percent)}</td>
+          <td className="px-2 py-0.5">{formatNumber(r.x3p_per_game, 1)}</td>
+          <td className="px-2 py-0.5">{formatNumber(r.x3pa_per_game, 1)}</td>
+          <td className="px-2 py-0.5">{formatPct(r.x3p_percent)}</td>
+          <td className="px-2 py-0.5">{formatNumber(r.ft_per_game, 1)}</td>
+          <td className="px-2 py-0.5">{formatNumber(r.fta_per_game, 1)}</td>
+          <td className="px-2 py-0.5">{formatPct(r.ft_percent)}</td>
+          <td className="px-2 py-0.5">{formatNumber(r.orb_per_game, 1)}</td>
+          <td className="px-2 py-0.5">{formatNumber(r.drb_per_game, 1)}</td>
+          <td
+            className={`px-2 py-0.5 ${highlightClass(r.trb_per_game, best(trbValues), worst(trbValues))}`}
+          >
+            {formatNumber(r.trb_per_game, 1)}
+          </td>
+          <td
+            className={`px-2 py-0.5 ${highlightClass(r.ast_per_game, best(astValues), worst(astValues))}`}
+          >
+            {formatNumber(r.ast_per_game, 1)}
+          </td>
+          <td
+            className={`px-2 py-0.5 ${highlightClass(r.stl_per_game, best(stlValues), worst(stlValues))}`}
+          >
+            {formatNumber(r.stl_per_game, 1)}
+          </td>
+          <td
+            className={`px-2 py-0.5 ${highlightClass(r.blk_per_game, best(blkValues), worst(blkValues))}`}
+          >
+            {formatNumber(r.blk_per_game, 1)}
+          </td>
+          <td className="px-2 py-0.5">{formatNumber(r.tov_per_game, 1)}</td>
+          <td className="px-2 py-0.5">{formatNumber(r.pf_per_game, 1)}</td>
+          <td
+            className={`px-2 py-0.5 ${highlightClass(r.pts_per_game, best(ptsValues), worst(ptsValues))}`}
+          >
+            {formatNumber(r.pts_per_game, 1)}
+          </td>
+        </tr>
+      ))}
+    </DataTable>
   );
 }
 
 function TotalsTable({ rows }: { rows: PlayerTotalsRow[] }): ReactNode {
   if (rows.length === 0) return <EmptyHint>No totals data available</EmptyHint>;
-  const headers = [
-    'Season',
-    'Tm',
-    'Pos',
-    'G',
-    'GS',
-    'MP',
-    'FG',
-    'FGA',
-    'FG%',
-    '3P',
-    '3PA',
-    '3P%',
-    'FT',
-    'FTA',
-    'FT%',
-    'ORB',
-    'DRB',
-    'TRB',
-    'AST',
-    'STL',
-    'BLK',
-    'TOV',
-    'PF',
-    'PTS',
-    'Trp-Dbl',
-  ];
   return (
-    <table className="min-w-full font-mono text-xs">
-      <thead>
-        <tr className="text-fg-dim">
-          {headers.map((h) => (
-            <th key={h} className="border-b border-surface-alt px-2 py-1 text-left font-semibold">
-              {h}
-            </th>
-          ))}
+    <DataTable
+      headers={[
+        'Season',
+        'Tm',
+        'Pos',
+        'G',
+        'GS',
+        'MP',
+        'FG',
+        'FGA',
+        'FG%',
+        '3P',
+        '3PA',
+        '3P%',
+        'FT',
+        'FTA',
+        'FT%',
+        'ORB',
+        'DRB',
+        'TRB',
+        'AST',
+        'STL',
+        'BLK',
+        'TOV',
+        'PF',
+        'PTS',
+        'Trp-Dbl',
+      ]}
+    >
+      {rows.map((r) => (
+        <tr
+          key={`row-${r.season_end_year}-${r.team ?? ''}-${r.pos ?? ''}`}
+          className="border-b border-surface-alt/50 text-fg-muted even:bg-surface-alt/20 last:border-b-0 hover:bg-surface-alt/40 transition-colors"
+        >
+          <td className="px-2 py-0.5">{formatSeason(r.season_end_year)}</td>
+          <td className="px-2 py-0.5">{r.team ?? '—'}</td>
+          <td className="px-2 py-0.5">{r.pos ?? '—'}</td>
+          <td className="px-2 py-0.5">{r.g ?? '—'}</td>
+          <td className="px-2 py-0.5">{r.gs ?? '—'}</td>
+          <td className="px-2 py-0.5">{r.mp ?? '—'}</td>
+          <td className="px-2 py-0.5">{formatNumber(r.fg, 0)}</td>
+          <td className="px-2 py-0.5">{formatNumber(r.fga, 0)}</td>
+          <td className="px-2 py-0.5">{formatPct(r.fg_percent)}</td>
+          <td className="px-2 py-0.5">{formatNumber(r.x3p, 0)}</td>
+          <td className="px-2 py-0.5">{formatNumber(r.x3pa, 0)}</td>
+          <td className="px-2 py-0.5">{formatPct(r.x3p_percent)}</td>
+          <td className="px-2 py-0.5">{formatNumber(r.ft, 0)}</td>
+          <td className="px-2 py-0.5">{formatNumber(r.fta, 0)}</td>
+          <td className="px-2 py-0.5">{formatPct(r.ft_percent)}</td>
+          <td className="px-2 py-0.5">{formatNumber(r.orb, 0)}</td>
+          <td className="px-2 py-0.5">{formatNumber(r.drb, 0)}</td>
+          <td className="px-2 py-0.5">{formatNumber(r.trb, 0)}</td>
+          <td className="px-2 py-0.5">{formatNumber(r.ast, 0)}</td>
+          <td className="px-2 py-0.5">{formatNumber(r.stl, 0)}</td>
+          <td className="px-2 py-0.5">{formatNumber(r.blk, 0)}</td>
+          <td className="px-2 py-0.5">{formatNumber(r.tov, 0)}</td>
+          <td className="px-2 py-0.5">{formatNumber(r.pf, 0)}</td>
+          <td className="px-2 py-0.5">{formatNumber(r.pts, 0)}</td>
+          <td className="px-2 py-0.5">{r.trp_dbl ?? '—'}</td>
         </tr>
-      </thead>
-      <tbody>
-        {rows.map((r) => (
-          <tr
-            key={`row-${r.season_end_year}-${r.team ?? ''}-${r.pos ?? ''}`}
-            className="border-b border-surface-alt text-fg-muted last:border-b-0"
-          >
-            <td className="px-2 py-0.5">{formatSeason(r.season_end_year)}</td>
-            <td className="px-2 py-0.5">{r.team ?? '—'}</td>
-            <td className="px-2 py-0.5">{r.pos ?? '—'}</td>
-            <td className="px-2 py-0.5">{r.g ?? '—'}</td>
-            <td className="px-2 py-0.5">{r.gs ?? '—'}</td>
-            <td className="px-2 py-0.5">{r.mp ?? '—'}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.fg, 0)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.fga, 0)}</td>
-            <td className="px-2 py-0.5">{formatPct(r.fg_percent)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.x3p, 0)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.x3pa, 0)}</td>
-            <td className="px-2 py-0.5">{formatPct(r.x3p_percent)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.ft, 0)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.fta, 0)}</td>
-            <td className="px-2 py-0.5">{formatPct(r.ft_percent)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.orb, 0)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.drb, 0)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.trb, 0)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.ast, 0)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.stl, 0)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.blk, 0)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.tov, 0)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.pf, 0)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.pts, 0)}</td>
-            <td className="px-2 py-0.5">{r.trp_dbl ?? '—'}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+      ))}
+    </DataTable>
   );
 }
 
 function Per36Table({ rows }: { rows: PlayerPer36Row[] }): ReactNode {
   if (rows.length === 0) return <EmptyHint>No per-36 data available</EmptyHint>;
   return (
-    <table className="min-w-full font-mono text-xs">
-      <thead>
-        <tr className="text-fg-dim">
-          {[
-            'Season',
-            'Tm',
-            'G',
-            'MP',
-            'FG',
-            'FGA',
-            'FG%',
-            '3P',
-            '3PA',
-            '3P%',
-            'FT',
-            'FTA',
-            'FT%',
-            'ORB',
-            'DRB',
-            'TRB',
-            'AST',
-            'STL',
-            'BLK',
-            'TOV',
-            'PF',
-            'PTS',
-          ].map((h) => (
-            <th key={h} className="border-b border-surface-alt px-2 py-1 text-left font-semibold">
-              {h}
-            </th>
-          ))}
+    <DataTable
+      headers={[
+        'Season',
+        'Tm',
+        'G',
+        'MP',
+        'FG',
+        'FGA',
+        'FG%',
+        '3P',
+        '3PA',
+        '3P%',
+        'FT',
+        'FTA',
+        'FT%',
+        'ORB',
+        'DRB',
+        'TRB',
+        'AST',
+        'STL',
+        'BLK',
+        'TOV',
+        'PF',
+        'PTS',
+      ]}
+    >
+      {rows.map((r) => (
+        <tr
+          key={`row-${r.season_end_year}-${r.team ?? ''}-${r.pos ?? ''}`}
+          className="border-b border-surface-alt/50 text-fg-muted even:bg-surface-alt/20 last:border-b-0 hover:bg-surface-alt/40 transition-colors"
+        >
+          <td className="px-2 py-0.5">{formatSeason(r.season_end_year)}</td>
+          <td className="px-2 py-0.5">{r.team ?? '—'}</td>
+          <td className="px-2 py-0.5">{r.g ?? '—'}</td>
+          <td className="px-2 py-0.5">{r.mp ?? '—'}</td>
+          <td className="px-2 py-0.5">{formatNumber(r.fg_per_36_min, 1)}</td>
+          <td className="px-2 py-0.5">{formatNumber(r.fga_per_36_min, 1)}</td>
+          <td className="px-2 py-0.5">{formatPct(r.fg_percent)}</td>
+          <td className="px-2 py-0.5">{formatNumber(r.x3p_per_36_min, 1)}</td>
+          <td className="px-2 py-0.5">{formatNumber(r.x3pa_per_36_min, 1)}</td>
+          <td className="px-2 py-0.5">{formatPct(r.x3p_percent)}</td>
+          <td className="px-2 py-0.5">{formatNumber(r.ft_per_36_min, 1)}</td>
+          <td className="px-2 py-0.5">{formatNumber(r.fta_per_36_min, 1)}</td>
+          <td className="px-2 py-0.5">{formatPct(r.ft_percent)}</td>
+          <td className="px-2 py-0.5">{formatNumber(r.orb_per_36_min, 1)}</td>
+          <td className="px-2 py-0.5">{formatNumber(r.drb_per_36_min, 1)}</td>
+          <td className="px-2 py-0.5">{formatNumber(r.trb_per_36_min, 1)}</td>
+          <td className="px-2 py-0.5">{formatNumber(r.ast_per_36_min, 1)}</td>
+          <td className="px-2 py-0.5">{formatNumber(r.stl_per_36_min, 1)}</td>
+          <td className="px-2 py-0.5">{formatNumber(r.blk_per_36_min, 1)}</td>
+          <td className="px-2 py-0.5">{formatNumber(r.tov_per_36_min, 1)}</td>
+          <td className="px-2 py-0.5">{formatNumber(r.pf_per_36_min, 1)}</td>
+          <td className="px-2 py-0.5">{formatNumber(r.pts_per_36_min, 1)}</td>
         </tr>
-      </thead>
-      <tbody>
-        {rows.map((r) => (
-          <tr
-            key={`row-${r.season_end_year}-${r.team ?? ''}-${r.pos ?? ''}`}
-            className="border-b border-surface-alt text-fg-muted last:border-b-0"
-          >
-            <td className="px-2 py-0.5">{formatSeason(r.season_end_year)}</td>
-            <td className="px-2 py-0.5">{r.team ?? '—'}</td>
-            <td className="px-2 py-0.5">{r.g ?? '—'}</td>
-            <td className="px-2 py-0.5">{r.mp ?? '—'}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.fg_per_36_min, 1)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.fga_per_36_min, 1)}</td>
-            <td className="px-2 py-0.5">{formatPct(r.fg_percent)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.x3p_per_36_min, 1)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.x3pa_per_36_min, 1)}</td>
-            <td className="px-2 py-0.5">{formatPct(r.x3p_percent)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.ft_per_36_min, 1)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.fta_per_36_min, 1)}</td>
-            <td className="px-2 py-0.5">{formatPct(r.ft_percent)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.orb_per_36_min, 1)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.drb_per_36_min, 1)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.trb_per_36_min, 1)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.ast_per_36_min, 1)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.stl_per_36_min, 1)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.blk_per_36_min, 1)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.tov_per_36_min, 1)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.pf_per_36_min, 1)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.pts_per_36_min, 1)}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+      ))}
+    </DataTable>
   );
 }
 
 function AdvancedTable({ rows }: { rows: PlayerAdvancedRow[] }): ReactNode {
   if (rows.length === 0) return <EmptyHint>No advanced stats available</EmptyHint>;
+
+  const perValues = rows.map((r) => Number(r.per)).filter(Number.isFinite);
+  const wsValues = rows.map((r) => Number(r.ws)).filter(Number.isFinite);
+  const bpmValues = rows.map((r) => Number(r.bpm)).filter(Number.isFinite);
+  const vorpValues = rows.map((r) => Number(r.vorp)).filter(Number.isFinite);
+  const best = (arr: number[]) => (arr.length > 1 ? Math.max(...arr) : null);
+  const worst = (arr: number[]) => (arr.length > 1 ? Math.min(...arr) : null);
+
   return (
-    <table className="min-w-full font-mono text-xs">
-      <thead>
-        <tr className="text-fg-dim">
-          {[
-            'Season',
-            'Tm',
-            'Age',
-            'G',
-            'MP',
-            'PER',
-            'TS%',
-            '3PAr',
-            'FTr',
-            'ORB%',
-            'DRB%',
-            'TRB%',
-            'AST%',
-            'STL%',
-            'BLK%',
-            'TOV%',
-            'USG%',
-            'OWS',
-            'DWS',
-            'WS',
-            'WS/48',
-            'OBPM',
-            'DBPM',
-            'BPM',
-            'VORP',
-          ].map((h) => (
-            <th key={h} className="border-b border-surface-alt px-2 py-1 text-left font-semibold">
-              {h}
-            </th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map((r) => (
-          <tr
-            key={`row-${r.season_end_year}-${r.team ?? ''}-${r.pos ?? ''}`}
-            className="border-b border-surface-alt text-fg-muted last:border-b-0"
+    <DataTable
+      headers={[
+        'Season',
+        'Tm',
+        'Age',
+        'G',
+        'MP',
+        'PER',
+        'TS%',
+        '3PAr',
+        'FTr',
+        'ORB%',
+        'DRB%',
+        'TRB%',
+        'AST%',
+        'STL%',
+        'BLK%',
+        'TOV%',
+        'USG%',
+        'OWS',
+        'DWS',
+        'WS',
+        'WS/48',
+        'OBPM',
+        'DBPM',
+        'BPM',
+        'VORP',
+      ]}
+    >
+      {rows.map((r) => (
+        <tr
+          key={`row-${r.season_end_year}-${r.team ?? ''}-${r.pos ?? ''}`}
+          className="border-b border-surface-alt/50 text-fg-muted even:bg-surface-alt/20 last:border-b-0 hover:bg-surface-alt/40 transition-colors"
+        >
+          <td className="px-2 py-0.5">{formatSeason(r.season_end_year)}</td>
+          <td className="px-2 py-0.5">{r.team ?? '—'}</td>
+          <td className="px-2 py-0.5">{r.age ?? '—'}</td>
+          <td className="px-2 py-0.5">{r.g ?? '—'}</td>
+          <td className="px-2 py-0.5">{r.mp ?? '—'}</td>
+          <td className={`px-2 py-0.5 ${highlightClass(r.per, best(perValues), worst(perValues))}`}>
+            {formatNumber(r.per)}
+          </td>
+          <td className="px-2 py-0.5">{formatPct(r.ts_percent)}</td>
+          <td className="px-2 py-0.5">{formatPct(r.x3p_ar)}</td>
+          <td className="px-2 py-0.5">{formatPct(r.f_tr)}</td>
+          <td className="px-2 py-0.5">{formatPct(r.orb_percent)}</td>
+          <td className="px-2 py-0.5">{formatPct(r.drb_percent)}</td>
+          <td className="px-2 py-0.5">{formatPct(r.trb_percent)}</td>
+          <td className="px-2 py-0.5">{formatPct(r.ast_percent)}</td>
+          <td className="px-2 py-0.5">{formatPct(r.stl_percent)}</td>
+          <td className="px-2 py-0.5">{formatPct(r.blk_percent)}</td>
+          <td className="px-2 py-0.5">{formatPct(r.tov_percent)}</td>
+          <td className="px-2 py-0.5">{formatPct(r.usg_percent)}</td>
+          <td className="px-2 py-0.5">{formatNumber(r.ows, 1)}</td>
+          <td className="px-2 py-0.5">{formatNumber(r.dws, 1)}</td>
+          <td className={`px-2 py-0.5 ${highlightClass(r.ws, best(wsValues), worst(wsValues))}`}>
+            {formatNumber(r.ws, 1)}
+          </td>
+          <td className="px-2 py-0.5">{formatNumber(r.ws_48, 3)}</td>
+          <td className="px-2 py-0.5">{formatNumber(r.obpm, 1)}</td>
+          <td className="px-2 py-0.5">{formatNumber(r.dbpm, 1)}</td>
+          <td className={`px-2 py-0.5 ${highlightClass(r.bpm, best(bpmValues), worst(bpmValues))}`}>
+            {formatNumber(r.bpm, 1)}
+          </td>
+          <td
+            className={`px-2 py-0.5 ${highlightClass(r.vorp, best(vorpValues), worst(vorpValues))}`}
           >
-            <td className="px-2 py-0.5">{formatSeason(r.season_end_year)}</td>
-            <td className="px-2 py-0.5">{r.team ?? '—'}</td>
-            <td className="px-2 py-0.5">{r.age ?? '—'}</td>
-            <td className="px-2 py-0.5">{r.g ?? '—'}</td>
-            <td className="px-2 py-0.5">{r.mp ?? '—'}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.per)}</td>
-            <td className="px-2 py-0.5">{formatPct(r.ts_percent)}</td>
-            <td className="px-2 py-0.5">{formatPct(r.x3p_ar)}</td>
-            <td className="px-2 py-0.5">{formatPct(r.f_tr)}</td>
-            <td className="px-2 py-0.5">{formatPct(r.orb_percent)}</td>
-            <td className="px-2 py-0.5">{formatPct(r.drb_percent)}</td>
-            <td className="px-2 py-0.5">{formatPct(r.trb_percent)}</td>
-            <td className="px-2 py-0.5">{formatPct(r.ast_percent)}</td>
-            <td className="px-2 py-0.5">{formatPct(r.stl_percent)}</td>
-            <td className="px-2 py-0.5">{formatPct(r.blk_percent)}</td>
-            <td className="px-2 py-0.5">{formatPct(r.tov_percent)}</td>
-            <td className="px-2 py-0.5">{formatPct(r.usg_percent)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.ows, 1)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.dws, 1)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.ws, 1)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.ws_48, 3)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.obpm, 1)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.dbpm, 1)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.bpm, 1)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.vorp, 1)}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+            {formatNumber(r.vorp, 1)}
+          </td>
+        </tr>
+      ))}
+    </DataTable>
   );
 }
 
 function ShootingTable({ rows }: { rows: PlayerShootingRow[] }): ReactNode {
   if (rows.length === 0) return <EmptyHint>No shooting data available (post-2000 era)</EmptyHint>;
   return (
-    <table className="min-w-full font-mono text-xs">
-      <thead>
-        <tr className="text-fg-dim">
-          {[
-            'Season',
-            'Tm',
-            'G',
-            'MP',
-            'FG%',
-            'Dist',
-            '%FGA 0-3',
-            '%FGA 3-10',
-            '%FGA 10-16',
-            '%FGA 16-3P',
-            '%FGA 3P',
-            'FG% 0-3',
-            'FG% 3-10',
-            'FG% 10-16',
-            'FG% 16-3P',
-            'FG% 3P',
-            '%Ast 2P',
-            '%Ast 3P',
-            '%Dunks',
-            '#Dunks',
-            'Corner3 %',
-          ].map((h) => (
-            <th key={h} className="border-b border-surface-alt px-2 py-1 text-left font-semibold">
-              {h}
-            </th>
-          ))}
+    <DataTable
+      headers={[
+        'Season',
+        'Tm',
+        'G',
+        'MP',
+        'FG%',
+        'Dist',
+        '%FGA 0-3',
+        '%FGA 3-10',
+        '%FGA 10-16',
+        '%FGA 16-3P',
+        '%FGA 3P',
+        'FG% 0-3',
+        'FG% 3-10',
+        'FG% 10-16',
+        'FG% 16-3P',
+        'FG% 3P',
+        '%Ast 2P',
+        '%Ast 3P',
+        '%Dunks',
+        '#Dunks',
+        'Corner3 %',
+      ]}
+    >
+      {rows.map((r) => (
+        <tr
+          key={`row-${r.season_end_year}-${r.team ?? ''}-${r.pos ?? ''}`}
+          className="border-b border-surface-alt/50 text-fg-muted even:bg-surface-alt/20 last:border-b-0 hover:bg-surface-alt/40 transition-colors"
+        >
+          <td className="px-2 py-0.5">{formatSeason(r.season_end_year)}</td>
+          <td className="px-2 py-0.5">{r.team ?? '—'}</td>
+          <td className="px-2 py-0.5">{r.g ?? '—'}</td>
+          <td className="px-2 py-0.5">{r.mp ?? '—'}</td>
+          <td className="px-2 py-0.5">{formatPct(r.fg_percent)}</td>
+          <td className="px-2 py-0.5">{formatNumber(r.avg_dist_fga, 1)}</td>
+          <td className="px-2 py-0.5">{formatPct(r.percent_fga_from_x0_3_range)}</td>
+          <td className="px-2 py-0.5">{formatPct(r.percent_fga_from_x3_10_range)}</td>
+          <td className="px-2 py-0.5">{formatPct(r.percent_fga_from_x10_16_range)}</td>
+          <td className="px-2 py-0.5">{formatPct(r.percent_fga_from_x16_3p_range)}</td>
+          <td className="px-2 py-0.5">{formatPct(r.percent_fga_from_x3p_range)}</td>
+          <td className="px-2 py-0.5">{formatPct(r.fg_percent_from_x0_3_range)}</td>
+          <td className="px-2 py-0.5">{formatPct(r.fg_percent_from_x3_10_range)}</td>
+          <td className="px-2 py-0.5">{formatPct(r.fg_percent_from_x10_16_range)}</td>
+          <td className="px-2 py-0.5">{formatPct(r.fg_percent_from_x16_3p_range)}</td>
+          <td className="px-2 py-0.5">{formatPct(r.fg_percent_from_x3p_range)}</td>
+          <td className="px-2 py-0.5">{formatPct(r.percent_assisted_x2p_fg)}</td>
+          <td className="px-2 py-0.5">{formatPct(r.percent_assisted_x3p_fg)}</td>
+          <td className="px-2 py-0.5">{formatPct(r.percent_dunks_of_fga)}</td>
+          <td className="px-2 py-0.5">{r.num_of_dunks ?? '—'}</td>
+          <td className="px-2 py-0.5">{r.percent_corner_3s_of_3pa ?? '—'}</td>
         </tr>
-      </thead>
-      <tbody>
-        {rows.map((r) => (
-          <tr
-            key={`row-${r.season_end_year}-${r.team ?? ''}-${r.pos ?? ''}`}
-            className="border-b border-surface-alt text-fg-muted last:border-b-0"
-          >
-            <td className="px-2 py-0.5">{formatSeason(r.season_end_year)}</td>
-            <td className="px-2 py-0.5">{r.team ?? '—'}</td>
-            <td className="px-2 py-0.5">{r.g ?? '—'}</td>
-            <td className="px-2 py-0.5">{r.mp ?? '—'}</td>
-            <td className="px-2 py-0.5">{formatPct(r.fg_percent)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.avg_dist_fga, 1)}</td>
-            <td className="px-2 py-0.5">{formatPct(r.percent_fga_from_x0_3_range)}</td>
-            <td className="px-2 py-0.5">{formatPct(r.percent_fga_from_x3_10_range)}</td>
-            <td className="px-2 py-0.5">{formatPct(r.percent_fga_from_x10_16_range)}</td>
-            <td className="px-2 py-0.5">{formatPct(r.percent_fga_from_x16_3p_range)}</td>
-            <td className="px-2 py-0.5">{formatPct(r.percent_fga_from_x3p_range)}</td>
-            <td className="px-2 py-0.5">{formatPct(r.fg_percent_from_x0_3_range)}</td>
-            <td className="px-2 py-0.5">{formatPct(r.fg_percent_from_x3_10_range)}</td>
-            <td className="px-2 py-0.5">{formatPct(r.fg_percent_from_x10_16_range)}</td>
-            <td className="px-2 py-0.5">{formatPct(r.fg_percent_from_x16_3p_range)}</td>
-            <td className="px-2 py-0.5">{formatPct(r.fg_percent_from_x3p_range)}</td>
-            <td className="px-2 py-0.5">{formatPct(r.percent_assisted_x2p_fg)}</td>
-            <td className="px-2 py-0.5">{formatPct(r.percent_assisted_x3p_fg)}</td>
-            <td className="px-2 py-0.5">{formatPct(r.percent_dunks_of_fga)}</td>
-            <td className="px-2 py-0.5">{r.num_of_dunks ?? '—'}</td>
-            <td className="px-2 py-0.5">{r.percent_corner_3s_of_3pa ?? '—'}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+      ))}
+    </DataTable>
   );
 }
 
 function PlayByPlayTable({ rows }: { rows: PlayerPlayByPlayRow[] }): ReactNode {
   if (rows.length === 0) return <EmptyHint>No play-by-play data available</EmptyHint>;
   return (
-    <table className="min-w-full font-mono text-xs">
-      <thead>
-        <tr className="text-fg-dim">
-          {[
-            'Season',
-            'Tm',
-            'G',
-            'MP',
-            '%PG',
-            '%SG',
-            '%SF',
-            '%PF',
-            '%C',
-            'OnCourt +/-',
-            'Net +/-',
-            'Pts via AST',
-            'FGA Blocked',
-          ].map((h) => (
-            <th key={h} className="border-b border-surface-alt px-2 py-1 text-left font-semibold">
-              {h}
-            </th>
-          ))}
+    <DataTable
+      headers={[
+        'Season',
+        'Tm',
+        'G',
+        'MP',
+        '%PG',
+        '%SG',
+        '%SF',
+        '%PF',
+        '%C',
+        'OnCourt +/-',
+        'Net +/-',
+        'Pts via AST',
+        'FGA Blocked',
+      ]}
+    >
+      {rows.map((r) => (
+        <tr
+          key={`row-${r.season_end_year}-${r.team ?? ''}-${r.pos ?? ''}`}
+          className="border-b border-surface-alt/50 text-fg-muted even:bg-surface-alt/20 last:border-b-0 hover:bg-surface-alt/40 transition-colors"
+        >
+          <td className="px-2 py-0.5">{formatSeason(r.season_end_year)}</td>
+          <td className="px-2 py-0.5">{r.team ?? '—'}</td>
+          <td className="px-2 py-0.5">{r.g ?? '—'}</td>
+          <td className="px-2 py-0.5">{r.mp ?? '—'}</td>
+          <td className="px-2 py-0.5">{formatPct(r.pg_percent)}</td>
+          <td className="px-2 py-0.5">{formatPct(r.sg_percent)}</td>
+          <td className="px-2 py-0.5">{formatPct(r.sf_percent)}</td>
+          <td className="px-2 py-0.5">{formatPct(r.pf_percent)}</td>
+          <td className="px-2 py-0.5">{formatPct(r.c_percent)}</td>
+          <td className="px-2 py-0.5">{formatNumber(r.on_court_plus_minus_per_100_poss, 1)}</td>
+          <td className="px-2 py-0.5">{formatNumber(r.net_plus_minus_per_100_poss, 1)}</td>
+          <td className="px-2 py-0.5">{formatNumber(r.points_generated_by_assists, 0)}</td>
+          <td className="px-2 py-0.5">{formatNumber(r.fga_blocked, 0)}</td>
         </tr>
-      </thead>
-      <tbody>
-        {rows.map((r) => (
-          <tr
-            key={`row-${r.season_end_year}-${r.team ?? ''}-${r.pos ?? ''}`}
-            className="border-b border-surface-alt text-fg-muted last:border-b-0"
-          >
-            <td className="px-2 py-0.5">{formatSeason(r.season_end_year)}</td>
-            <td className="px-2 py-0.5">{r.team ?? '—'}</td>
-            <td className="px-2 py-0.5">{r.g ?? '—'}</td>
-            <td className="px-2 py-0.5">{r.mp ?? '—'}</td>
-            <td className="px-2 py-0.5">{formatPct(r.pg_percent)}</td>
-            <td className="px-2 py-0.5">{formatPct(r.sg_percent)}</td>
-            <td className="px-2 py-0.5">{formatPct(r.sf_percent)}</td>
-            <td className="px-2 py-0.5">{formatPct(r.pf_percent)}</td>
-            <td className="px-2 py-0.5">{formatPct(r.c_percent)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.on_court_plus_minus_per_100_poss, 1)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.net_plus_minus_per_100_poss, 1)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.points_generated_by_assists, 0)}</td>
-            <td className="px-2 py-0.5">{formatNumber(r.fga_blocked, 0)}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+      ))}
+    </DataTable>
   );
 }
 
@@ -776,39 +810,27 @@ export function ShotZonesCard({ zones }: { zones: PlayerShotZoneRow[] }): ReactN
     <section>
       <SectionHeader>Shot Zones</SectionHeader>
       <SectionCard>
-        <table className="min-w-full font-mono text-xs">
-          <thead>
-            <tr className="text-fg-dim">
-              <th className="border-b border-surface-alt px-2 py-1 text-left font-semibold">
-                Zone
-              </th>
-              <th className="border-b border-surface-alt px-2 py-1 text-left font-semibold">FGA</th>
-              <th className="border-b border-surface-alt px-2 py-1 text-left font-semibold">FGM</th>
-              <th className="border-b border-surface-alt px-2 py-1 text-left font-semibold">FG%</th>
+        <DataTable headers={['Zone', 'FGA', 'FGM', 'FG%']}>
+          {zones.map((z) => (
+            <tr
+              key={z.zone}
+              className="border-b border-surface-alt/50 text-fg-muted even:bg-surface-alt/20 last:border-b-0"
+            >
+              <td className="px-2 py-0.5">{z.zone}</td>
+              <td className="px-2 py-0.5">{z.fga}</td>
+              <td className="px-2 py-0.5">{z.fgm}</td>
+              <td className="px-2 py-0.5">
+                <span className="mr-2 inline-block w-12 align-middle">
+                  <span
+                    className="block h-1.5 rounded bg-primary/40"
+                    style={{ width: `${Math.min(100, z.fg_pct * 100)}%` }}
+                  />
+                </span>
+                {formatPct(z.fg_pct)}
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {zones.map((z) => (
-              <tr
-                key={z.zone}
-                className="border-b border-surface-alt text-fg-muted last:border-b-0"
-              >
-                <td className="px-2 py-0.5">{z.zone}</td>
-                <td className="px-2 py-0.5">{z.fga}</td>
-                <td className="px-2 py-0.5">{z.fgm}</td>
-                <td className="px-2 py-0.5">
-                  <span className="mr-2 inline-block w-12 align-middle">
-                    <span
-                      className="block h-1.5 rounded bg-primary/40"
-                      style={{ width: `${Math.min(100, z.fg_pct * 100)}%` }}
-                    />
-                  </span>
-                  {formatPct(z.fg_pct)}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+          ))}
+        </DataTable>
       </SectionCard>
     </section>
   );
@@ -827,62 +849,46 @@ export function GameLogCard({ rows }: { rows: PlayerGameLogRow[] }): ReactNode {
           <EmptyHint>No game log data available</EmptyHint>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full font-mono text-xs">
-              <thead>
-                <tr className="text-fg-dim">
-                  {[
-                    'Date',
-                    'Matchup',
-                    'W/L',
-                    'MIN',
-                    'PTS',
-                    'REB',
-                    'AST',
-                    'STL',
-                    'BLK',
-                    'TOV',
-                    '+/-',
-                  ].map((h) => (
-                    <th
-                      key={h}
-                      className="border-b border-surface-alt px-2 py-1 text-left font-semibold"
-                    >
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((g) => (
-                  <tr
-                    key={`gamelog-${g.game_date}-${g.matchup ?? ''}`}
-                    className="border-b border-surface-alt text-fg-muted last:border-b-0"
+            <DataTable
+              headers={[
+                'Date',
+                'Matchup',
+                'W/L',
+                'MIN',
+                'PTS',
+                'REB',
+                'AST',
+                'STL',
+                'BLK',
+                'TOV',
+                '+/-',
+              ]}
+            >
+              {rows.map((g) => (
+                <tr
+                  key={`gamelog-${g.game_date}-${g.matchup ?? ''}`}
+                  className="border-b border-surface-alt/50 text-fg-muted even:bg-surface-alt/20 last:border-b-0 hover:bg-surface-alt/40 transition-colors"
+                >
+                  <td className="px-2 py-0.5">{formatDate(g.game_date)}</td>
+                  <td className="px-2 py-0.5">{g.matchup ?? '—'}</td>
+                  <td
+                    className={`px-2 py-0.5 font-semibold ${
+                      g.wl === 'W' ? 'text-success' : g.wl === 'L' ? 'text-danger' : 'text-fg-muted'
+                    }`}
                   >
-                    <td className="px-2 py-0.5">{formatDate(g.game_date)}</td>
-                    <td className="px-2 py-0.5">{g.matchup ?? '—'}</td>
-                    <td
-                      className={`px-2 py-0.5 font-semibold ${
-                        g.wl === 'W'
-                          ? 'text-success'
-                          : g.wl === 'L'
-                            ? 'text-danger'
-                            : 'text-fg-muted'
-                      }`}
-                    >
-                      {g.wl ?? '—'}
-                    </td>
-                    <td className="px-2 py-0.5">{formatNumber(g.min, 1)}</td>
-                    <td className="px-2 py-0.5">{formatNumber(g.pts, 0)}</td>
-                    <td className="px-2 py-0.5">{formatNumber(g.reb, 0)}</td>
-                    <td className="px-2 py-0.5">{formatNumber(g.ast, 0)}</td>
-                    <td className="px-2 py-0.5">{formatNumber(g.stl, 0)}</td>
-                    <td className="px-2 py-0.5">{formatNumber(g.blk, 0)}</td>
-                    <td className="px-2 py-0.5">{formatNumber(g.tov, 0)}</td>
-                    <td className="px-2 py-0.5">{formatNumber(g.plus_minus, 0)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    {g.wl ?? '—'}
+                  </td>
+                  <td className="px-2 py-0.5">{formatNumber(g.min, 1)}</td>
+                  <td className="px-2 py-0.5">{formatNumber(g.pts, 0)}</td>
+                  <td className="px-2 py-0.5">{formatNumber(g.reb, 0)}</td>
+                  <td className="px-2 py-0.5">{formatNumber(g.ast, 0)}</td>
+                  <td className="px-2 py-0.5">{formatNumber(g.stl, 0)}</td>
+                  <td className="px-2 py-0.5">{formatNumber(g.blk, 0)}</td>
+                  <td className="px-2 py-0.5">{formatNumber(g.tov, 0)}</td>
+                  <td className="px-2 py-0.5">{formatNumber(g.plus_minus, 0)}</td>
+                </tr>
+              ))}
+            </DataTable>
           </div>
         )}
       </SectionCard>
