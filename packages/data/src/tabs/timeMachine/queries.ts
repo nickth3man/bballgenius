@@ -22,6 +22,7 @@ export interface PlayerSuggestion {
   from_year: number | string;
   to_year: number | string;
   is_active: boolean;
+  position?: string | null;
 }
 
 export interface CareerStatRow {
@@ -433,6 +434,30 @@ export async function searchPlayerSuggestions(q: string): Promise<PlayerSuggesti
     LIMIT 8
   `,
     [`%${q}%`],
+  );
+}
+
+/**
+ * Returns a small set of "featured" players for the empty-state browse grid.
+ * Each entry is a real, present-in-DB person_id so the search dropdown and
+ * featured grid always show the same shape.
+ */
+export async function loadFeaturedPlayers(): Promise<PlayerSuggestion[]> {
+  // Hand-picked "most-clicked" NBA players. If any of these person_ids are
+  // missing from dim_player we just drop them — the UI hides a missing tile.
+  const featuredIds = [2544, 201939, 203507, 203999, 1628369, 2546, 406, 893];
+  const rows = await query<PlayerSuggestion>(
+    `
+    SELECT player_id, full_name, from_year::VARCHAR, to_year::VARCHAR, is_active, primary_position
+    FROM dim_player
+    WHERE person_id IN (${featuredIds.map((_, i) => `$${i + 1}`).join(', ')})
+    `,
+    featuredIds,
+  );
+  // Preserve the order of the input list
+  const order = new Map(featuredIds.map((id, i) => [id, i]));
+  return rows.sort(
+    (a, b) => (order.get(Number(a.player_id)) ?? 0) - (order.get(Number(b.player_id)) ?? 0),
   );
 }
 

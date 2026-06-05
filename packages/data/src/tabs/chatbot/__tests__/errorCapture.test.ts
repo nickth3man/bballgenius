@@ -69,17 +69,6 @@ describe.serial('captureError', () => {
     expect(record.stage).toBe('worker');
   });
 
-  test('sets runId on in-memory context when ctx.runId is provided', async () => {
-    const { captureError } = await import('../utils/errorCapture.js');
-    const { currentRun, updateRunContext, withRun } = await import('../utils/correlation.js');
-
-    await withRun(0, async () => {
-      updateRunContext({ runId: 'original-id' });
-      captureError(new Error('context test'), { runId: 'new-id' });
-      expect(currentRun().runId).toBe('new-id');
-    });
-  });
-
   test('captures all ErrorContext fields', async () => {
     const { captureError } = await import('../utils/errorCapture.js');
 

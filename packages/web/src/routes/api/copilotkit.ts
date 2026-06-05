@@ -1,3 +1,4 @@
+import type { BaseMessage } from '@langchain/core/messages';
 import { createFileRoute } from '@tanstack/react-router';
 
 interface IncomingMessage {
@@ -5,16 +6,9 @@ interface IncomingMessage {
   content: string;
 }
 
-async function toBaseMessages(messages: IncomingMessage[]): Promise<unknown[]> {
-  // Convert the chat client's {role, content}[] history into the LangChain
-  // BaseMessage[] shape the chatbot graph consumes. The `@langchain/core`
-  // import is dynamic because the package is CJS-only and Vite can't statically
-  // resolve named exports from it for a server route file; loading it inside
-  // the handler keeps the route's module graph server-only and side-effect
-  // free. Unknown roles are dropped rather than guessed at — the client only
-  // sends user/assistant today.
+async function toBaseMessages(messages: IncomingMessage[]): Promise<BaseMessage[]> {
   const { HumanMessage, AIMessage } = await import('@langchain/core/messages');
-  const out: unknown[] = [];
+  const out: BaseMessage[] = [];
   for (const m of messages) {
     if (!m || typeof m.content !== 'string' || m.content.length === 0) continue;
     if (m.role === 'user') out.push(new HumanMessage(m.content));
@@ -96,7 +90,7 @@ export const Route = createFileRoute('/api/copilotkit')({
           let finalAssistantContent = '';
           let errorMessage: string | null = null;
 
-          for await (const event of streamQuery(baseMessages as never, threadId)) {
+          for await (const event of streamQuery(baseMessages, threadId)) {
             if (event.type === 'token') {
               content += event.content;
             } else if (event.type === 'done') {

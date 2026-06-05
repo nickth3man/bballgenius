@@ -3,9 +3,6 @@ import { getTables, query } from '../db.js';
 import { ERROR_PREFIX, formatErrorForLLM, withRetry } from './retry.js';
 import { formatResultsTable } from './tableFormatter.js';
 
-// Re-exported so existing chatbot consumers (`tabs/chatbot/utils/index.ts`) keep
-// working without changes. The canonical implementation now lives in
-// `shared/sqlValidation.ts` and is shared with the SQL Sandbox.
 export { validateReadOnlySql };
 
 export function extractSql(text: string): string | null {
@@ -14,10 +11,7 @@ export function extractSql(text: string): string | null {
     return (match[1] ?? '').trim();
   }
 
-  const cleaned = text
-    .replace(/<\|(?:channel|message|start|end|call)\|>/g, '\n')
-    .replace(/to=(?:container\.exec|repo_browser|duckdb|[^\s]+)/g, ' ');
-  const fallback = cleaned.match(/\b(select|with|describe)\b[\s\S]*?(?:;|\n\s*\n|$)/i);
+  const fallback = text.match(/\b(select|with|describe)\b[\s\S]*?(?:;|\n\s*\n|$)/i);
   if (!fallback) {
     return null;
   }

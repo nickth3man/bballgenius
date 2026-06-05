@@ -5,7 +5,7 @@
  * Output: written to temp/debug-500.log
  */
 
-const LOG_FILE = String.raw`C:\Users\nicolas\AppData\Local\Temp\opencode\debug-500.log`;
+const LOG_FILE = new URL('../temp/debug-500.log', import.meta.url).pathname;
 
 async function main() {
   // Kill any existing process on port 3000
@@ -16,7 +16,7 @@ async function main() {
 
   // Spawn web dev server in background, pipe all output
   const proc = Bun.spawn(['bun', 'run', 'web'], {
-    cwd: String.raw`C:\Users\nicolas\Documents\GitHub\bballgenius`,
+    cwd: import.meta.dir,
     stdout: 'pipe',
     stderr: 'pipe',
     env: { ...process.env, FORCE_COLOR: '0' },

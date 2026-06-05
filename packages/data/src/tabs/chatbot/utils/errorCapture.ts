@@ -12,21 +12,9 @@ export interface ErrorContext {
   runId?: string;
 }
 
-/**
- * Captures an error and writes a structured NDJSON line via `logMetric`.
- * If `ctx.runId` is provided, sets it on the in-memory run context so
- * subsequent `logMetric` calls in the same call chain share the ID.
- *
- * Returns the original Error when `err` is already an Error, otherwise
- * wraps the value in a new Error.
- */
 export function captureError(err: unknown, ctx?: ErrorContext): Error {
   if (ctx?.runId) {
-    try {
-      updateRunContext({ runId: ctx.runId });
-    } catch {
-      // best-effort
-    }
+    updateRunContext({ runId: ctx.runId });
   }
 
   const record: Record<string, unknown> = {

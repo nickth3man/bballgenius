@@ -21,6 +21,7 @@
 
 import type { BaseMessage } from '@langchain/core/messages';
 import { AIMessage, HumanMessage, SystemMessage, ToolMessage } from '@langchain/core/messages';
+import type { StructuredTool } from '@langchain/core/tools';
 import { END, MemorySaver, Overwrite, Send, START, StateGraph } from '@langchain/langgraph';
 import { buildSystemPrompt } from '../systemPrompt.js';
 import { captureError } from '../utils/errorCapture.js';
@@ -39,12 +40,7 @@ import { nbaTools } from './tools.js';
 const MAX_SUBTASKS = 4;
 const MAX_WORKER_TOOL_ROUNDS = 6;
 
-interface InvokableTool {
-  invoke(args: unknown): Promise<unknown>;
-}
-const toolByName = new Map<string, InvokableTool>(
-  nbaTools.map((t) => [t.name, t as unknown as InvokableTool]),
-);
+const toolByName = new Map<string, StructuredTool>(nbaTools.map((t) => [t.name, t]));
 
 function messageContentToString(content: unknown): string {
   if (typeof content === 'string') return content;

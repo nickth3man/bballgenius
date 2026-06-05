@@ -14,6 +14,7 @@
     "./theme": "./src/shared/theme.ts",
     "./tabs/game-center/queries": "./src/tabs/gameCenter/queries.ts",
     "./tabs/time-machine/queries": "./src/tabs/timeMachine/queries.ts",
+    "./tabs/time-machine/group-awards": "./src/tabs/timeMachine/groupAwards.ts",
     "./tabs/sql-sandbox/queries": "./src/tabs/sqlSandbox/queries.ts",
     "./tabs/sql-sandbox/autocomplete": "./src/tabs/sqlSandbox/autocomplete.ts",
     "./tabs/sql-sandbox/schema-browser": "./src/tabs/sqlSandbox/schemaBrowser.ts",

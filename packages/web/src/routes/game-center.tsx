@@ -1,69 +1,29 @@
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import { createServerFn } from '@tanstack/react-start';
+import type { BoxScoreRow, GameShotRow, RecentGameRow } from 'data/tabs/game-center/queries';
 import type { ReactNode } from 'react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { DualShotChart } from '../components/shotChart/index.js';
 
 const loadRecentGames = createServerFn({ method: 'GET' }).handler(async () => {
-  const { initDb, query } = await import('data');
-  await initDb();
-  const rows = await query<RecentGameRow>(`
-    WITH team_dedup AS (
-      SELECT DISTINCT ON (team_id) team_id, team_abbrev, team_name
-      FROM dim_team ORDER BY team_id, season_active_till DESC
-    )
-    SELECT g.game_id, g.game_date, g.season_year,
-      t_home.team_abbrev AS home_team, t_away.team_abbrev AS away_team,
-      t_home.team_name AS home_name, t_away.team_name AS away_name
-    FROM dim_game g
-    JOIN team_dedup t_home ON g.home_team_id = t_home.team_id
-    JOIN team_dedup t_away ON g.away_team_id = t_away.team_id
-    ORDER BY g.game_date DESC
-    LIMIT 40
-  `);
-  return rows;
+  const { loadRecentGames } = await import('data/tabs/game-center/queries');
+  return loadRecentGames(40);
 });
 
 const loadBoxScoreFn = createServerFn({ method: 'POST', strict: { output: false } })
   .inputValidator((data: { gameId: string }) => data)
   .handler(async ({ data }) => {
-    // Per-game box scores live in `main` (NBA-API shape) where the player key is
-    // `person_id` and minutes are `num_minutes`. Join through `main.dim_player`
-    // to surface a `full_name` since that dim doesn't carry one pre-concatenated.
-    const { query } = await import('data');
-    const rows = await query<Record<string, unknown>>(
-      `SELECT pgs.person_id,
-              p.first_name || ' ' || p.last_name AS full_name,
-              pgs.points, pgs.assists, pgs.reb, pgs.steals, pgs.blocks,
-              pgs.num_minutes AS minutes
-       FROM main.fact_player_game_stats pgs
-       JOIN main.dim_player p ON pgs.person_id = p.person_id
-       WHERE pgs.game_id = $1
-       ORDER BY pgs.points DESC`,
-      [data.gameId],
-    );
-    return rows;
+    const { loadBoxScoreWithTeamDedup } = await import('data/tabs/game-center/queries');
+    return loadBoxScoreWithTeamDedup(data.gameId);
   });
 
 const loadShotsFn = createServerFn({ method: 'POST', strict: { output: false } })
   .inputValidator((data: { gameId: string }) => data)
-  .handler(async () => {
-    // The current warehouse exposes box-score player game stats but not
-    // shot-location columns (action_type, shot_result, x, y). Return an empty
-    // set so the UI can show its existing "No shot data available" state
-    // instead of issuing an invalid SQL query.
-    return [] as Record<string, unknown>[];
+  .handler(async ({ data }) => {
+    const { loadGameShots } = await import('data/tabs/game-center/queries');
+    return loadGameShots(data.gameId);
   });
-
-interface RecentGameRow {
-  game_id: string;
-  game_date: string;
-  season_year: string;
-  home_team: string;
-  away_team: string;
-  home_name: string;
-  away_name: string;
-}
 
 export const Route = createFileRoute('/game-center')({
   component: GameCenterPage,
@@ -78,17 +38,35 @@ function GameCenterPage(): ReactNode {
     queryFn: () => loadRecentGames(),
   });
 
-  const { data: boxScore } = useQuery({
+  const selectedGameMeta = useMemo(
+    () => games?.find((g) => g.game_id === selectedGame) ?? null,
+    [games, selectedGame],
+  );
+
+  const { data: boxScore } = useQuery<BoxScoreRow[]>({
     queryKey: ['boxscore', selectedGame],
     queryFn: async () => {
-      if (!selectedGame) return null;
-      return (await loadBoxScoreFn({ data: { gameId: selectedGame } })) as Record<
-        string,
-        unknown
-      >[];
+      if (!selectedGame) return [];
+      return (await loadBoxScoreFn({ data: { gameId: selectedGame } })) as BoxScoreRow[];
     },
     enabled: !!selectedGame,
   });
+
+  const { data: shots } = useQuery<GameShotRow[]>({
+    queryKey: ['shots', selectedGame],
+    queryFn: async () => {
+      if (!selectedGame) return [];
+      return (await loadShotsFn({ data: { gameId: selectedGame } })) as GameShotRow[];
+    },
+    enabled: !!selectedGame,
+  });
+
+  const scoreByTeam = useMemo(() => {
+    if (!boxScore) return { away: 0, home: 0 };
+    const away = boxScore.filter((r) => !r.is_home).reduce((s, r) => s + Number(r.points ?? 0), 0);
+    const home = boxScore.filter((r) => r.is_home).reduce((s, r) => s + Number(r.points ?? 0), 0);
+    return { away, home };
+  }, [boxScore]);
 
   if (isLoading) {
     return (
@@ -123,6 +101,18 @@ function GameCenterPage(): ReactNode {
       <div className="flex-1 overflow-auto p-4">
         {selectedGame && boxScore ? (
           <div>
+            {selectedGameMeta && (
+              <ScoreBanner
+                awayAbbrev={selectedGameMeta.away_team}
+                homeAbbrev={selectedGameMeta.home_team}
+                awayName={selectedGameMeta.away_name}
+                homeName={selectedGameMeta.home_name}
+                awayScore={scoreByTeam.away}
+                homeScore={scoreByTeam.home}
+                gameDate={selectedGameMeta.game_date}
+                seasonYear={selectedGameMeta.season_year}
+              />
+            )}
             <div className="mb-4 flex items-center gap-2">
               <button
                 type="button"
@@ -139,8 +129,23 @@ function GameCenterPage(): ReactNode {
                 Shot Chart
               </button>
             </div>
-            {view === 'boxscore' && <BoxScoreTable rows={boxScore} />}
-            {view === 'shotchart' && <ShotChart gameId={selectedGame} />}
+            {view === 'boxscore' && <SplitBoxScore rows={boxScore} />}
+            {view === 'shotchart' && (
+              <div className="w-full">
+                {!shots || !boxScore ? (
+                  <div className="text-fg-dim text-sm">Loading shot data...</div>
+                ) : shots.length === 0 ? (
+                  <div className="text-fg-dim text-sm">No shot data available.</div>
+                ) : selectedGameMeta ? (
+                  <DualShotChart
+                    shots={shots}
+                    boxScore={boxScore}
+                    homeAbbrev={selectedGameMeta.home_team}
+                    awayAbbrev={selectedGameMeta.away_team}
+                  />
+                ) : null}
+              </div>
+            )}
           </div>
         ) : (
           <div className="flex h-full items-center justify-center text-fg-dim text-sm">
@@ -152,110 +157,216 @@ function GameCenterPage(): ReactNode {
   );
 }
 
-function BoxScoreTable({ rows }: { rows: Record<string, unknown>[] }): ReactNode {
+function ScoreBanner(props: {
+  awayAbbrev: string;
+  homeAbbrev: string;
+  awayName: string;
+  homeName: string;
+  awayScore: number;
+  homeScore: number;
+  gameDate: string;
+  seasonYear: string;
+}): ReactNode {
+  const { awayAbbrev, homeAbbrev, awayName, homeName, awayScore, homeScore, gameDate, seasonYear } =
+    props;
   return (
-    <table className="w-full text-xs">
-      <thead>
-        <tr className="border-b border-border text-fg-dim">
-          <th className="px-2 py-1 text-left">Player</th>
-          <th className="px-2 py-1 text-right">PTS</th>
-          <th className="px-2 py-1 text-right">AST</th>
-          <th className="px-2 py-1 text-right">REB</th>
-          <th className="px-2 py-1 text-right">STL</th>
-          <th className="px-2 py-1 text-right">BLK</th>
-          <th className="px-2 py-1 text-right">MIN</th>
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map((r) => (
-          <tr
-            key={String(r.person_id ?? r.full_name)}
-            className="border-b border-surface-alt hover:bg-surface-alt/50"
-          >
-            <td className="px-2 py-1">{String(r.full_name ?? '')}</td>
-            <td className="px-2 py-1 text-right">{String(r.points ?? '-')}</td>
-            <td className="px-2 py-1 text-right">{String(r.assists ?? '-')}</td>
-            <td className="px-2 py-1 text-right">{String(r.reb ?? '-')}</td>
-            <td className="px-2 py-1 text-right">{String(r.steals ?? '-')}</td>
-            <td className="px-2 py-1 text-right">{String(r.blocks ?? '-')}</td>
-            <td className="px-2 py-1 text-right">{String(r.minutes ?? '-')}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+    <div className="mb-3 rounded border border-border bg-surface p-3">
+      <div className="flex items-center justify-between gap-6">
+        <div className="flex-1">
+          <div className="text-xs text-fg-dim">{awayName}</div>
+          <div className="flex items-baseline gap-2">
+            <span className="text-lg font-bold text-primary">{awayAbbrev}</span>
+            <span className="text-2xl font-bold text-fg">{awayScore}</span>
+          </div>
+        </div>
+        <div className="text-fg-dim text-xs">FINAL</div>
+        <div className="flex-1 text-right">
+          <div className="text-xs text-fg-dim">{homeName}</div>
+          <div className="flex items-baseline justify-end gap-2">
+            <span className="text-2xl font-bold text-fg">{homeScore}</span>
+            <span className="text-lg font-bold text-primary">{homeAbbrev}</span>
+          </div>
+        </div>
+      </div>
+      <div className="mt-2 text-fg-dim text-xs">
+        {gameDate} &middot; {seasonYear}
+      </div>
+    </div>
   );
 }
 
-function ShotChart({ gameId }: { gameId: string }): ReactNode {
-  const { data: shots } = useQuery({
-    queryKey: ['shots', gameId],
-    queryFn: async () => {
-      if (!gameId) return [];
-      return (await loadShotsFn({ data: { gameId } })) as Record<string, unknown>[];
+const COLS: { key: string; label: string; cls: string }[] = [
+  { key: 'min', label: 'MIN', cls: 'text-right w-[40px]' },
+  { key: 'points', label: 'PTS', cls: 'text-right w-[40px]' },
+  { key: 'fg', label: 'FG', cls: 'text-right w-[55px]' },
+  { key: 'fg3', label: '3PT', cls: 'text-right w-[55px]' },
+  { key: 'ft', label: 'FT', cls: 'text-right w-[55px]' },
+  { key: 'oreb', label: 'OREB', cls: 'text-right w-[40px]' },
+  { key: 'dreb', label: 'DREB', cls: 'text-right w-[40px]' },
+  { key: 'reb', label: 'REB', cls: 'text-right w-[40px]' },
+  { key: 'assists', label: 'AST', cls: 'text-right w-[40px]' },
+  { key: 'steals', label: 'STL', cls: 'text-right w-[40px]' },
+  { key: 'blocks', label: 'BLK', cls: 'text-right w-[40px]' },
+  { key: 'turnovers', label: 'TO', cls: 'text-right w-[40px]' },
+  { key: 'fouls_personal', label: 'PF', cls: 'text-right w-[40px]' },
+  { key: 'plus_minus', label: '+/-', cls: 'text-right w-[45px]' },
+];
+
+function n(v: unknown): number {
+  if (v === null || v === undefined || v === '') return 0;
+  const num = Number(v);
+  return Number.isFinite(num) ? num : 0;
+}
+
+function fmtMin(v: unknown): string {
+  const num = n(v);
+  if (num === 0) return '-';
+  if (Number.isInteger(num)) return String(num);
+  return num.toFixed(1);
+}
+
+function fmtPct(v: unknown): string {
+  const num = n(v);
+  if (num === 0) return '.000';
+  return num.toFixed(3).replace(/^0/, '');
+}
+
+function fmtSigned(v: unknown): string {
+  const num = n(v);
+  if (num === 0) return '0';
+  return num > 0 ? `+${num}` : String(num);
+}
+
+function TeamBoxScoreTable(props: {
+  teamAbbrev: string;
+  isHome: boolean;
+  rows: BoxScoreRow[];
+}): ReactNode {
+  const { teamAbbrev, isHome, rows } = props;
+  const totals = rows.reduce(
+    (acc, r) => {
+      acc.min += n(r.min);
+      acc.points += n(r.points);
+      acc.fgm += n(r.fgm);
+      acc.fga += n(r.fga);
+      acc.fg3m += n(r.fg3m);
+      acc.fg3a += n(r.fg3a);
+      acc.ftm += n(r.ftm);
+      acc.fta += n(r.fta);
+      acc.oreb += n(r.oreb);
+      acc.dreb += n(r.dreb);
+      acc.reb += n(r.reb);
+      acc.assists += n(r.assists);
+      acc.steals += n(r.steals);
+      acc.blocks += n(r.blocks);
+      acc.turnovers += n(r.turnovers);
+      acc.fouls_personal += n(r.fouls_personal);
+      return acc;
     },
-  });
-
-  if (!shots?.length) {
-    return <div className="text-fg-dim text-sm">No shot data available.</div>;
-  }
-
-  const courtWidth = 300;
-  const courtHeight = 280;
-  const hoopRadius = 8;
+    {
+      min: 0,
+      points: 0,
+      fgm: 0,
+      fga: 0,
+      fg3m: 0,
+      fg3a: 0,
+      ftm: 0,
+      fta: 0,
+      oreb: 0,
+      dreb: 0,
+      reb: 0,
+      assists: 0,
+      steals: 0,
+      blocks: 0,
+      turnovers: 0,
+      fouls_personal: 0,
+    },
+  );
+  const totalFgPct = totals.fga > 0 ? totals.fgm / totals.fga : 0;
+  const totalFg3Pct = totals.fg3a > 0 ? totals.fg3m / totals.fg3a : 0;
+  const totalFtPct = totals.fta > 0 ? totals.ftm / totals.fta : 0;
 
   return (
-    <svg viewBox={`0 0 ${courtWidth} ${courtHeight}`} className="w-full max-w-sm">
-      <title>Shot chart</title>
-      <rect x={0} y={0} width={courtWidth} height={courtHeight} fill="#1a1b26" />
-      <line
-        x1={courtWidth / 2}
-        y1={courtHeight}
-        x2={courtWidth / 2}
-        y2={0}
-        stroke="#2f3549"
-        strokeWidth={1}
-      />
-      <circle
-        cx={courtWidth / 2}
-        cy={courtHeight / 2 - 60}
-        r={60}
-        fill="none"
-        stroke="#2f3549"
-        strokeWidth={1}
-      />
-      <rect
-        x={courtWidth / 2 - 20}
-        y={courtHeight / 2 - 120}
-        width={40}
-        height={5}
-        fill="#2f3549"
-      />
-      <circle
-        cx={courtWidth / 2}
-        cy={courtHeight / 2 - 120}
-        r={hoopRadius}
-        fill="none"
-        stroke="#7aa2f7"
-        strokeWidth={1.5}
-      />
-      {shots.map((s) => {
-        const made = String(s.shot_result).toLowerCase() === 'made';
-        const x = Number(s.x ?? 0);
-        const y = Number(s.y ?? 0);
-        const screenX = courtWidth / 2 + x * 5;
-        const screenY = courtHeight - y * 4;
-        const key = `${x},${y}`;
-        return (
-          <circle
-            key={key}
-            cx={screenX}
-            cy={screenY}
-            r={3}
-            fill={made ? '#9ece6a' : '#f7768e'}
-            opacity={0.8}
-          />
-        );
-      })}
-    </svg>
+    <div className="mb-6">
+      <div className="mb-1 flex items-baseline gap-2">
+        <span className="text-base font-bold text-primary">{teamAbbrev}</span>
+        <span className="text-fg-dim text-xs">{isHome ? 'Home' : 'Away'}</span>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-xs">
+          <thead>
+            <tr className="border-b border-border text-fg-dim">
+              <th className="px-2 py-1 text-left min-w-[140px]">Player</th>
+              {COLS.map((c) => (
+                <th key={c.key} className={`px-2 py-1 ${c.cls}`}>
+                  {c.label}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r) => (
+              <tr
+                key={String(r.player_id)}
+                className="border-b border-surface-alt hover:bg-surface-alt/50"
+              >
+                <td className="px-2 py-1 text-left">{r.full_name}</td>
+                <td className="px-2 py-1 text-right w-[40px]">{fmtMin(r.min)}</td>
+                <td className="px-2 py-1 text-right w-[40px]">{n(r.points) || '-'}</td>
+                <td className="px-2 py-1 text-right w-[55px]">{`${n(r.fgm)}-${n(r.fga)}`}</td>
+                <td className="px-2 py-1 text-right w-[55px]">{`${n(r.fg3m)}-${n(r.fg3a)}`}</td>
+                <td className="px-2 py-1 text-right w-[55px]">{`${n(r.ftm)}-${n(r.fta)}`}</td>
+                <td className="px-2 py-1 text-right w-[40px]">{n(r.oreb) || '-'}</td>
+                <td className="px-2 py-1 text-right w-[40px]">{n(r.dreb) || '-'}</td>
+                <td className="px-2 py-1 text-right w-[40px]">{n(r.reb) || '-'}</td>
+                <td className="px-2 py-1 text-right w-[40px]">{n(r.assists) || '-'}</td>
+                <td className="px-2 py-1 text-right w-[40px]">{n(r.steals) || '-'}</td>
+                <td className="px-2 py-1 text-right w-[40px]">{n(r.blocks) || '-'}</td>
+                <td className="px-2 py-1 text-right w-[40px]">{n(r.turnovers) || '-'}</td>
+                <td className="px-2 py-1 text-right w-[40px]">{n(r.fouls_personal) || '-'}</td>
+                <td className="px-2 py-1 text-right w-[45px]">{fmtSigned(r.plus_minus)}</td>
+              </tr>
+            ))}
+            <tr className="border-t-2 border-border bg-surface-alt/30 font-semibold">
+              <td className="px-2 py-1 text-left">Totals</td>
+              <td className="px-2 py-1 text-right w-[40px]">{fmtMin(totals.min)}</td>
+              <td className="px-2 py-1 text-right w-[40px]">{totals.points}</td>
+              <td className="px-2 py-1 text-right w-[55px]">
+                {totals.fgm}-{totals.fga}{' '}
+                {totals.fga > 0 && <span className="text-fg-dim">{fmtPct(totalFgPct)}</span>}
+              </td>
+              <td className="px-2 py-1 text-right w-[55px]">
+                {totals.fg3m}-{totals.fg3a}{' '}
+                {totals.fg3a > 0 && <span className="text-fg-dim">{fmtPct(totalFg3Pct)}</span>}
+              </td>
+              <td className="px-2 py-1 text-right w-[55px]">
+                {totals.ftm}-{totals.fta}{' '}
+                {totals.fta > 0 && <span className="text-fg-dim">{fmtPct(totalFtPct)}</span>}
+              </td>
+              <td className="px-2 py-1 text-right w-[40px]">{totals.oreb}</td>
+              <td className="px-2 py-1 text-right w-[40px]">{totals.dreb}</td>
+              <td className="px-2 py-1 text-right w-[40px]">{totals.reb}</td>
+              <td className="px-2 py-1 text-right w-[40px]">{totals.assists}</td>
+              <td className="px-2 py-1 text-right w-[40px]">{totals.steals}</td>
+              <td className="px-2 py-1 text-right w-[40px]">{totals.blocks}</td>
+              <td className="px-2 py-1 text-right w-[40px]">{totals.turnovers}</td>
+              <td className="px-2 py-1 text-right w-[40px]">{totals.fouls_personal}</td>
+              <td className="px-2 py-1 text-right w-[45px] text-fg-dim">—</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function SplitBoxScore({ rows }: { rows: BoxScoreRow[] }): ReactNode {
+  const away = rows.filter((r) => !r.is_home);
+  const home = rows.filter((r) => r.is_home);
+  return (
+    <div>
+      <TeamBoxScoreTable teamAbbrev={away[0]?.team_abbrev ?? 'AWAY'} isHome={false} rows={away} />
+      <TeamBoxScoreTable teamAbbrev={home[0]?.team_abbrev ?? 'HOME'} isHome rows={home} />
+    </div>
   );
 }

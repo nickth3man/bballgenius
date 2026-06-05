@@ -3,7 +3,7 @@
  *
  * Usage: bun run scripts/smoke-web.ts
  */
-const ROOT = String.raw`C:\Users\nicolas\Documents\GitHub\bballgenius`;
+const ROOT = import.meta.dir;
 
 // Kill port 3000
 const kill = Bun.spawn(['bun', 'x', 'kill-port', '3000'], { cwd: ROOT });

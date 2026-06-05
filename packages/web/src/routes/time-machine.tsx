@@ -105,13 +105,122 @@ function CardSkeleton({ rows = 4 }: { rows?: number }): ReactNode {
 }
 
 function DossierSkeleton(): ReactNode {
+  const sections = Array.from({ length: 5 });
   return (
     <div className="space-y-8">
       <HeaderSkeleton />
-      <CardSkeleton rows={4} />
-      <CardSkeleton rows={3} />
-      <CardSkeleton rows={3} />
-      <CardSkeleton rows={6} />
+      {sections.map((_, i) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: static decorative skeleton
+        <CardSkeleton key={i} rows={3 + i} />
+      ))}
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Featured players (empty state)                                            */
+/* -------------------------------------------------------------------------- */
+
+function FeaturedPlayersEmptyState({
+  onSelect,
+  loader,
+}: {
+  onSelect: (p: PlayerResult) => void;
+  loader: () => Promise<PlayerResult[]>;
+}): ReactNode {
+  const [players, setPlayers] = useState<PlayerResult[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    loader()
+      .then((rows) => {
+        if (!cancelled) {
+          setPlayers(rows);
+          setLoading(false);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [loader]);
+
+  return (
+    <div className="flex h-full flex-col items-center justify-center gap-5 px-4 text-center">
+      <div className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-border bg-surface-alt/50">
+        <svg
+          className="h-8 w-8 text-fg-dim"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={1.5}
+          role="img"
+          aria-label="Search"
+        >
+          <title>Search</title>
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+          />
+        </svg>
+      </div>
+      <div>
+        <p className="text-sm font-medium text-fg-muted">Search for a player</p>
+        <p className="mt-1 text-xs text-fg-dim">
+          View career stats, season-by-season breakdowns, awards, shot charts, and more
+        </p>
+      </div>
+      <div className="flex items-center gap-3 text-[10px] text-fg-dim">
+        <span className="rounded border border-border/60 px-2 py-0.5">
+          Type a player&rsquo;s name
+        </span>
+        <span className="text-fg-dim/50">or</span>
+        <span className="rounded border border-border/60 px-2 py-0.5">Pick a featured player</span>
+      </div>
+      <div className="w-full max-w-2xl">
+        <div className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-fg-dim">
+          Featured Players
+        </div>
+        {loading ? (
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {Array.from({ length: 8 }, (_, i) => (
+              // biome-ignore lint/suspicious/noArrayIndexKey: static decorative skeleton
+              <div key={i} className="h-12 animate-pulse rounded border border-border bg-surface" />
+            ))}
+          </div>
+        ) : players.length > 0 ? (
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {players.map((p) => (
+              <button
+                key={p.player_id}
+                type="button"
+                onClick={() => onSelect(p)}
+                className="group flex flex-col items-start rounded border border-border bg-surface px-3 py-2 text-left transition-colors hover:border-primary/60 hover:bg-surface-alt/60"
+              >
+                <div className="flex w-full items-baseline gap-1">
+                  <span className="flex-1 truncate text-xs font-medium text-fg group-hover:text-primary">
+                    {p.full_name}
+                  </span>
+                  {p.position ? (
+                    <span className="rounded border border-border/60 bg-surface-alt/40 px-1 text-[9px] font-mono uppercase text-fg-dim">
+                      {p.position}
+                    </span>
+                  ) : null}
+                </div>
+                <span className="text-[10px] text-fg-dim">
+                  {p.from_year}–{p.is_active ? 'Present' : p.to_year}
+                </span>
+              </button>
+            ))}
+          </div>
+        ) : (
+          <p className="text-xs text-fg-dim">No featured players available.</p>
+        )}
+      </div>
     </div>
   );
 }
@@ -122,6 +231,7 @@ interface PlayerResult {
   from_year: string;
   to_year: string;
   is_active: boolean;
+  position?: string | null;
 }
 
 const searchPlayersFn = createServerFn({ method: 'POST', strict: { output: false } })
@@ -129,8 +239,16 @@ const searchPlayersFn = createServerFn({ method: 'POST', strict: { output: false
   .handler(async ({ data }) => {
     const { query } = await import('data');
     const rows = await query<Record<string, unknown>>(
-      `SELECT DISTINCT p.player_id, p.full_name, p.from_year::VARCHAR, p.to_year::VARCHAR, p.is_active
-       FROM dim_player p
+      `SELECT DISTINCT p.player_id, p.full_name, p.from_year::VARCHAR, p.to_year::VARCHAR,
+              p.is_active,
+              (SELECT bp.primary_position
+                 FROM main.bridge_player_source_id src
+                 JOIN main.dim_bref_player bp
+                   ON bp.bref_player_id = src.source_player_id
+                WHERE src.person_id = p.person_id
+                  AND src.source_system = 'basketball_reference'
+                LIMIT 1) AS primary_position
+       FROM main.dim_player p
        WHERE p.full_name ILIKE $1
        ORDER BY p.full_name
        LIMIT 25`,
@@ -142,6 +260,7 @@ const searchPlayersFn = createServerFn({ method: 'POST', strict: { output: false
       from_year: String(r.from_year ?? ''),
       to_year: String(r.to_year ?? ''),
       is_active: Boolean(r.is_active),
+      position: r.primary_position ? String(r.primary_position) : null,
     }));
   });
 
@@ -164,6 +283,21 @@ const loadDefaultPlayerFn = createServerFn({ method: 'GET', strict: { output: fa
       to_year: String(row.to_year ?? ''),
       is_active: Boolean(row.is_active),
     };
+  },
+);
+
+const loadFeaturedPlayersFn = createServerFn({ method: 'GET', strict: { output: false } }).handler(
+  async (): Promise<PlayerResult[]> => {
+    const { loadFeaturedPlayers } = await import('data/tabs/time-machine/queries');
+    const rows = await loadFeaturedPlayers();
+    return rows.map((r) => ({
+      player_id: String(r.player_id),
+      full_name: String(r.full_name),
+      from_year: String(r.from_year ?? ''),
+      to_year: String(r.to_year ?? ''),
+      is_active: Boolean(r.is_active),
+      position: r.position ? String(r.position) : null,
+    }));
   },
 );
 
@@ -397,7 +531,14 @@ function TimeMachinePage(): ReactNode {
                       : 'text-fg-muted hover:bg-surface-alt'
                   } ${selectedPlayer?.player_id === p.player_id ? 'border-l-2 border-primary' : ''}`}
                 >
-                  <div className="font-medium">{p.full_name}</div>
+                  <div className="flex items-baseline gap-2">
+                    <span className="font-medium">{p.full_name}</span>
+                    {p.position ? (
+                      <span className="rounded border border-border/60 bg-surface-alt/40 px-1 text-[9px] font-mono uppercase text-fg-dim">
+                        {p.position}
+                      </span>
+                    ) : null}
+                  </div>
                   <div className="text-fg-dim">
                     {p.from_year}–{p.is_active ? 'Present' : p.to_year}
                     {p.is_active && <span className="ml-1 text-success">●</span>}
@@ -407,8 +548,10 @@ function TimeMachinePage(): ReactNode {
             </div>
           )}
 
-          {!loading && search.trim() && players.length === 0 && !showDropdown && (
-            <div className="text-fg-dim text-xs italic">No players found</div>
+          {!loading && search.trim() && players.length === 0 && (
+            <div className="mt-2 rounded border border-warning/20 bg-warning/5 p-2 text-xs text-warning/90">
+              No players found for &ldquo;{search.trim()}&rdquo;
+            </div>
           )}
         </div>
       </div>
@@ -482,6 +625,13 @@ function TimeMachinePage(): ReactNode {
             </svg>
             No data returned for this player.
           </div>
+        ) : !selectedPlayer && !loading ? (
+          <FeaturedPlayersEmptyState
+            onSelect={(p) => {
+              void loadPlayerData(p);
+            }}
+            loader={loadFeaturedPlayersFn}
+          />
         ) : (
           <div className="flex h-full flex-col items-center justify-center gap-3 px-4 text-center">
             <div className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-border bg-surface-alt/50">

@@ -13,13 +13,29 @@ export interface RecentGameRow {
 export interface BoxScoreRow {
   player_id: string;
   full_name: string;
+  team_id: string;
   team_abbrev: string;
+  is_home: boolean;
+  min: number | string;
   points: number | string;
-  assists: number | string;
+  fgm: number | string;
+  fga: number | string;
+  fg_pct: number | string;
+  fg3m: number | string;
+  fg3a: number | string;
+  fg3_pct: number | string;
+  ftm: number | string;
+  fta: number | string;
+  ft_pct: number | string;
+  oreb: number | string;
+  dreb: number | string;
   reb: number | string;
+  assists: number | string;
   steals: number | string;
   blocks: number | string;
-  min: number | string;
+  turnovers: number | string;
+  fouls_personal: number | string;
+  plus_minus: number | string;
 }
 
 export interface GameShotRow {
@@ -81,18 +97,26 @@ export async function loadBoxScoreWithTeamDedup(gameId: string): Promise<BoxScor
     SELECT
       b.player_id,
       p.full_name,
+      b.team_id,
       t.team_abbrev,
+      b.is_home,
+      b.min,
       b.points,
+      b.fgm, b.fga, b.fg_pct,
+      b.fg3m, b.fg3a, b.fg3_pct,
+      b.ftm, b.fta, b.ft_pct,
+      b.oreb, b.dreb, b.reb,
       b.assists,
-      b.reb,
       b.steals,
       b.blocks,
-      b.min
+      b.turnovers,
+      b.fouls_personal,
+      b.plus_minus
     FROM fact_player_game_boxscore b
     JOIN dim_player p ON b.player_id = p.player_id
     JOIN team_dedup t ON b.team_id = t.team_id
     WHERE b.game_id = $1
-    ORDER BY b.team_id, b.points DESC
+    ORDER BY b.is_home, b.points DESC
   `,
     [gameId],
   );
@@ -123,5 +147,69 @@ export async function loadGameShots(gameId: string): Promise<GameShotRow[]> {
       AND y IS NOT NULL
   `,
     [gameId],
+  );
+}
+
+export interface TeamTotals {
+  min: number;
+  points: number;
+  fgm: number;
+  fga: number;
+  fg3m: number;
+  fg3a: number;
+  ftm: number;
+  fta: number;
+  oreb: number;
+  dreb: number;
+  reb: number;
+  assists: number;
+  steals: number;
+  blocks: number;
+  turnovers: number;
+  fouls_personal: number;
+}
+
+/**
+ * Computes aggregate team totals from an array of box-score rows.
+ * Used by TeamBoxScoreTable in the web UI.
+ */
+export function computeTeamTotals(rows: BoxScoreRow[]): TeamTotals {
+  return rows.reduce(
+    (acc, r) => ({
+      min: acc.min + Number(r.min ?? 0),
+      points: acc.points + Number(r.points ?? 0),
+      fgm: acc.fgm + Number(r.fgm ?? 0),
+      fga: acc.fga + Number(r.fga ?? 0),
+      fg3m: acc.fg3m + Number(r.fg3m ?? 0),
+      fg3a: acc.fg3a + Number(r.fg3a ?? 0),
+      ftm: acc.ftm + Number(r.ftm ?? 0),
+      fta: acc.fta + Number(r.fta ?? 0),
+      oreb: acc.oreb + Number(r.oreb ?? 0),
+      dreb: acc.dreb + Number(r.dreb ?? 0),
+      reb: acc.reb + Number(r.reb ?? 0),
+      assists: acc.assists + Number(r.assists ?? 0),
+      steals: acc.steals + Number(r.steals ?? 0),
+      blocks: acc.blocks + Number(r.blocks ?? 0),
+      turnovers: acc.turnovers + Number(r.turnovers ?? 0),
+      fouls_personal: acc.fouls_personal + Number(r.fouls_personal ?? 0),
+    }),
+    {
+      min: 0,
+      points: 0,
+      fgm: 0,
+      fga: 0,
+      fg3m: 0,
+      fg3a: 0,
+      ftm: 0,
+      fta: 0,
+      oreb: 0,
+      dreb: 0,
+      reb: 0,
+      assists: 0,
+      steals: 0,
+      blocks: 0,
+      turnovers: 0,
+      fouls_personal: 0,
+    },
   );
 }

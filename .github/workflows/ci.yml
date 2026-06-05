@@ -1,5 +1,5 @@
 # CI for BBallGenius (Bun workspace)
-# Every push/PR: guards, lint, format, typecheck, data tests, boiler tests, dq-fixture, audit
+# Every push/PR: guards, lint, format, typecheck, data tests, dq-fixture, audit
 
 name: CI
 

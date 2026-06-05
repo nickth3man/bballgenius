@@ -56,14 +56,6 @@ const LEVEL_ORDER: Record<LogLevel, number> = { debug: 10, info: 20, warn: 30, e
 
 const EVENTS_FILE = 'chatbot-events.ndjson';
 
-/**
- * Writes a structured event line to `chatbot-events.ndjson`.
- * Augments the record with `timestamp`, `runId`, and `turn` from
- * the active run context. Respects `CHATBOT_LOG_LEVEL` filter
- * and `CHATBOT_LOG_STDERR` for error output.
- *
- * Best-effort: failures are silently caught.
- */
 export function logMetric(rec: { level?: string; [k: string]: unknown }): void {
   const level = (rec.level ?? 'info') as LogLevel;
   const configuredStr = process.env['CHATBOT_LOG_LEVEL'] || 'info';
@@ -81,12 +73,8 @@ export function logMetric(rec: { level?: string; [k: string]: unknown }): void {
     ...rec,
   };
 
-  try {
-    mkdirSync(getMetricsDir(), { recursive: true });
-    appendFileSync(join(getMetricsDir(), EVENTS_FILE), `${JSON.stringify(record)}\n`);
-  } catch {
-    // best-effort
-  }
+  mkdirSync(getMetricsDir(), { recursive: true });
+  appendFileSync(join(getMetricsDir(), EVENTS_FILE), `${JSON.stringify(record)}\n`);
 
   if (process.env['CHATBOT_LOG_STDERR'] === '1' && level === 'error') {
     process.stderr.write(`${JSON.stringify(record)}\n`);
@@ -217,11 +205,7 @@ export class MetricsSession {
       entry.error = this.entry.error;
     }
 
-    try {
-      appendFileSync(join(getMetricsDir(), METRICS_FILE), `${JSON.stringify(entry)}\n`);
-    } catch {
-      // Metrics logging is best-effort
-    }
+    appendFileSync(join(getMetricsDir(), METRICS_FILE), `${JSON.stringify(entry)}\n`);
 
     this.reset();
   }
@@ -283,6 +267,17 @@ export function getMetricsSession(): MetricsSession {
 export async function getMetricsSummary(metricsFile?: string): Promise<MetricsSummary> {
   const filePath = metricsFile || join(getMetricsDir(), METRICS_FILE);
   const entries: MetricsEntry[] = [];
+  const emptySummary: MetricsSummary = {
+    totalQueries: 0,
+    totalToolCalls: 0,
+    averageDurationMs: 0,
+    totalInputTokens: 0,
+    totalOutputTokens: 0,
+    successRate: 0,
+    averageSqlTableCount: 0,
+    averageSqlJoinCount: 0,
+    modelBreakdown: {},
+  };
 
   try {
     const rl = createInterface({
@@ -295,31 +290,11 @@ export async function getMetricsSummary(metricsFile?: string): Promise<MetricsSu
       }
     }
   } catch {
-    return {
-      totalQueries: 0,
-      totalToolCalls: 0,
-      averageDurationMs: 0,
-      totalInputTokens: 0,
-      totalOutputTokens: 0,
-      successRate: 0,
-      averageSqlTableCount: 0,
-      averageSqlJoinCount: 0,
-      modelBreakdown: {},
-    };
+    return emptySummary;
   }
 
   if (entries.length === 0) {
-    return {
-      totalQueries: 0,
-      totalToolCalls: 0,
-      averageDurationMs: 0,
-      totalInputTokens: 0,
-      totalOutputTokens: 0,
-      successRate: 0,
-      averageSqlTableCount: 0,
-      averageSqlJoinCount: 0,
-      modelBreakdown: {},
-    };
+    return emptySummary;
   }
 
   const totalQueries = entries.length;

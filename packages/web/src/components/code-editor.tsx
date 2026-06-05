@@ -69,13 +69,5 @@ export function CodeEditor({ value, onChange, onRun, completer }: CodeEditorProp
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [completer, onChange, value]);
 
-  useEffect(() => {
-    if (viewRef.current && value !== viewRef.current.state.doc.toString()) {
-      viewRef.current.dispatch({
-        changes: { from: 0, to: viewRef.current.state.doc.length, insert: value },
-      });
-    }
-  }, [value]);
-
   return <div ref={containerRef} className="h-full overflow-auto border border-border" />;
 }

@@ -1,9 +1,3 @@
-// Read-only SQL validation shared by the chatbot agent and the SQL Sandbox.
-//
-// Lives in `shared/` (not `tabs/chatbot/utils/`) because the SQL Sandbox is a
-// sibling tab and `AGENTS.md` forbids cross-tab imports. Both `chatbot/utils`
-// and `sqlSandbox` can re-export these symbols to keep their public API.
-
 const BLOCKED_SQL_PATTERNS = [
   /\b(insert|update|delete|merge|create|drop|alter|truncate|attach|detach)\b/i,
   /\b(copy|load|install|set|call|pragma|vacuum|checkpoint|export|import)\b/i,
@@ -19,16 +13,6 @@ function stripSqlComments(sql: string): string {
     .trim();
 }
 
-/**
- * Returns `null` when SQL is read-only and safe to execute, or a user-facing
- * error string explaining why the statement is rejected.
- *
- * Rules:
- * - non-empty, single statement (no embedded `;` after the trailing one)
- * - must start with `SELECT`, `WITH`, or `DESCRIBE`
- * - must not contain write/structural keywords (`INSERT`, `DROP`, etc.)
- * - must not call external-access functions (`read_csv`, `httpfs`, …)
- */
 export function validateReadOnlySql(sql: string): string | null {
   const stripped = stripSqlComments(sql).replace(/;\s*$/, '').trim();
   if (!stripped) {

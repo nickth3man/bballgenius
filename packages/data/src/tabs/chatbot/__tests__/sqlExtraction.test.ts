@@ -45,16 +45,6 @@ describe('extractSql', () => {
   test('raw text with no backticks returns null', () => {
     expect(extractSql('Just plain text')).toBeNull();
   });
-
-  test('extracts bare SQL from leaked control-channel text', () => {
-    const sql = extractSql(
-      '<|channel|>commentary<|message|>SELECT player_name, SUM(pts) AS pts\nFROM main.fact_bref_player_season_totals\nGROUP BY player_name\nLIMIT 5;<|end|>',
-    );
-
-    expect(sql).toContain('SELECT player_name');
-    expect(sql).toContain('FROM main.fact_bref_player_season_totals');
-    expect(sql).not.toContain('<|channel|>');
-  });
 });
 
 describe('extractSqlFromMarkdown', () => {

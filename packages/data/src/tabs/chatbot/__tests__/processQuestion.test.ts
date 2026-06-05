@@ -225,34 +225,6 @@ describe.serial('chatbotGraph', () => {
     expect(r2.messages.length).toBeGreaterThan(r1.messages.length);
   });
 
-  test('falls back to memory checkpoints when sqlite checkpoint package is unavailable', async () => {
-    forceToolCalls = false;
-    const previousPersistDir = process.env['CHATBOT_PERSIST_DIR'];
-    process.env['CHATBOT_PERSIST_DIR'] = '.chatbot-test-checkpoints';
-
-    try {
-      const { getWorkerGraph, resetGraph } = await import('../agent/graph.js');
-      resetGraph();
-      const chatbotGraph = getWorkerGraph();
-
-      const result = await chatbotGraph.invoke(
-        { messages: [new HumanMessage('Can you still answer?')] },
-        { configurable: { thread_id: 'missing-sqlite-checkpointer' } },
-      );
-
-      const lastMsg = result.messages[result.messages.length - 1];
-      expect(lastMsg.content).toContain('LeBron James scored 30 points');
-    } finally {
-      const { resetGraph } = await import('../agent/graph.js');
-      resetGraph();
-      if (previousPersistDir === undefined) {
-        delete process.env['CHATBOT_PERSIST_DIR'];
-      } else {
-        process.env['CHATBOT_PERSIST_DIR'] = previousPersistDir;
-      }
-    }
-  });
-
   test('handles parallel tool calls', async () => {
     forceToolCalls = false;
     forceParallelCalls = true;

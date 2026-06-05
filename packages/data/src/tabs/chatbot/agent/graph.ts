@@ -15,13 +15,8 @@ import { buildIntentSchemaPrompt } from './schemaFilter.js';
 import { ChatbotState, type ChatbotStateType } from './state.js';
 import { nbaTools } from './tools.js';
 
-// Re-export so existing importers (streaming.ts, tests) keep their import path.
 export { setAbortSignal };
 
-/**
- * Whether the multi-agent SQL orchestration pipeline is active. Defaults ON;
- * set CHATBOT_ORCHESTRATION=0 to fall back to the single-agent worker graph.
- */
 export function isOrchestrationEnabled(): boolean {
   return process.env['CHATBOT_ORCHESTRATION'] !== '0';
 }
@@ -152,18 +147,11 @@ function trimMessagesForModel(state: ChatbotStateType) {
 function getCheckpointer() {
   const persistDir = process.env['CHATBOT_PERSIST_DIR'];
   if (persistDir) {
-    try {
-      const require = createRequire(import.meta.url);
-      const { SqliteSaver } = require('@langchain/langgraph-checkpoint-sqlite') as {
-        SqliteSaver: new (opts: { path: string }) => MemorySaver;
-      };
-      return new SqliteSaver({ path: persistDir });
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      if (!message.includes('@langchain/langgraph-checkpoint-sqlite')) {
-        throw err;
-      }
-    }
+    const require = createRequire(import.meta.url);
+    const { SqliteSaver } = require('@langchain/langgraph-checkpoint-sqlite') as {
+      SqliteSaver: new (opts: { path: string }) => MemorySaver;
+    };
+    return new SqliteSaver({ path: persistDir });
   }
   return new MemorySaver();
 }
@@ -348,6 +336,7 @@ function buildGraph() {
 }
 
 let _graph: ReturnType<typeof buildGraph> | undefined;
+type ChatbotGraph = Pick<ReturnType<typeof getOrchestratorGraph>, 'getState' | 'streamEvents'>;
 
 /**
  * The single-agent worker graph (LLM + tools with budget/loop/SQL/hallucination
@@ -365,14 +354,11 @@ export function getWorkerGraph() {
  * The chatbot's active graph. Defaults to the multi-agent orchestrator; falls
  * back to the single-agent worker graph when CHATBOT_ORCHESTRATION=0.
  */
-export function getChatbotGraph(): ReturnType<typeof getOrchestratorGraph> {
+export function getChatbotGraph(): ChatbotGraph {
   if (isOrchestrationEnabled()) {
     return getOrchestratorGraph();
   }
-  // Both graphs compile over ChatbotState and expose the same streamEvents /
-  // getState / invoke surface used by the streaming layer; the node-name
-  // generics differ, so bridge them through a structural cast.
-  return getWorkerGraph() as unknown as ReturnType<typeof getOrchestratorGraph>;
+  return getWorkerGraph() as unknown as ChatbotGraph;
 }
 
 export function resetGraph() {
