@@ -936,7 +936,24 @@ export async function loadPlayerFranchiseStanding(
   playerId: string,
 ): Promise<PlayerFranchiseStandingRow[]> {
   const pid = Number(playerId);
-  const all = await query<DbRow>('SELECT * FROM api.v_franchise_leaders');
+  const all = await query<DbRow>(
+    `
+    SELECT
+      team,
+      pts, pts_person_id,
+      reb, reb_person_id,
+      ast, ast_person_id,
+      stl, stl_person_id,
+      blk, blk_person_id
+    FROM api.v_franchise_leaders
+    WHERE pts_person_id = CAST($1 AS BIGINT)
+       OR reb_person_id = CAST($1 AS BIGINT)
+       OR ast_person_id = CAST($1 AS BIGINT)
+       OR stl_person_id = CAST($1 AS BIGINT)
+       OR blk_person_id = CAST($1 AS BIGINT)
+  `,
+    [playerId],
+  );
   const dedupe = new Map<PlayerFranchiseStandingRow['category'], PlayerFranchiseStandingRow>();
 
   for (const row of all) {
