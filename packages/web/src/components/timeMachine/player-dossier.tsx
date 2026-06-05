@@ -1,4 +1,4 @@
-import { type KeyboardEvent, type ReactNode, useState } from 'react';
+import type { KeyboardEvent, ReactNode } from 'react';
 
 /**
  * Player dossier subcomponents. Purely presentational: every prop is a typed
@@ -67,15 +67,6 @@ function formatSeason(seasonEndYear: number | string | null | undefined): string
   const y = Number(seasonEndYear);
   if (!Number.isFinite(y)) return String(seasonEndYear);
   return `${y - 1}-${String(y).slice(-2)}`;
-}
-
-function formatSeasonLabel(seasonYear: number | string | null | undefined): string {
-  if (seasonYear == null) return '—';
-  const value = String(seasonYear);
-  if (/^\d{4}-\d{2,4}$/.test(value)) return value;
-  const y = Number(value);
-  if (!Number.isFinite(y)) return value;
-  return formatSeason(y);
 }
 
 function formatDate(value: string | null | undefined): string {
@@ -402,163 +393,19 @@ export function CareerTrajectory({ perGame }: { perGame: PlayerPerGameRow[] }): 
 /*  Playoff Stats                                                             */
 /* -------------------------------------------------------------------------- */
 
-function safeRate(numerator: number, denominator: number): number | null {
-  if (denominator <= 0) return null;
-  return numerator / denominator;
-}
-
-function sumStat(rows: CareerStatRow[], key: keyof CareerStatRow): number {
-  return rows.reduce((sum, row) => {
-    const value = Number(row[key]);
-    return Number.isFinite(value) ? sum + value : sum;
-  }, 0);
-}
-
-function averagePerGame(
-  rows: CareerStatRow[],
-  key: keyof CareerStatRow,
-  games: number,
-): number | null {
-  if (games <= 0 || !rows.some((row) => row[key] != null && Number.isFinite(Number(row[key])))) {
-    return null;
-  }
-  return safeRate(sumStat(rows, key), games);
-}
-
-function bestPerGameSeason(rows: CareerStatRow[], key: keyof CareerStatRow): CareerStatRow | null {
-  let best: CareerStatRow | null = null;
-  let bestValue = -Infinity;
-  for (const row of rows) {
-    const value = safeRate(Number(row[key]), Number(row.gp));
-    if (value != null && Number.isFinite(value) && value > bestValue) {
-      best = row;
-      bestValue = value;
-    }
-  }
-  return best;
-}
-
-export function PlayoffStatsCard({ rows }: { rows: CareerStatRow[] }): ReactNode {
-  const [showAllRows, setShowAllRows] = useState(false);
-  const playoffRows = rows.filter((row) => row.is_playoffs);
-  if (playoffRows.length === 0) return null;
-
-  const visibleRows = showAllRows ? playoffRows : playoffRows.slice(0, 8);
-  const hiddenCount = playoffRows.length - visibleRows.length;
-
-  const games = sumStat(playoffRows, 'gp');
-  const points = sumStat(playoffRows, 'pts');
-  const bestScoringRun = bestPerGameSeason(playoffRows, 'pts');
-  const bestPlaymakingRun = bestPerGameSeason(playoffRows, 'ast');
-
+export function PlayoffStatsCard({ rows }: { rows: PlayerPerGameRow[] }): ReactNode {
+  if (rows.length === 0) return null;
   return (
     <section>
       <SectionHeader variant="accent">Playoff Stats</SectionHeader>
       <SectionCard>
         <p className="mb-3 text-[10px] leading-relaxed text-fg-dim">
-          Season-level postseason data. Values shown as <span className="text-fg-dim/60">—</span>{' '}
-          indicate unavailable stats in the source database for that season.
+          Same format as the regular-season Per Game table.
         </p>
-        <div className="mb-3 grid grid-cols-3 gap-2 sm:grid-cols-6">
-          <StatCard label="GP" value={formatNumber(games, 0)} />
-          <StatCard label="PPG" value={formatNumber(safeRate(points, games))} />
-          <StatCard label="RPG" value={formatNumber(averagePerGame(playoffRows, 'reb', games))} />
-          <StatCard label="APG" value={formatNumber(averagePerGame(playoffRows, 'ast', games))} />
-          <StatCard label="SPG" value={formatNumber(averagePerGame(playoffRows, 'stl', games))} />
-          <StatCard label="BPG" value={formatNumber(averagePerGame(playoffRows, 'blk', games))} />
-        </div>
-        <div className="mb-3 grid gap-2 text-[10px] sm:grid-cols-2">
-          {bestScoringRun ? (
-            <div className="rounded-md border border-accent/25 bg-accent/10 px-3 py-2 text-fg-muted">
-              <span className="font-semibold uppercase tracking-widest text-accent">
-                Peak scoring
-              </span>
-              <span className="ml-2 text-fg">
-                {formatNumber(safeRate(Number(bestScoringRun.pts), Number(bestScoringRun.gp)))} PPG
-              </span>
-              <span className="ml-1 text-fg-dim">
-                · {formatSeasonLabel(bestScoringRun.season_year)}
-              </span>
-            </div>
-          ) : null}
-          {bestPlaymakingRun ? (
-            <div className="rounded-md border border-secondary/25 bg-secondary/10 px-3 py-2 text-fg-muted">
-              <span className="font-semibold uppercase tracking-widest text-secondary">
-                Peak playmaking
-              </span>
-              <span className="ml-2 text-fg">
-                {formatNumber(
-                  safeRate(Number(bestPlaymakingRun.ast), Number(bestPlaymakingRun.gp)),
-                )}{' '}
-                APG
-              </span>
-              <span className="ml-1 text-fg-dim">
-                · {formatSeasonLabel(bestPlaymakingRun.season_year)}
-              </span>
-            </div>
-          ) : null}
-        </div>
+        <p className="mb-1 text-[10px] text-fg-dim sm:hidden">Swipe sideways for more columns.</p>
         <div className="overflow-x-auto rounded border border-border bg-surface focus:outline-none focus:ring-2 focus:ring-primary/50">
-          <DataTable
-            caption="Playoff season totals, per-game scoring, per-game assists, and advanced metrics"
-            headers={[
-              'Season',
-              'GP',
-              'PPG',
-              'PTS',
-              'APG',
-              'AST',
-              'STL',
-              'BLK',
-              'PER',
-              'BPM',
-              'VORP',
-            ]}
-          >
-            {visibleRows.map((row) => (
-              <tr
-                key={`career-playoffs-${row.season_year}`}
-                className="border-b border-surface-alt/50 text-fg-muted even:bg-surface-alt/20 last:border-b-0 hover:bg-surface-alt/40 transition-colors"
-              >
-                <th
-                  scope="row"
-                  className="sticky left-0 z-[5] whitespace-nowrap bg-surface px-2 py-0.5 text-left font-medium text-fg"
-                >
-                  {formatSeasonLabel(row.season_year)}
-                </th>
-                <td className="px-2 py-0.5">{formatNumber(row.gp, 0)}</td>
-                <td className="px-2 py-0.5 font-semibold text-fg">
-                  {formatNumber(safeRate(Number(row.pts), Number(row.gp)))}
-                </td>
-                <td className="px-2 py-0.5">{formatNumber(row.pts, 0)}</td>
-                <td className="px-2 py-0.5 font-semibold text-fg">
-                  {formatNumber(safeRate(Number(row.ast), Number(row.gp)))}
-                </td>
-                <td className="px-2 py-0.5">{formatNumber(row.ast, 0)}</td>
-                <td className="px-2 py-0.5">{formatNumber(row.stl, 0)}</td>
-                <td className="px-2 py-0.5">{formatNumber(row.blk, 0)}</td>
-                <td className="px-2 py-0.5">{formatNumber(row.per, 1)}</td>
-                <td className="px-2 py-0.5">{formatNumber(row.bpm, 1)}</td>
-                <td className="px-2 py-0.5">{formatNumber(row.vorp, 1)}</td>
-              </tr>
-            ))}
-          </DataTable>
+          <PerGameTable rows={rows} />
         </div>
-        {hiddenCount > 0 || showAllRows ? (
-          <div className="mt-2 flex flex-col gap-2 text-[10px] text-fg-dim sm:flex-row sm:items-center sm:justify-between">
-            <span>
-              Showing {visibleRows.length} of {playoffRows.length} playoff seasons
-            </span>
-            <button
-              type="button"
-              aria-expanded={showAllRows}
-              onClick={() => setShowAllRows((value) => !value)}
-              className="w-full rounded-full border border-border bg-surface-alt px-2.5 py-1 font-medium text-fg-muted transition-colors hover:border-accent/50 hover:text-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:w-auto"
-            >
-              {showAllRows ? 'Show latest 8' : `Show all ${playoffRows.length}`}
-            </button>
-          </div>
-        ) : null}
       </SectionCard>
     </section>
   );

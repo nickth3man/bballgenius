@@ -617,7 +617,7 @@ function TimeMachinePage(): ReactNode {
               <CareerTrajectory perGame={dossier.perGame} />
             </SectionErrorBoundary>
             <SectionErrorBoundary sectionName="Playoff stats">
-              <PlayoffStatsCard rows={dossier.careerStats} />
+              <PlayoffStatsCard rows={dossier.playoffPerGame} />
             </SectionErrorBoundary>
             <SectionErrorBoundary sectionName="Awards">
               <AwardsGrouped groups={awardsGrouped} />

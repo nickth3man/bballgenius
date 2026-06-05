@@ -388,6 +388,7 @@ export interface PlayerDossier {
   gameLog: PlayerGameLogRow[];
   franchise: PlayerFranchiseStandingRow[];
   shotZones: PlayerShotZoneRow[];
+  playoffPerGame: PlayerPerGameRow[];
   careerStats: CareerStatRow[];
 }
 
@@ -1042,6 +1043,7 @@ export async function loadPlayerDossier(playerId: string): Promise<PlayerDossier
     loadPlayerGameLog(playerId),
     loadPlayerFranchiseStanding(playerId),
     loadPlayerShotZones(playerId),
+    loadPlayerPlayoffPerGame(playerId),
     loadCareerStats(playerId),
   ]);
 
@@ -1068,7 +1070,8 @@ export async function loadPlayerDossier(playerId: string): Promise<PlayerDossier
     gameLog: settled(results[13], []),
     franchise: settled(results[14], []),
     shotZones: settled(results[15], []),
-    careerStats: settled(results[16], []),
+    playoffPerGame: settled(results[16], []),
+    careerStats: settled(results[17], []),
   };
 }
 
@@ -1197,6 +1200,52 @@ export async function loadCareerStats(playerId: string): Promise<CareerStatRow[]
     [playerId],
   );
   return dedupeCareerStats(rows);
+}
+
+/**
+ * Loads playoff per-game stats by aggregating game-level boxscores.
+ *
+ * Returns one row per playoff season with the same shape as
+ * {@link PlayerPerGameRow} so the regular-season and playoff tables share
+ * identical column formats (matching Basketball-Reference's Per Game layout).
+ */
+export async function loadPlayerPlayoffPerGame(playerId: string): Promise<PlayerPerGameRow[]> {
+  return query<PlayerPerGameRow>(
+    `
+    SELECT
+      RIGHT(g.season_year, 2)::INTEGER + 2000 AS season_end_year,
+      NULL::DOUBLE AS age,
+      '—' AS team,
+      '—' AS pos,
+      COUNT(*)::DOUBLE AS g,
+      NULL::DOUBLE AS gs,
+      ROUND(AVG(COALESCE(b.min, 0)), 1) AS mp_per_game,
+      ROUND(AVG(COALESCE(b.fgm, 0)), 1) AS fg_per_game,
+      ROUND(AVG(COALESCE(b.fga, 0)), 1) AS fga_per_game,
+      ROUND(SUM(COALESCE(b.fgm, 0)) / NULLIF(SUM(COALESCE(b.fga, 0)), 0), 3) AS fg_percent,
+      ROUND(AVG(COALESCE(b.fg3m, 0)), 1) AS x3p_per_game,
+      ROUND(AVG(COALESCE(b.fg3a, 0)), 1) AS x3pa_per_game,
+      ROUND(SUM(COALESCE(b.fg3m, 0)) / NULLIF(SUM(COALESCE(b.fg3a, 0)), 0), 3) AS x3p_percent,
+      ROUND(AVG(COALESCE(b.ftm, 0)), 1) AS ft_per_game,
+      ROUND(AVG(COALESCE(b.fta, 0)), 1) AS fta_per_game,
+      ROUND(SUM(COALESCE(b.ftm, 0)) / NULLIF(SUM(COALESCE(b.fta, 0)), 0), 3) AS ft_percent,
+      ROUND(AVG(COALESCE(b.oreb, 0)), 1) AS orb_per_game,
+      ROUND(AVG(COALESCE(b.dreb, 0)), 1) AS drb_per_game,
+      ROUND(AVG(COALESCE(b.reb, 0)), 1) AS trb_per_game,
+      ROUND(AVG(COALESCE(b.assists, 0)), 1) AS ast_per_game,
+      ROUND(AVG(COALESCE(b.steals, 0)), 1) AS stl_per_game,
+      ROUND(AVG(COALESCE(b.blocks, 0)), 1) AS blk_per_game,
+      ROUND(AVG(COALESCE(b.turnovers, 0)), 1) AS tov_per_game,
+      ROUND(AVG(COALESCE(b.fouls_personal, 0)), 1) AS pf_per_game,
+      ROUND(AVG(COALESCE(b.points, 0)), 1) AS pts_per_game
+    FROM unified_star.fact_player_game_boxscore b
+    JOIN unified_star.dim_game g ON b.game_id = g.game_id
+    WHERE b.player_id = CAST($1 AS INTEGER) AND g.season_type = 'Playoffs'
+    GROUP BY g.season_year
+    ORDER BY season_end_year ASC
+  `,
+    [playerId],
+  );
 }
 
 /* ───────────────────────────────────────────────

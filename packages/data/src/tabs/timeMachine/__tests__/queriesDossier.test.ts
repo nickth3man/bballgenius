@@ -356,6 +356,39 @@ mock.module('../../../core/db.js', () => ({
       ];
     }
 
+    // loadPlayerPlayoffPerGame — game boxscore aggregation
+    if (sql.includes('fact_player_game_boxscore') && sql.includes('Playoffs')) {
+      return [
+        {
+          season_end_year: 1971,
+          age: null,
+          team: '—',
+          pos: '—',
+          g: 5,
+          gs: null,
+          mp_per_game: 36.0,
+          fg_per_game: 9.4,
+          fga_per_game: 20.6,
+          fg_percent: 0.456,
+          x3p_per_game: null,
+          x3pa_per_game: null,
+          x3p_percent: null,
+          ft_per_game: 3.2,
+          fta_per_game: 4.2,
+          ft_percent: 0.762,
+          orb_per_game: null,
+          drb_per_game: null,
+          trb_per_game: 3.6,
+          ast_per_game: 4.0,
+          stl_per_game: null,
+          blk_per_game: null,
+          tov_per_game: null,
+          pf_per_game: 2.8,
+          pts_per_game: 22.0,
+        },
+      ];
+    }
+
     // loadCareerStats — fact_player_season_stats with is_playoffs
     if (sql.includes('fact_player_season_stats')) {
       return [
@@ -495,6 +528,11 @@ describe('loadPlayerDossier', () => {
     expect(poff).toBeDefined();
     expect(poff!.season_year).toBe('1970-71');
     expect(poff!.pts).toBe(110);
+
+    // Playoff per-game
+    expect(dossier.playoffPerGame.length).toBe(1);
+    expect(dossier.playoffPerGame[0].pts_per_game).toBeCloseTo(22.0, 1);
+    expect(dossier.playoffPerGame[0].fg_per_game).toBeCloseTo(9.4, 1);
   });
 });
 
@@ -523,6 +561,7 @@ describe('loadPlayerDossier with errors', () => {
     expect(dossier.gameLog).toEqual([]);
     expect(dossier.franchise).toEqual([]);
     expect(dossier.shotZones).toEqual([]);
+    expect(dossier.playoffPerGame).toEqual([]);
     expect(dossier.careerStats).toEqual([]);
   });
 });
