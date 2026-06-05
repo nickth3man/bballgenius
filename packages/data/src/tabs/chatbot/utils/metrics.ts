@@ -1,6 +1,7 @@
 import { appendFileSync, createReadStream, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { createInterface } from 'node:readline';
+import { currentRun } from './correlation.js';
 
 interface ToolCallMetrics {
   name: string;
@@ -47,6 +48,49 @@ export interface MetricsSummary {
   averageSqlTableCount: number;
   averageSqlJoinCount: number;
   modelBreakdown: Record<string, number>;
+}
+
+type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+
+const LEVEL_ORDER: Record<LogLevel, number> = { debug: 10, info: 20, warn: 30, error: 40 };
+
+const EVENTS_FILE = 'chatbot-events.ndjson';
+
+/**
+ * Writes a structured event line to `chatbot-events.ndjson`.
+ * Augments the record with `timestamp`, `runId`, and `turn` from
+ * the active run context. Respects `CHATBOT_LOG_LEVEL` filter
+ * and `CHATBOT_LOG_STDERR` for error output.
+ *
+ * Best-effort: failures are silently caught.
+ */
+export function logMetric(rec: { level?: string; [k: string]: unknown }): void {
+  const level = (rec.level ?? 'info') as LogLevel;
+  const configuredStr = process.env['CHATBOT_LOG_LEVEL'] || 'info';
+  const configuredLevel = (LEVEL_ORDER[configuredStr as LogLevel] ?? LEVEL_ORDER['info']) as number;
+  const recLevel = LEVEL_ORDER[level] ?? LEVEL_ORDER['info'];
+
+  if (recLevel < configuredLevel) return;
+
+  const runCtx = currentRun();
+
+  const record: Record<string, unknown> = {
+    timestamp: new Date().toISOString(),
+    runId: runCtx.runId,
+    turn: runCtx.turn,
+    ...rec,
+  };
+
+  try {
+    mkdirSync(getMetricsDir(), { recursive: true });
+    appendFileSync(join(getMetricsDir(), EVENTS_FILE), `${JSON.stringify(record)}\n`);
+  } catch {
+    // best-effort
+  }
+
+  if (process.env['CHATBOT_LOG_STDERR'] === '1' && level === 'error') {
+    process.stderr.write(`${JSON.stringify(record)}\n`);
+  }
 }
 
 function getMetricsDir(): string {

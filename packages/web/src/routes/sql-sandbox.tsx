@@ -1,4 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
+import { createServerFn } from '@tanstack/react-start';
 import { type ReactNode, useCallback, useRef, useState } from 'react';
 import { CodeEditor } from '../components/code-editor';
 import { ResultsTable } from '../components/results-table';
@@ -15,6 +16,14 @@ interface SchemaNode {
   children?: SchemaNode[];
   expanded?: boolean;
 }
+
+const runQueryFn = createServerFn({ method: 'POST', strict: { output: false } })
+  .inputValidator((data: { sql: string }) => data)
+  .handler(async ({ data }) => {
+    const { query } = await import('data');
+    const rows = await query<Record<string, unknown>>(data.sql);
+    return rows as Record<string, unknown>[];
+  });
 
 export const Route = createFileRoute('/sql-sandbox')({
   component: SqlSandboxPage,
@@ -38,8 +47,7 @@ function SqlSandboxPage(): ReactNode {
 
     try {
       const start = performance.now();
-      const m = await import('data');
-      const rows = await m.query<Record<string, unknown>>(sqlText);
+      const rows = await runQueryFn({ data: { sql: sqlText } });
       const elapsedMs = Math.round(performance.now() - start);
 
       if (controller.signal.aborted) return;

@@ -1,12 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router';
-import type { PlayerAwardRow } from 'data/tabs/time-machine/queries';
+import { createServerFn } from '@tanstack/react-start';
+import { stripAnsi } from 'data/formatters';
+import type { CareerStatRow, PlayerAwardRow } from 'data/tabs/time-machine/queries';
 import { type ReactNode, useCallback, useState } from 'react';
 
 type Row = Record<string, unknown>;
-
-async function loadDataPackage() {
-  return import('data');
-}
 
 interface PlayerResult {
   player_id: string;
@@ -15,6 +13,66 @@ interface PlayerResult {
   to_year: string;
   is_active: boolean;
 }
+
+interface PlayerStatsResponse {
+  stats: string[];
+  awards: PlayerAwardRow[];
+}
+
+const searchPlayersFn = createServerFn({ method: 'POST', strict: { output: false } })
+  .inputValidator((data: { search: string }) => data)
+  .handler(async ({ data }) => {
+    const { query } = await import('data');
+    const rows = await query<Record<string, unknown>>(
+      `SELECT DISTINCT p.player_id, p.full_name, p.from_year::VARCHAR, p.to_year::VARCHAR, p.is_active
+       FROM dim_player p
+       WHERE p.full_name ILIKE $1
+       ORDER BY p.full_name
+       LIMIT 25`,
+      [`%${data.search.trim()}%`],
+    );
+    return rows.map((r) => ({
+      player_id: String(r.player_id),
+      full_name: String(r.full_name),
+      from_year: String(r.from_year ?? ''),
+      to_year: String(r.to_year ?? ''),
+      is_active: Boolean(r.is_active),
+    }));
+  });
+
+const loadPlayerDataFn = createServerFn({ method: 'POST', strict: { output: false } })
+  .inputValidator((data: { playerId: string }) => data)
+  .handler(async ({ data }): Promise<PlayerStatsResponse> => {
+    // Career stats and awards live in the schema-aware queries module which knows
+    // the right tables/columns (fact_player_awards is the only awards table, and
+    // per-game stats live in main.fact_player_game_stats behind a person_id join
+    // — we surface season-level rows here since that's the curated star tier).
+    const { loadCareerStats, loadPlayerAwards } = await import('data/tabs/time-machine/queries');
+    const { formatTable } = await import('data/formatters');
+
+    const [statRows, awardRows] = await Promise.all([
+      loadCareerStats(data.playerId),
+      loadPlayerAwards(data.playerId),
+    ]);
+
+    const headers = ['Season', 'Type', 'GP', 'GS', 'MIN', 'PTS', 'AST', 'REB', 'STL', 'BLK'];
+    const tableRows = statRows.map((r: CareerStatRow) => ({
+      Season: r.season_year,
+      Type: r.is_playoffs ? 'Playoffs' : 'Regular',
+      GP: r.gp,
+      GS: r.gs ?? '-',
+      MIN: r.min,
+      PTS: r.pts,
+      AST: r.ast,
+      REB: r.reb ?? '-',
+      STL: r.stl ?? '-',
+      BLK: r.blk ?? '-',
+    }));
+    return {
+      stats: formatTable(headers, tableRows as unknown as Row[]),
+      awards: awardRows,
+    };
+  });
 
 export const Route = createFileRoute('/time-machine')({
   component: TimeMachinePage,
@@ -34,25 +92,8 @@ function TimeMachinePage(): ReactNode {
     setLoading(true);
     setError(null);
     try {
-      const m = await loadDataPackage();
-      const rows = await m.query<Record<string, unknown>>(
-        `SELECT DISTINCT p.player_id, p.full_name, p.from_year::VARCHAR, p.to_year::VARCHAR, p.is_active
-         FROM dim_player p
-         WHERE p.full_name ILIKE $1
-         ORDER BY p.full_name
-         LIMIT 25`,
-        [`%${search.trim()}%`],
-      );
-      type RawRow = Record<string, unknown>;
-      setPlayers(
-        rows.map((r: RawRow) => ({
-          player_id: String(r.player_id),
-          full_name: String(r.full_name),
-          from_year: String(r.from_year ?? ''),
-          to_year: String(r.to_year ?? ''),
-          is_active: Boolean(r.is_active),
-        })),
-      );
+      const result = await searchPlayersFn({ data: { search } });
+      setPlayers(result);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -65,40 +106,11 @@ function TimeMachinePage(): ReactNode {
     setLoading(true);
     setError(null);
     try {
-      const m = await loadDataPackage();
-      const statRows = await m.query<Record<string, unknown>>(
-        `SELECT pgs.season_year, t.team_abbrev,
-          pgs.points, pgs.assists, pgs.reb, pgs.steals, pgs.blocks, pgs.min
-         FROM fact_player_game_stats pgs
-         JOIN dim_team t ON pgs.team_id = t.team_id
-         WHERE pgs.player_id = $1
-         ORDER BY pgs.season_year DESC
-         LIMIT 30`,
-        [player.player_id],
-      );
-
-      const awardRows = await m.query<Record<string, unknown>>(
-        `SELECT award, season_year, COUNT(*) AS count
-         FROM dim_player_award
-         WHERE player_id = $1
-         GROUP BY award, season_year
-         ORDER BY season_year DESC`,
-        [player.player_id],
-      );
-
-      const headers = ['Season', 'Team', 'PTS', 'AST', 'REB', 'STL', 'BLK', 'MIN'];
-      const rows = statRows.map((r: Record<string, unknown>) => ({
-        Season: r.season_year,
-        Team: r.team_abbrev,
-        PTS: r.points,
-        AST: r.assists,
-        REB: r.reb,
-        STL: r.steals,
-        BLK: r.blocks,
-        MIN: r.min,
-      }));
-      setStats(formatTable(headers, rows as unknown as Row[]));
-      setAwards(awardRows as unknown as PlayerAwardRow[]);
+      const { stats: statLines, awards: awardRows } = await loadPlayerDataFn({
+        data: { playerId: player.player_id },
+      });
+      setStats(statLines);
+      setAwards(awardRows);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -154,9 +166,9 @@ function TimeMachinePage(): ReactNode {
             <h3 className="mb-4 text-lg font-bold text-fg">{selectedPlayer.full_name}</h3>
             {awards.length > 0 && (
               <div className="mb-4 flex flex-wrap gap-1">
-                {awards.map((a, i) => (
+                {awards.map((a) => (
                   <span
-                    key={`${a.award}-${a.season_year}-${i}`}
+                    key={`${a.award}-${a.season_year}-${a.count}`}
                     className="rounded bg-secondary/20 px-2 py-0.5 text-xs text-secondary"
                   >
                     {a.award} ({a.season_year})
@@ -166,9 +178,9 @@ function TimeMachinePage(): ReactNode {
             )}
             {stats.length > 0 && (
               <div className="overflow-auto rounded border border-border">
-                {stats.map((line, i) => (
+                {stats.map((line) => (
                   <div
-                    key={i}
+                    key={line}
                     className="whitespace-pre border-b border-surface-alt px-2 py-0.5 font-mono text-xs text-fg-muted last:border-b-0"
                   >
                     {stripAnsi(line)}

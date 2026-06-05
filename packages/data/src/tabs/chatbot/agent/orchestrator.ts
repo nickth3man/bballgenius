@@ -23,6 +23,7 @@ import type { BaseMessage } from '@langchain/core/messages';
 import { AIMessage, HumanMessage, SystemMessage, ToolMessage } from '@langchain/core/messages';
 import { END, MemorySaver, Overwrite, Send, START, StateGraph } from '@langchain/langgraph';
 import { buildSystemPrompt } from '../systemPrompt.js';
+import { captureError } from '../utils/errorCapture.js';
 import { getAbortSignal } from './abort.js';
 import { createModel } from './model.js';
 import { buildSchemaCatalog } from './schemaCatalog.js';
@@ -168,7 +169,8 @@ async function planNode(state: ChatbotStateType): Promise<ChatbotUpdateType> {
       getAbortSignal() ? { signal: getAbortSignal() } : {},
     );
     plan = parsePlan(messageContentToString(response.content), question);
-  } catch {
+  } catch (err) {
+    captureError(err, { stage: 'orch_plan' });
     plan = { mode: 'single', subtasks: [{ id: 't1', focus: 'primary lookup', question }] };
   }
 
@@ -242,6 +244,7 @@ async function runWorker(subtask: Subtask, basePrompt: string): Promise<WorkerFi
       try {
         output = tool ? String(await tool.invoke(call.args)) : `Unknown tool "${call.name}".`;
       } catch (err) {
+        captureError(err, { stage: 'orch_worker', toolName: call.name, intent: subtask.focus });
         output = `Tool error: ${err instanceof Error ? err.message : String(err)}`;
       }
       messages.push(

@@ -8,20 +8,25 @@ export default defineConfig({
     port: 3000,
   },
   ssr: {
-    external: [
-      '@duckdb/node-api',
-      '@duckdb/node-bindings',
+    // Native bindings stay external — Node resolves them via the workspace
+    // install and the addon loader handles .node files.
+    external: ['@duckdb/node-api', '@duckdb/node-bindings'],
+    // Bundle the LangChain/LangGraph stack so Vite resolves its subpath
+    // imports (e.g. `langsmith/run_trees`) at build time.
+    // Everything else stays external — Node resolves CJS deps like `p-queue`
+    // and `mustache` at runtime, avoiding the `exports is not defined` error
+    // that Vite's inlined module runner throws when it tries to evaluate raw
+    // CJS. Native bindings (DuckDB) are externalized via `ssr.external` below.
+    noExternal: [
+      '@langchain/core',
+      '@langchain/openai',
+      '@langchain/langgraph',
+      'langchain',
+      /^langsmith(\/|$)/,
     ],
   },
   optimizeDeps: {
-    exclude: [
-      '@duckdb/node-api',
-      '@duckdb/node-bindings',
-    ],
+    exclude: ['@duckdb/node-api', '@duckdb/node-bindings'],
   },
-  plugins: [
-    tanstackStart(),
-    react(),
-    tailwindcss(),
-  ],
+  plugins: [tanstackStart(), react(), tailwindcss()],
 });

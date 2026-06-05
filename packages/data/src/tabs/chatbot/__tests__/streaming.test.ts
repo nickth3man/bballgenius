@@ -1,7 +1,11 @@
-import { test as baseTest, describe, expect, mock } from 'bun:test';
+import { test as baseTest, beforeEach, describe, expect, mock } from 'bun:test';
 import { AIMessage, HumanMessage, SystemMessage } from '@langchain/core/messages';
 
 const test = baseTest.serial;
+
+// Shared spy array for logMetric calls; reset between tests via beforeEach.
+const logMetricCalls: unknown[][] = [];
+const toolErrorCalls: unknown[][] = [];
 
 describe.serial('streamQuery', () => {
   mock.module('../utils/metrics.js', () => ({
@@ -13,7 +17,15 @@ describe.serial('streamQuery', () => {
     recordUsage: () => {},
     recordError: () => {},
     recordChainStage: () => {},
+    logMetric: (...args: unknown[]) => {
+      logMetricCalls.push(args);
+    },
   }));
+
+  beforeEach(() => {
+    logMetricCalls.length = 0;
+    toolErrorCalls.length = 0;
+  });
 
   test('yields token events from on_chat_model_stream', async () => {
     mock.module('../agent/graph.js', () => ({
@@ -191,6 +203,36 @@ describe.serial('streamQuery', () => {
     expect(errorEvent!.message).toBe('stream failure');
   });
 
+  test('error event payload includes runId and stage', async () => {
+    mock.module('../agent/graph.js', () => ({
+      setAbortSignal: () => {},
+      getChatbotGraph: () => ({
+        streamEvents: async () =>
+          (async function* () {
+            yield { event: '_sentinel' };
+            throw new Error('stream failure');
+          })(),
+        getState: async () => ({
+          values: { messages: [] },
+        }),
+      }),
+    }));
+
+    const { streamQuery } = await import('../agent/streaming.js');
+    const events: Record<string, unknown>[] = [];
+    for await (const event of streamQuery([new HumanMessage('Crash')], 'runid-test')) {
+      events.push(event);
+    }
+
+    const errorEvent = events.find((e) => e.type === 'error') as
+      | Record<string, unknown>
+      | undefined;
+    expect(errorEvent).toBeDefined();
+    expect(errorEvent!.runId).toBeDefined();
+    expect(typeof errorEvent!.runId).toBe('string');
+    expect(errorEvent!.runId).not.toBe('');
+  });
+
   test('yields friendly error when graph construction fails from auth', async () => {
     mock.module('../agent/graph.js', () => ({
       setAbortSignal: () => {},
@@ -365,5 +407,45 @@ describe.serial('streamQuery', () => {
     const doneEvent = events.find((e) => e.type === 'done');
     expect(doneEvent).toBeDefined();
     expect(doneEvent!.messages).toBe(finalMessages);
+  });
+
+  test('span summary log is written on success', async () => {
+    mock.module('../agent/graph.js', () => ({
+      setAbortSignal: () => {},
+      getChatbotGraph: () => ({
+        streamEvents: async () =>
+          (async function* () {
+            yield { event: 'on_chain_start', name: 'llm', run_id: 'r1' };
+            yield {
+              event: 'on_chat_model_stream',
+              data: { chunk: { content: 'Hello' } },
+              run_id: 'r1',
+            };
+          })(),
+        getState: async () => ({
+          values: { messages: [new AIMessage('Hello')] },
+        }),
+      }),
+    }));
+
+    const { streamQuery } = await import('../agent/streaming.js');
+    const events: Record<string, unknown>[] = [];
+    for await (const event of streamQuery([new HumanMessage('Hi')], 'span-test')) {
+      events.push(event);
+    }
+
+    const spanCalls = logMetricCalls.filter(
+      (args) =>
+        args[0] &&
+        typeof args[0] === 'object' &&
+        (args[0] as Record<string, unknown>).event === 'span',
+    );
+    expect(spanCalls.length).toBe(1);
+    const spanEvent = spanCalls[0][0] as Record<string, unknown>;
+    expect(spanEvent.status).toBe('ok');
+    expect(spanEvent.tokenCount).toBe(1);
+    expect(spanEvent.chainStages).toBeDefined();
+    expect(spanEvent.runId).toBeDefined();
+    expect(events.some((e) => e.type === 'done')).toBe(true);
   });
 });

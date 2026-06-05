@@ -123,7 +123,7 @@ export function formatTable(
 
 /**
  * Draws a regulation half-court grid and overlays shot locations (makes/misses)
- * with ANSI colors using the @opentui styles or raw ANSI escapes.
+ * with ANSI colors for terminal or web display.
  *
  * @param shots Array of shots with normalized x,y coordinates (0-100)
  * @param activePlayerId Optional ID of player to highlight their shots specially

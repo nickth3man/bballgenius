@@ -25,11 +25,11 @@
 
 import { existsSync, readFileSync } from 'node:fs';
 import { HumanMessage, SystemMessage } from '@langchain/core/messages';
-import { getChatbotGraph, resetGraph } from '../../src/tabs/chatbot/agent/graph.js';
-import { closeDb, initDb } from '../../src/tabs/chatbot/db.js';
-import { NBA_100_QUERIES } from '../../src/tabs/chatbot/eval/nba-100-queries.js';
-import { setModel } from '../../src/tabs/chatbot/openrouter.js';
-import { buildSystemPrompt } from '../../src/tabs/chatbot/systemPrompt.js';
+import { getChatbotGraph, resetGraph } from '../../packages/data/src/tabs/chatbot/agent/graph.js';
+import { closeDb, initDb } from '../../packages/data/src/tabs/chatbot/db.js';
+import { NBA_100_QUERIES } from '../../packages/data/src/tabs/chatbot/eval/nba-100-queries.js';
+import { setModel } from '../../packages/data/src/tabs/chatbot/openrouter.js';
+import { buildSystemPrompt } from '../../packages/data/src/tabs/chatbot/systemPrompt.js';
 import {
   ANSI,
   normalizeNumbers,

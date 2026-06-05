@@ -4,6 +4,8 @@ import { SystemMessage, ToolMessage } from '@langchain/core/messages';
 import { Command, END, MemorySaver, START, StateGraph } from '@langchain/langgraph';
 import { ToolNode, toolsCondition } from '@langchain/langgraph/prebuilt';
 import { invalidateSchemaCache } from '../db.js';
+import { getModel } from '../openrouter.js';
+import { captureError } from '../utils/errorCapture.js';
 import { ERROR_PREFIX } from '../utils/retry.js';
 import { getAbortSignal, setAbortSignal } from './abort.js';
 import { createModel } from './model.js';
@@ -221,6 +223,13 @@ function buildGraph() {
 
     if (erroredContent) {
       if (currentRetry >= MAX_SQL_RETRIES) {
+        captureError(new Error('sql validation failed after max retries'), {
+          intent: state.intentCategory,
+          stage: 'sql_error_guard',
+          retryCount: currentRetry,
+          sql: erroredContent.slice(0, 500),
+          model: getModel(),
+        });
         const errorMsg = new SystemMessage(
           `SQL validation failed after ${MAX_SQL_RETRIES} retries. Unable to execute query.`,
         );
@@ -276,7 +285,7 @@ function buildGraph() {
   ): Promise<Partial<ChatbotStateType> | Command> {
     const retries = state.validateAnswerRetries ?? 0;
     const lastMessage = state.messages[state.messages.length - 1];
-    if (!lastMessage || lastMessage._getType() !== 'ai') {
+    if (lastMessage?._getType() !== 'ai') {
       return new Command({ goto: 'finalize_turn', update: { validateAnswerRetries: 0 } });
     }
 

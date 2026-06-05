@@ -6,11 +6,11 @@ pre-commit:
       run: bunx biome check --write --no-errors-on-unmatched --files-ignore-unknown=true {staged_files}
       stage_fixed: true
     guard-only:
-      glob: '*.ts'
+      glob: '*.{ts,tsx}'
       run: |
-        if rg -n '\.(only|skip)\(' src/tests src/tabs/chatbot/__tests__ >/dev/null 2>&1; then
+        if rg -n '\.(only|skip)\(' packages >/dev/null 2>&1; then
           echo '::warning::Focused tests (.only/.skip) found — remove before committing'
-          rg -n '\.(only|skip)\(' src/tests src/tabs/chatbot/__tests__
+          rg -n '\.(only|skip)\(' packages
           exit 1
         fi
 
