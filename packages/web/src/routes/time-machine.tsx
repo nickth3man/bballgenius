@@ -6,6 +6,7 @@ import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react'
 import {
   AwardsGrouped,
   AwardVotesStrip,
+  CareerTrajectory,
   DossierHeader,
   DraftCombineCard,
   GameLogCard,
@@ -219,6 +220,7 @@ function TimeMachinePage(): ReactNode {
               franchise={dossier.franchise}
               isActive={selectedPlayer.is_active}
             />
+            <CareerTrajectory perGame={dossier.perGame} />
             <AwardsGrouped groups={awardsGrouped} />
             <AwardVotesStrip allStar={dossier.allStar} votes={dossier.votes} />
             <SeasonTabs
