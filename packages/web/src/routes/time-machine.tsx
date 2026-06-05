@@ -1,10 +1,17 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { createServerFn } from '@tanstack/react-start';
-import { stripAnsi } from 'data/formatters';
-import type { CareerStatRow, PlayerAwardRow } from 'data/tabs/time-machine/queries';
+import type { PlayerDossier } from 'data/tabs/time-machine/queries';
+import { groupAwardsByCategory } from 'data/tabs/time-machine/queries';
 import { type ReactNode, useCallback, useState } from 'react';
-
-type Row = Record<string, unknown>;
+import {
+  AwardsGrouped,
+  AwardVotesStrip,
+  DossierHeader,
+  DraftCombineCard,
+  GameLogCard,
+  SeasonTabs,
+  ShotZonesCard,
+} from '../components/timeMachine/player-dossier';
 
 interface PlayerResult {
   player_id: string;
@@ -12,11 +19,6 @@ interface PlayerResult {
   from_year: string;
   to_year: string;
   is_active: boolean;
-}
-
-interface PlayerStatsResponse {
-  stats: string[];
-  awards: PlayerAwardRow[];
 }
 
 const searchPlayersFn = createServerFn({ method: 'POST', strict: { output: false } })
@@ -40,38 +42,11 @@ const searchPlayersFn = createServerFn({ method: 'POST', strict: { output: false
     }));
   });
 
-const loadPlayerDataFn = createServerFn({ method: 'POST', strict: { output: false } })
+const loadPlayerDossierFn = createServerFn({ method: 'POST', strict: { output: false } })
   .inputValidator((data: { playerId: string }) => data)
-  .handler(async ({ data }): Promise<PlayerStatsResponse> => {
-    // Career stats and awards live in the schema-aware queries module which knows
-    // the right tables/columns (fact_player_awards is the only awards table, and
-    // per-game stats live in main.fact_player_game_stats behind a person_id join
-    // — we surface season-level rows here since that's the curated star tier).
-    const { loadCareerStats, loadPlayerAwards } = await import('data/tabs/time-machine/queries');
-    const { formatTable } = await import('data/formatters');
-
-    const [statRows, awardRows] = await Promise.all([
-      loadCareerStats(data.playerId),
-      loadPlayerAwards(data.playerId),
-    ]);
-
-    const headers = ['Season', 'Type', 'GP', 'GS', 'MIN', 'PTS', 'AST', 'REB', 'STL', 'BLK'];
-    const tableRows = statRows.map((r: CareerStatRow) => ({
-      Season: r.season_year,
-      Type: r.is_playoffs ? 'Playoffs' : 'Regular',
-      GP: r.gp,
-      GS: r.gs ?? '-',
-      MIN: r.min,
-      PTS: r.pts,
-      AST: r.ast,
-      REB: r.reb ?? '-',
-      STL: r.stl ?? '-',
-      BLK: r.blk ?? '-',
-    }));
-    return {
-      stats: formatTable(headers, tableRows as unknown as Row[]),
-      awards: awardRows,
-    };
+  .handler(async ({ data }): Promise<PlayerDossier> => {
+    const { loadPlayerDossier } = await import('data/tabs/time-machine/queries');
+    return loadPlayerDossier(data.playerId);
   });
 
 export const Route = createFileRoute('/time-machine')({
@@ -82,8 +57,7 @@ function TimeMachinePage(): ReactNode {
   const [search, setSearch] = useState('');
   const [players, setPlayers] = useState<PlayerResult[]>([]);
   const [selectedPlayer, setSelectedPlayer] = useState<PlayerResult | null>(null);
-  const [stats, setStats] = useState<string[]>([]);
-  const [awards, setAwards] = useState<PlayerAwardRow[]>([]);
+  const [dossier, setDossier] = useState<PlayerDossier | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -106,17 +80,17 @@ function TimeMachinePage(): ReactNode {
     setLoading(true);
     setError(null);
     try {
-      const { stats: statLines, awards: awardRows } = await loadPlayerDataFn({
-        data: { playerId: player.player_id },
-      });
-      setStats(statLines);
-      setAwards(awardRows);
+      const result = await loadPlayerDossierFn({ data: { playerId: player.player_id } });
+      setDossier(result);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : String(e));
+      setDossier(null);
     } finally {
       setLoading(false);
     }
   }, []);
+
+  const awardsGrouped = dossier ? groupAwardsByCategory(dossier.awards) : [];
 
   return (
     <div className="flex h-full">
@@ -142,6 +116,9 @@ function TimeMachinePage(): ReactNode {
         </div>
         {error && <div className="mb-2 rounded bg-danger/10 p-2 text-xs text-danger">{error}</div>}
         {loading && <div className="text-xs text-fg-muted">Searching...</div>}
+        {players.length === 0 && !loading ? (
+          <div className="text-fg-dim text-xs italic">No players found</div>
+        ) : null}
         {players.map((p) => (
           <button
             key={p.player_id}
@@ -161,37 +138,32 @@ function TimeMachinePage(): ReactNode {
       </div>
 
       <div className="flex-1 overflow-auto p-4">
-        {selectedPlayer ? (
-          <div>
-            <h3 className="mb-4 text-lg font-bold text-fg">{selectedPlayer.full_name}</h3>
-            {awards.length > 0 && (
-              <div className="mb-4 flex flex-wrap gap-1">
-                {awards.map((a) => (
-                  <span
-                    key={`${a.award}-${a.season_year}-${a.count}`}
-                    className="rounded bg-secondary/20 px-2 py-0.5 text-xs text-secondary"
-                  >
-                    {a.award} ({a.season_year})
-                  </span>
-                ))}
-              </div>
-            )}
-            {stats.length > 0 && (
-              <div className="overflow-auto rounded border border-border">
-                {stats.map((line) => (
-                  <div
-                    key={line}
-                    className="whitespace-pre border-b border-surface-alt px-2 py-0.5 font-mono text-xs text-fg-muted last:border-b-0"
-                  >
-                    {stripAnsi(line)}
-                  </div>
-                ))}
-              </div>
-            )}
-            {!loading && stats.length === 0 && (
-              <div className="text-fg-dim text-sm">No stats found for this player.</div>
-            )}
+        {selectedPlayer && dossier ? (
+          <div className="space-y-6">
+            <DossierHeader
+              meta={dossier.meta}
+              totals={dossier.totals}
+              franchise={dossier.franchise}
+              isActive={selectedPlayer.is_active}
+            />
+            <AwardsGrouped groups={awardsGrouped} />
+            <AwardVotesStrip allStar={dossier.allStar} votes={dossier.votes} />
+            <SeasonTabs
+              perGame={dossier.perGame}
+              totals={dossier.totalsSeason}
+              per36={dossier.per36}
+              advanced={dossier.advanced}
+              shooting={dossier.shooting}
+              playByPlay={dossier.playByPlay}
+            />
+            <ShotZonesCard zones={dossier.shotZones} />
+            <GameLogCard rows={dossier.gameLog} />
+            <DraftCombineCard draft={dossier.draft} combine={dossier.combine} />
           </div>
+        ) : selectedPlayer && loading ? (
+          <div className="text-fg-dim text-sm">Loading player dossier…</div>
+        ) : selectedPlayer && !loading ? (
+          <div className="text-fg-dim text-sm">No data returned for this player.</div>
         ) : (
           <div className="flex h-full items-center justify-center text-fg-dim text-sm">
             Search for a player to view career stats, awards, and more

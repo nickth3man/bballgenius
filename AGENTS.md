@@ -417,3 +417,14 @@ START → classify_intent → llm → [toolsCondition] → tools → sql_critic 
 - [ ] **nbadb pipeline:** Ingesting/building `data/nba.duckdb` is out of repo scope.
 - [ ] **DQ rollout:** Cross-source accuracy reconciliation built but not yet run at scale.
 - [ ] **Chatbot HITL:** Interrupt-based SQL approval pattern available as future feature.
+
+## Repository Map
+
+A full codemap is available at `codemap.md` in the project root.
+
+Before working on any task, read `codemap.md` to understand:
+- Project architecture and entry points
+- Directory responsibilities and design patterns
+- Data flow and integration points between modules
+
+For deep work on a specific folder, also read that folder's `codemap.md`.

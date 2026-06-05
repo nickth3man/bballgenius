@@ -9,6 +9,7 @@
     "./db": "./src/core/db.ts",
     "./dbPath": "./src/shared/dbPath.ts",
     "./errors": "./src/shared/errors.ts",
+    "./sqlValidation": "./src/shared/sqlValidation.ts",
     "./formatters": "./src/shared/formatters.ts",
     "./theme": "./src/shared/theme.ts",
     "./tabs/game-center/queries": "./src/tabs/gameCenter/queries.ts",

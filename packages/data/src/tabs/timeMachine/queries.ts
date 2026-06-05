@@ -58,11 +58,357 @@ export interface TeamRosterRow {
   rpg: number | string;
 }
 
+/* ───────────────────────────────────────────────
+   Dossier types
+   ─────────────────────────────────────────────── */
+
+export interface PlayerMetaRow {
+  person_id: string;
+  full_name: string;
+  bref_player_id: string | null;
+  primary_position: string | null;
+  height_inches: number | null;
+  body_weight_lbs: number | null;
+  birth_date: string | null;
+  school: string | null;
+  country: string | null;
+  draft_year: number | null;
+  draft_round: number | null;
+  draft_number: number | null;
+  from_year: number | null;
+  to_year: number | null;
+  is_hall_of_fame: boolean | null;
+}
+
+export interface PlayerCareerTotalsRow {
+  player_id: string;
+  full_name: string;
+  position: string;
+  career_gp: number | string;
+  career_min: number | null;
+  career_pts: number | null;
+  career_ppg: number | null;
+  career_rpg: number | null;
+  career_apg: number | null;
+  career_spg: number | null;
+  career_bpg: number | null;
+  career_fg_pct: number | null;
+  career_fg3_pct: number | null;
+  career_ft_pct: number | null;
+  first_season: string;
+  last_season: string;
+  seasons_played: number | string;
+}
+
+export interface PlayerDraftRow {
+  season_end_year: number;
+  overall_pick: number;
+  round: number;
+  team: string;
+  bref_player_id: string;
+  player_name: string;
+}
+
+export interface PlayerCombineRow {
+  season: string;
+  player_id: string;
+  player_name: string;
+  position: string;
+  height_wo_shoes: number | null;
+  height_w_shoes: number | null;
+  weight: number | null;
+  wingspan: number | null;
+  standing_reach: number | null;
+  body_fat_pct: number | null;
+  hand_length: number | null;
+  hand_width: number | null;
+  standing_vertical_leap: number | null;
+  max_vertical_leap: number | null;
+  lane_agility_time: number | null;
+  modified_lane_agility_time: number | null;
+  three_quarter_sprint: number | null;
+  bench_press: number | null;
+}
+
+export interface PlayerAllStarRow {
+  season_end_year: number;
+  player_name: string;
+  team: string;
+  replaced: boolean;
+}
+
+export interface PlayerAwardVoteRow {
+  season_end_year: number;
+  award: string;
+  age: number | null;
+  first: number | null;
+  pts_won: number | null;
+  pts_max: number | null;
+  share: number | null;
+  winner: boolean;
+}
+
+export interface PlayerPerGameRow {
+  season_end_year: number;
+  age: number | null;
+  team: string;
+  pos: string;
+  g: number | null;
+  gs: number | null;
+  mp_per_game: number | null;
+  fg_per_game: number | null;
+  fga_per_game: number | null;
+  fg_percent: number | null;
+  x3p_per_game: number | null;
+  x3pa_per_game: number | null;
+  x3p_percent: number | null;
+  ft_per_game: number | null;
+  fta_per_game: number | null;
+  ft_percent: number | null;
+  orb_per_game: number | null;
+  drb_per_game: number | null;
+  trb_per_game: number | null;
+  ast_per_game: number | null;
+  stl_per_game: number | null;
+  blk_per_game: number | null;
+  tov_per_game: number | null;
+  pf_per_game: number | null;
+  pts_per_game: number | null;
+}
+
+export interface PlayerTotalsRow {
+  season_end_year: number;
+  age: number | null;
+  team: string;
+  pos: string;
+  g: number | null;
+  gs: number | null;
+  mp: number | null;
+  fg: number | null;
+  fga: number | null;
+  fg_percent: number | null;
+  x3p: number | null;
+  x3pa: number | null;
+  x3p_percent: number | null;
+  ft: number | null;
+  fta: number | null;
+  ft_percent: number | null;
+  orb: number | null;
+  drb: number | null;
+  trb: number | null;
+  ast: number | null;
+  stl: number | null;
+  blk: number | null;
+  tov: number | null;
+  pf: number | null;
+  pts: number | null;
+  trp_dbl: number | null;
+}
+
+export interface PlayerPer36Row {
+  season_end_year: number;
+  age: number | null;
+  team: string;
+  pos: string;
+  g: number | null;
+  gs: number | null;
+  mp: number | null;
+  fg_per_36_min: number | null;
+  fga_per_36_min: number | null;
+  fg_percent: number | null;
+  x3p_per_36_min: number | null;
+  x3pa_per_36_min: number | null;
+  x3p_percent: number | null;
+  ft_per_36_min: number | null;
+  fta_per_36_min: number | null;
+  ft_percent: number | null;
+  orb_per_36_min: number | null;
+  drb_per_36_min: number | null;
+  trb_per_36_min: number | null;
+  ast_per_36_min: number | null;
+  stl_per_36_min: number | null;
+  blk_per_36_min: number | null;
+  tov_per_36_min: number | null;
+  pf_per_36_min: number | null;
+  pts_per_36_min: number | null;
+}
+
+export interface PlayerAdvancedRow {
+  season_end_year: number;
+  age: number | null;
+  team: string;
+  pos: string;
+  g: number | null;
+  gs: number | null;
+  mp: number | null;
+  per: number | null;
+  ts_percent: number | null;
+  x3p_ar: number | null;
+  f_tr: number | null;
+  orb_percent: number | null;
+  drb_percent: number | null;
+  trb_percent: number | null;
+  ast_percent: number | null;
+  stl_percent: number | null;
+  blk_percent: number | null;
+  tov_percent: number | null;
+  usg_percent: number | null;
+  ows: number | null;
+  dws: number | null;
+  ws: number | null;
+  ws_48: number | null;
+  obpm: number | null;
+  dbpm: number | null;
+  bpm: number | null;
+  vorp: number | null;
+}
+
+export interface PlayerShootingRow {
+  season_end_year: number;
+  age: number | null;
+  team: string;
+  pos: string;
+  g: number | null;
+  gs: number | null;
+  mp: number | null;
+  fg_percent: number | null;
+  avg_dist_fga: number | null;
+  percent_fga_from_x2p_range: number | null;
+  percent_fga_from_x0_3_range: number | null;
+  percent_fga_from_x3_10_range: number | null;
+  percent_fga_from_x10_16_range: number | null;
+  percent_fga_from_x16_3p_range: number | null;
+  percent_fga_from_x3p_range: number | null;
+  fg_percent_from_x2p_range: number | null;
+  fg_percent_from_x0_3_range: number | null;
+  fg_percent_from_x3_10_range: number | null;
+  fg_percent_from_x10_16_range: number | null;
+  fg_percent_from_x16_3p_range: number | null;
+  fg_percent_from_x3p_range: number | null;
+  percent_assisted_x2p_fg: number | null;
+  percent_assisted_x3p_fg: number | null;
+  percent_dunks_of_fga: number | null;
+  num_of_dunks: number | null;
+  percent_corner_3s_of_3pa: number | string | null;
+  corner_3_point_percent: number | null;
+  num_heaves_attempted: number | null;
+  num_heaves_made: number | null;
+}
+
+export interface PlayerPlayByPlayRow {
+  season_end_year: number;
+  age: number | null;
+  team: string;
+  pos: string;
+  g: number | null;
+  gs: number | null;
+  mp: number | null;
+  pg_percent: number | null;
+  sg_percent: number | null;
+  sf_percent: number | null;
+  pf_percent: number | null;
+  c_percent: number | null;
+  on_court_plus_minus_per_100_poss: number | null;
+  net_plus_minus_per_100_poss: number | null;
+  bad_pass_turnover: number | string | null;
+  lost_ball_turnover: number | string | null;
+  shooting_foul_committed: number | string | null;
+  offensive_foul_committed: number | string | null;
+  shooting_foul_drawn: number | string | null;
+  offensive_foul_drawn: number | string | null;
+  points_generated_by_assists: number | null;
+  and1: number | string | null;
+  fga_blocked: number | null;
+}
+
+export interface PlayerGameLogRow {
+  game_date: string;
+  matchup: string;
+  wl: string;
+  min: number | null;
+  pts: number | null;
+  reb: number | null;
+  ast: number | null;
+  stl: number | null;
+  blk: number | null;
+  plus_minus: number | null;
+  fgm: number | null;
+  fga: number | null;
+  fg_pct: number | null;
+  fg3m: number | null;
+  fg3a: number | null;
+  fg3_pct: number | null;
+  ftm: number | null;
+  fta: number | null;
+  ft_pct: number | null;
+  oreb: number | null;
+  dreb: number | null;
+  tov: number | null;
+  pf: number | null;
+}
+
+export interface PlayerFranchiseStandingRow {
+  category: 'PTS' | 'REB' | 'AST' | 'STL' | 'BLK';
+  team: string;
+  value: number;
+}
+
+export interface PlayerShotZoneRow {
+  zone: string;
+  fga: number;
+  fgm: number;
+  fg_pct: number;
+}
+
+export interface GroupedAward {
+  category: string;
+  awards: { season: string; label: string }[];
+}
+
+/* ───────────────────────────────────────────────
+   Dossier bundle type
+   ─────────────────────────────────────────────── */
+
+export interface PlayerDossier {
+  meta: PlayerMetaRow | null;
+  totals: PlayerCareerTotalsRow | null;
+  draft: PlayerDraftRow | null;
+  combine: PlayerCombineRow | null;
+  awards: PlayerAwardRow[];
+  allStar: PlayerAllStarRow[];
+  votes: PlayerAwardVoteRow[];
+  perGame: PlayerPerGameRow[];
+  totalsSeason: PlayerTotalsRow[];
+  per36: PlayerPer36Row[];
+  advanced: PlayerAdvancedRow[];
+  shooting: PlayerShootingRow[];
+  playByPlay: PlayerPlayByPlayRow[];
+  gameLog: PlayerGameLogRow[];
+  franchise: PlayerFranchiseStandingRow[];
+  shotZones: PlayerShotZoneRow[];
+}
+
+/* ───────────────────────────────────────────────
+   Helpers
+   ─────────────────────────────────────────────── */
+
 interface HonorsRow {
   award: string;
   season_year: number | string;
   count: number | string;
 }
+
+function mapAwardRows(rows: HonorsRow[]): PlayerAwardRow[] {
+  return rows.map((row) => ({
+    award: String(row.award),
+    season_year: seasonEndYearToNbaLabel(row.season_year),
+    count: row.count,
+  }));
+}
+
+/* ───────────────────────────────────────────────
+   Existing public API
+   ─────────────────────────────────────────────── */
 
 /** Loads the default startup player (LeBron James) when present in dim_player. */
 export async function loadDefaultPlayer(): Promise<PlayerSuggestion | null> {
@@ -89,37 +435,658 @@ export async function searchPlayerSuggestions(q: string): Promise<PlayerSuggesti
   );
 }
 
-/** Full dim_player row for dossier rendering. */
-export async function loadPlayerMeta(playerId: string): Promise<DbRow | null> {
-  const rows = await query<DbRow>(
+/* ───────────────────────────────────────────────
+   Dossier queries
+   ─────────────────────────────────────────────── */
+
+/**
+ * Enriched player meta row joining main.dim_player, the source-id bridge,
+ * and main.dim_bref_player for BBR-specific attributes.
+ */
+export async function loadPlayerMeta(playerId: string): Promise<PlayerMetaRow | null> {
+  const rows = await query<PlayerMetaRow>(
     `
-    SELECT * FROM dim_player WHERE player_id = $1 LIMIT 1
+    SELECT
+      CAST(p.person_id AS VARCHAR) AS person_id,
+      p.first_name || ' ' || p.last_name AS full_name,
+      src.source_player_id AS bref_player_id,
+      bp.primary_position AS primary_position,
+      COALESCE(bp.height_inches, p.height_inches) AS height_inches,
+      COALESCE(bp.body_weight_lbs, p.body_weight_lbs) AS body_weight_lbs,
+      CAST(COALESCE(bp.birth_date, p.birth_date) AS VARCHAR) AS birth_date,
+      p.school AS school,
+      p.country AS country,
+      p.draft_year AS draft_year,
+      p.draft_round AS draft_round,
+      p.draft_number AS draft_number,
+      p.from_year AS from_year,
+      p.to_year AS to_year,
+      bp.is_hall_of_fame AS is_hall_of_fame
+    FROM main.dim_player p
+    LEFT JOIN main.bridge_player_source_id src
+      ON src.person_id = p.person_id
+      AND src.source_system = 'basketball_reference'
+    LEFT JOIN main.dim_bref_player bp
+      ON bp.bref_player_id = src.source_player_id
+    WHERE p.person_id = CAST($1 AS INTEGER)
+    LIMIT 1
   `,
     [playerId],
   );
   return rows[0] ?? null;
 }
 
+/** Career totals from the aggregate view. */
+export async function loadPlayerCareerTotals(
+  playerId: string,
+): Promise<PlayerCareerTotalsRow | null> {
+  const rows = await query<PlayerCareerTotalsRow>(
+    `
+    SELECT
+      CAST(player_id AS VARCHAR) AS player_id,
+      full_name,
+      position,
+      career_gp,
+      career_min,
+      career_pts,
+      career_ppg,
+      career_rpg,
+      career_apg,
+      career_spg,
+      career_bpg,
+      career_fg_pct,
+      career_fg3_pct,
+      career_ft_pct,
+      first_season,
+      last_season,
+      seasons_played
+    FROM api.v_player_career
+    WHERE player_id = CAST($1 AS INTEGER)
+    LIMIT 1
+  `,
+    [playerId],
+  );
+  return rows[0] ?? null;
+}
+
+/** Draft pick info resolved via the BBR bridge. */
+export async function loadPlayerDraft(playerId: string): Promise<PlayerDraftRow | null> {
+  const rows = await query<PlayerDraftRow>(
+    `
+    SELECT
+      d.season_end_year,
+      d.overall_pick,
+      d.round,
+      d.tm AS team,
+      d.bref_player_id,
+      d.player_name
+    FROM main.bridge_player_source_id src
+    JOIN main.fact_draft_pick_bref d
+      ON d.bref_player_id = src.source_player_id
+    WHERE src.person_id = CAST($1 AS INTEGER)
+      AND src.source_system = 'basketball_reference'
+    LIMIT 1
+  `,
+    [playerId],
+  );
+  return rows[0] ?? null;
+}
+
+/** Draft combine measurements. */
+export async function loadPlayerCombine(playerId: string): Promise<PlayerCombineRow | null> {
+  const rows = await query<PlayerCombineRow>(
+    `
+    SELECT
+      season,
+      CAST(player_id AS VARCHAR) AS player_id,
+      player_name,
+      position,
+      height_wo_shoes,
+      height_w_shoes,
+      weight,
+      wingspan,
+      standing_reach,
+      body_fat_pct,
+      hand_length,
+      hand_width,
+      standing_vertical_leap,
+      max_vertical_leap,
+      lane_agility_time,
+      modified_lane_agility_time,
+      three_quarter_sprint,
+      bench_press
+    FROM api.v_draft_combine
+    WHERE player_id = CAST($1 AS INTEGER)
+    LIMIT 1
+  `,
+    [playerId],
+  );
+  return rows[0] ?? null;
+}
+
+/** All-Star selections. */
+export async function loadPlayerAllStarSelections(playerId: string): Promise<PlayerAllStarRow[]> {
+  return query<PlayerAllStarRow>(
+    `
+    SELECT
+      season_end_year,
+      player_name,
+      team,
+      replaced
+    FROM main.fact_all_star_selection
+    WHERE person_id = CAST($1 AS INTEGER)
+    ORDER BY season_end_year ASC
+  `,
+    [playerId],
+  );
+}
+
+/** Award vote rows (MVP, ROY, DPOY, etc.). */
+export async function loadPlayerAwardVotes(playerId: string): Promise<PlayerAwardVoteRow[]> {
+  return query<PlayerAwardVoteRow>(
+    `
+    SELECT
+      season_end_year,
+      award,
+      age,
+      first,
+      pts_won,
+      pts_max,
+      share,
+      winner
+    FROM main.fact_player_award_vote
+    WHERE person_id = CAST($1 AS INTEGER)
+    ORDER BY season_end_year DESC, award ASC
+  `,
+    [playerId],
+  );
+}
+
+/** Per-game averages by season. */
+export async function loadPlayerPerGame(playerId: string): Promise<PlayerPerGameRow[]> {
+  return query<PlayerPerGameRow>(
+    `
+    SELECT
+      season_end_year,
+      age,
+      team,
+      pos,
+      g,
+      gs,
+      mp_per_game,
+      fg_per_game,
+      fga_per_game,
+      fg_percent,
+      x3p_per_game,
+      x3pa_per_game,
+      x3p_percent,
+      ft_per_game,
+      fta_per_game,
+      ft_percent,
+      orb_per_game,
+      drb_per_game,
+      trb_per_game,
+      ast_per_game,
+      stl_per_game,
+      blk_per_game,
+      tov_per_game,
+      pf_per_game,
+      pts_per_game
+    FROM main.fact_bref_player_season_per_game
+    WHERE person_id = CAST($1 AS INTEGER)
+    ORDER BY season_end_year ASC
+  `,
+    [playerId],
+  );
+}
+
+/** Season totals. */
+export async function loadPlayerTotals(playerId: string): Promise<PlayerTotalsRow[]> {
+  return query<PlayerTotalsRow>(
+    `
+    SELECT
+      season_end_year,
+      age,
+      team,
+      pos,
+      g,
+      gs,
+      mp,
+      fg,
+      fga,
+      fg_percent,
+      x3p,
+      x3pa,
+      x3p_percent,
+      ft,
+      fta,
+      ft_percent,
+      orb,
+      drb,
+      trb,
+      ast,
+      stl,
+      blk,
+      tov,
+      pf,
+      pts,
+      trp_dbl
+    FROM main.fact_bref_player_season_totals
+    WHERE person_id = CAST($1 AS INTEGER)
+    ORDER BY season_end_year ASC
+  `,
+    [playerId],
+  );
+}
+
+/** Per-36-minute stats. */
+export async function loadPlayerPer36(playerId: string): Promise<PlayerPer36Row[]> {
+  return query<PlayerPer36Row>(
+    `
+    SELECT
+      season_end_year,
+      age,
+      team,
+      pos,
+      g,
+      gs,
+      mp,
+      fg_per_36_min,
+      fga_per_36_min,
+      fg_percent,
+      x3p_per_36_min,
+      x3pa_per_36_min,
+      x3p_percent,
+      ft_per_36_min,
+      fta_per_36_min,
+      ft_percent,
+      orb_per_36_min,
+      drb_per_36_min,
+      trb_per_36_min,
+      ast_per_36_min,
+      stl_per_36_min,
+      blk_per_36_min,
+      tov_per_36_min,
+      pf_per_36_min,
+      pts_per_36_min
+    FROM main.fact_bref_player_season_per36
+    WHERE person_id = CAST($1 AS INTEGER)
+    ORDER BY season_end_year ASC
+  `,
+    [playerId],
+  );
+}
+
+/** Advanced stats (PER, WS, BPM, VORP, etc.) — casts per from VARCHAR to DOUBLE. */
+export async function loadPlayerAdvanced(playerId: string): Promise<PlayerAdvancedRow[]> {
+  return query<PlayerAdvancedRow>(
+    `
+    SELECT
+      season_end_year,
+      age,
+      team,
+      pos,
+      g,
+      gs,
+      mp,
+      CAST(per AS DOUBLE) AS per,
+      ts_percent,
+      x3p_ar,
+      f_tr,
+      orb_percent,
+      drb_percent,
+      trb_percent,
+      ast_percent,
+      stl_percent,
+      blk_percent,
+      tov_percent,
+      usg_percent,
+      ows,
+      dws,
+      ws,
+      ws_48,
+      obpm,
+      dbpm,
+      bpm,
+      vorp
+    FROM main.fact_bref_player_season_advanced
+    WHERE person_id = CAST($1 AS INTEGER)
+    ORDER BY season_end_year ASC
+  `,
+    [playerId],
+  );
+}
+
+/** Shooting breakdowns (post-2000). */
+export async function loadPlayerShooting(playerId: string): Promise<PlayerShootingRow[]> {
+  return query<PlayerShootingRow>(
+    `
+    SELECT
+      season_end_year,
+      age,
+      team,
+      pos,
+      g,
+      gs,
+      mp,
+      fg_percent,
+      avg_dist_fga,
+      percent_fga_from_x2p_range,
+      percent_fga_from_x0_3_range,
+      percent_fga_from_x3_10_range,
+      percent_fga_from_x10_16_range,
+      percent_fga_from_x16_3p_range,
+      percent_fga_from_x3p_range,
+      fg_percent_from_x2p_range,
+      fg_percent_from_x0_3_range,
+      fg_percent_from_x3_10_range,
+      fg_percent_from_x10_16_range,
+      fg_percent_from_x16_3p_range,
+      fg_percent_from_x3p_range,
+      percent_assisted_x2p_fg,
+      percent_assisted_x3p_fg,
+      percent_dunks_of_fga,
+      num_of_dunks,
+      percent_corner_3s_of_3pa,
+      corner_3_point_percent,
+      num_heaves_attempted,
+      num_heaves_made
+    FROM main.fact_bref_player_season_shooting
+    WHERE person_id = CAST($1 AS INTEGER)
+    ORDER BY season_end_year ASC
+  `,
+    [playerId],
+  );
+}
+
+/** Play-by-play derived stats (position percentages, plus-minus, etc.). */
+export async function loadPlayerPlayByPlay(playerId: string): Promise<PlayerPlayByPlayRow[]> {
+  return query<PlayerPlayByPlayRow>(
+    `
+    SELECT
+      season_end_year,
+      age,
+      team,
+      pos,
+      g,
+      gs,
+      mp,
+      pg_percent,
+      sg_percent,
+      sf_percent,
+      pf_percent,
+      c_percent,
+      on_court_plus_minus_per_100_poss,
+      net_plus_minus_per_100_poss,
+      bad_pass_turnover,
+      lost_ball_turnover,
+      shooting_foul_committed,
+      offensive_foul_committed,
+      shooting_foul_drawn,
+      offensive_foul_drawn,
+      points_generated_by_assists,
+      and1,
+      fga_blocked
+    FROM main.fact_bref_player_season_play_by_play
+    WHERE person_id = CAST($1 AS INTEGER)
+    ORDER BY season_end_year ASC
+  `,
+    [playerId],
+  );
+}
+
+/** Game log (nbadb schema). Default limit 25, newest first. */
+export async function loadPlayerGameLog(
+  playerId: string,
+  limit: number = 25,
+): Promise<PlayerGameLogRow[]> {
+  return query<PlayerGameLogRow>(
+    `
+    SELECT
+      game_date,
+      matchup,
+      wl,
+      min,
+      pts,
+      reb,
+      ast,
+      stl,
+      blk,
+      plus_minus,
+      fgm,
+      fga,
+      fg_pct,
+      fg3m,
+      fg3a,
+      fg3_pct,
+      ftm,
+      fta,
+      ft_pct,
+      oreb,
+      dreb,
+      tov,
+      pf
+    FROM nbadb.fact_player_game_log
+    WHERE player_id = CAST($1 AS INTEGER)
+    ORDER BY game_date DESC
+    LIMIT $2
+  `,
+    [playerId, limit],
+  );
+}
+
+/**
+ * Franchise standing rows — scans all 5 `*_person_id` columns in
+ * api.v_franchise_leaders for a match and returns the category label.
+ */
+export async function loadPlayerFranchiseStanding(
+  playerId: string,
+): Promise<PlayerFranchiseStandingRow[]> {
+  const pid = Number(playerId);
+  const all = await query<DbRow>('SELECT * FROM api.v_franchise_leaders');
+  const result: PlayerFranchiseStandingRow[] = [];
+
+  for (const row of all) {
+    const cats: [string, string, string][] = [
+      ['PTS', 'pts_person_id', 'pts'],
+      ['REB', 'reb_person_id', 'reb'],
+      ['AST', 'ast_person_id', 'ast'],
+      ['STL', 'stl_person_id', 'stl'],
+      ['BLK', 'blk_person_id', 'blk'],
+    ];
+    for (const [category, idCol, valCol] of cats) {
+      if (String(row[idCol]) === String(pid)) {
+        const value = row[valCol];
+        result.push({
+          category: category as PlayerFranchiseStandingRow['category'],
+          team: String(row.team),
+          value: Number(value),
+        });
+      }
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Shot-zone aggregation — looks up the player name from unified_star.dim_player,
+ * then groups api.v_shot_chart by shot_zone_basic.
+ */
+export async function loadPlayerShotZones(playerId: string): Promise<PlayerShotZoneRow[]> {
+  const nameRows = await query<DbRow>(
+    'SELECT full_name FROM unified_star.dim_player WHERE player_id = CAST($1 AS INTEGER) LIMIT 1',
+    [playerId],
+  );
+  const name = nameRows[0]?.full_name;
+  if (!name) return [];
+
+  const raw = await query<DbRow>(
+    `
+    SELECT
+      shot_zone_basic,
+      COUNT(*) AS fga,
+      SUM(CASE WHEN shot_made_flag = 1 THEN 1 ELSE 0 END) AS fgm
+    FROM api.v_shot_chart
+    WHERE player_name = $1
+    GROUP BY shot_zone_basic
+    ORDER BY fga DESC
+  `,
+    [String(name)],
+  );
+
+  return raw.map((r) => ({
+    zone: String(r.shot_zone_basic),
+    fga: Number(r.fga) || 0,
+    fgm: Number(r.fgm) || 0,
+    fg_pct: Number(r.fga) ? Number(r.fgm) / Number(r.fga) : 0,
+  }));
+}
+
+/**
+ * Groups award rows by the leading token of the award label.
+ * e.g. "All-NBA 1st" → group "All-NBA", "All-Star" → group "All-Star".
+ * All-NBA groups sort by team number.
+ */
+export function groupAwardsByCategory(awards: PlayerAwardRow[]): GroupedAward[] {
+  const map = new Map<string, { season: string; label: string }[]>();
+
+  for (const a of awards) {
+    const label = a.award;
+    // Leading token is the first word(s) before a space followed by a number (e.g. "All-NBA 1st")
+    // or just the first word (e.g. "All-Star")
+    const leading = label.split(/\s+/).slice(0, -1).join(' ') || label;
+    const category = leading || label;
+
+    if (!map.has(category)) {
+      map.set(category, []);
+    }
+    map.get(category)!.push({ season: a.season_year, label });
+  }
+
+  // Sort All-NBA groups by team number ascending
+  for (const [, entries] of map) {
+    entries.sort((a, b) => {
+      const aNum = extractTeamNumber(a.label);
+      const bNum = extractTeamNumber(b.label);
+      if (aNum !== null && bNum !== null) return aNum - bNum;
+      return a.label.localeCompare(b.label);
+    });
+  }
+
+  return Array.from(map.entries()).map(([category, awards]) => ({
+    category,
+    awards,
+  }));
+}
+
+/** Extract the team number from labels like "All-NBA 1st" → 1. */
+function extractTeamNumber(label: string): number | null {
+  const m = label.match(/(\d+)(st|nd|rd|th)$/);
+  return m ? Number(m[1]) : null;
+}
+
+/* ───────────────────────────────────────────────
+   Dossier bundle loader
+   ─────────────────────────────────────────────── */
+
+/**
+ * Loads the full player dossier by calling all 13 data loaders with
+ * Promise.allSettled so a missing view or column doesn't crash the page.
+ * Each failing loader logs a warning to stderr and returns its default value.
+ */
+export async function loadPlayerDossier(playerId: string): Promise<PlayerDossier> {
+  const results = await Promise.allSettled([
+    loadPlayerMeta(playerId),
+    loadPlayerCareerTotals(playerId),
+    loadPlayerDraft(playerId),
+    loadPlayerCombine(playerId),
+    loadPlayerAwards(playerId),
+    loadPlayerAllStarSelections(playerId),
+    loadPlayerAwardVotes(playerId),
+    loadPlayerPerGame(playerId),
+    loadPlayerTotals(playerId),
+    loadPlayerPer36(playerId),
+    loadPlayerAdvanced(playerId),
+    loadPlayerShooting(playerId),
+    loadPlayerPlayByPlay(playerId),
+    loadPlayerGameLog(playerId),
+    loadPlayerFranchiseStanding(playerId),
+    loadPlayerShotZones(playerId),
+  ]);
+
+  const settled = <T>(r: PromiseSettledResult<T>, fallback: T): T => {
+    if (r.status === 'fulfilled') return r.value;
+    console.warn('[loadPlayerDossier] loader failed:', r.reason);
+    return fallback;
+  };
+
+  return {
+    meta: settled(results[0], null),
+    totals: settled(results[1], null),
+    draft: settled(results[2], null),
+    combine: settled(results[3], null),
+    awards: settled(results[4], []),
+    allStar: settled(results[5], []),
+    votes: settled(results[6], []),
+    perGame: settled(results[7], []),
+    totalsSeason: settled(results[8], []),
+    per36: settled(results[9], []),
+    advanced: settled(results[10], []),
+    shooting: settled(results[11], []),
+    playByPlay: settled(results[12], []),
+    gameLog: settled(results[13], []),
+    franchise: settled(results[14], []),
+    shotZones: settled(results[15], []),
+  };
+}
+
+/* ───────────────────────────────────────────────
+   Legacy award loading
+   ─────────────────────────────────────────────── */
+
 async function loadPlayerAwardsFromHonorsDb(playerId: string): Promise<PlayerAwardRow[]> {
   const rows = await queryHonors<HonorsRow>(
     `
     SELECT
-      type AS award,
+      CASE
+        WHEN source_table = 'fact_player_honor' AND number_tm IS NOT NULL
+          THEN type || ' ' || number_tm
+        ELSE type
+      END AS award,
       season_end_year AS season_year,
       1 AS count
     FROM v_player_honors_full
     WHERE CAST(person_id AS VARCHAR) = $1
-      AND is_winner = true
+      AND (source_table = 'fact_player_honor' OR is_winner = true)
     ORDER BY season_end_year DESC, type ASC
   `,
     [playerId],
   );
 
-  return rows.map((row) => ({
-    award: String(row.award),
-    season_year: seasonEndYearToNbaLabel(row.season_year),
-    count: row.count,
-  }));
+  return mapAwardRows(rows);
+}
+
+async function loadPlayerAwardsFromPrimaryHonorsView(playerId: string): Promise<PlayerAwardRow[]> {
+  const rows = await query<HonorsRow>(
+    `
+    SELECT
+      CASE
+        WHEN source_table = 'fact_player_honor' AND number_tm IS NOT NULL
+          THEN type || ' ' || number_tm
+        ELSE type
+      END AS award,
+      season_end_year AS season_year,
+      1 AS count
+    FROM main.v_player_honors_full
+    WHERE CAST(person_id AS VARCHAR) = $1
+      AND (source_table = 'fact_player_honor' OR is_winner = true)
+    ORDER BY season_end_year DESC, type ASC
+  `,
+    [playerId],
+  );
+
+  return mapAwardRows(rows);
 }
 
 async function loadPlayerAwardsFromPrimaryDb(playerId: string): Promise<PlayerAwardRow[]> {
@@ -128,6 +1095,7 @@ async function loadPlayerAwardsFromPrimaryDb(playerId: string): Promise<PlayerAw
     SELECT award, season_year, count(*) as count
     FROM fact_player_awards
     WHERE player_id = $1
+      AND is_winner = true
     GROUP BY award, season_year
     ORDER BY season_year DESC, award ASC
   `,
@@ -139,8 +1107,9 @@ async function loadPlayerAwardsFromPrimaryDb(playerId: string): Promise<PlayerAw
  * Loads accolades for a player.
  *
  * When `NBA_HONORS_DUCKDB_PATH` points at a basketball-data DuckDB file, winners are read
- * from `v_player_honors_full` (accurate MVP counts). Otherwise uses `fact_player_awards`
- * on the primary database from `NBA_DUCKDB_PATH` / `data/nba.duckdb`.
+ * from `v_player_honors_full`. Otherwise prefers the primary database's honors view so
+ * team honors (All-NBA, All-Rookie) are displayed and award-share vote rows are only
+ * shown when they are actual winners. Legacy databases fall back to `fact_player_awards`.
  */
 export async function loadPlayerAwards(playerId: string): Promise<PlayerAwardRow[]> {
   if (isHonorsDbConfigured()) {
@@ -152,6 +1121,15 @@ export async function loadPlayerAwards(playerId: string): Promise<PlayerAwardRow
     } catch {
       // Fall back to primary schema if honors view is missing or incompatible.
     }
+  }
+
+  try {
+    const primaryHonorRows = await loadPlayerAwardsFromPrimaryHonorsView(playerId);
+    if (primaryHonorRows.length > 0) {
+      return primaryHonorRows;
+    }
+  } catch {
+    // Fall back to the legacy unified_star fact table when the honors view is unavailable.
   }
 
   return loadPlayerAwardsFromPrimaryDb(playerId);
@@ -189,6 +1167,10 @@ export async function loadCareerStats(playerId: string): Promise<CareerStatRow[]
   );
   return dedupeCareerStats(rows);
 }
+
+/* ───────────────────────────────────────────────
+   Team queries
+   ─────────────────────────────────────────────── */
 
 /**
  * Looks up a team by its abbreviation or name.

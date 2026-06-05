@@ -43,8 +43,11 @@ schema-mapping-tables.csv
 
 # Runtime artifacts
 .runs/
+.slim/deepwork/
 logs/
 results/
 
 # Test coverage
 coverage/
+.slim/deepwork/
+
