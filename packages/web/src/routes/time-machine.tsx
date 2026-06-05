@@ -2,7 +2,15 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { createServerFn } from '@tanstack/react-start';
 import { groupAwardsByCategory } from 'data/tabs/time-machine/group-awards';
 import type { PlayerDossier } from 'data/tabs/time-machine/queries';
-import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
+import {
+  Component,
+  type ErrorInfo,
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { z } from 'zod';
 
 import {
@@ -15,6 +23,98 @@ import {
   SeasonTabs,
   ShotZonesCard,
 } from '../components/timeMachine/player-dossier';
+
+/* -------------------------------------------------------------------------- */
+/*  Section-level error boundary                                              */
+/* -------------------------------------------------------------------------- */
+
+class SectionErrorBoundary extends Component<
+  { children: ReactNode; sectionName: string },
+  { error: Error | null }
+> {
+  override state = { error: null as Error | null };
+
+  static getDerivedStateFromError(error: Error): { error: Error } {
+    return { error };
+  }
+
+  override componentDidCatch(error: Error, info: ErrorInfo): void {
+    console.warn(`[time-machine] ${this.props.sectionName} section failed:`, error, info);
+  }
+
+  override render(): ReactNode {
+    if (this.state.error) {
+      return (
+        <div className="rounded border border-danger/20 bg-danger/5 p-3 text-xs text-danger/80">
+          {this.props.sectionName} data unavailable for this player.
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Skeleton helpers                                                          */
+/* -------------------------------------------------------------------------- */
+
+function Skeleton({ className }: { className?: string }): ReactNode {
+  return <div className={`animate-pulse rounded bg-surface-alt/60 ${className ?? 'h-3 w-full'}`} />;
+}
+
+function HeaderSkeleton(): ReactNode {
+  const hdrCells = Array.from({ length: 6 });
+  const statCells = Array.from({ length: 9 });
+  return (
+    <section className="overflow-hidden rounded-lg border border-border bg-surface shadow-sm">
+      <div className="h-0.5 w-full bg-gradient-to-r from-primary/60 to-transparent" />
+      <div className="space-y-3 p-3">
+        <Skeleton className="h-7 w-48" />
+        <div className="grid grid-cols-2 gap-x-6 gap-y-1 md:grid-cols-3">
+          {hdrCells.map((_, i) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: static decorative skeleton
+            <Skeleton key={i} className="h-3 w-32" />
+          ))}
+        </div>
+        <div className="grid grid-cols-3 gap-2 pt-3 sm:grid-cols-5 md:grid-cols-9">
+          {statCells.map((_, i) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: static decorative skeleton
+            <Skeleton key={i} className="h-14 w-full" />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function CardSkeleton({ rows = 4 }: { rows?: number }): ReactNode {
+  const cells = Array.from({ length: rows });
+  return (
+    <section>
+      <Skeleton className="mb-3 h-3 w-32" />
+      <div className="rounded-lg border border-border bg-surface p-3">
+        <div className="space-y-2">
+          {cells.map((_, i) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: static decorative skeleton
+            <Skeleton key={i} className="h-3 w-full" />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function DossierSkeleton(): ReactNode {
+  return (
+    <div className="space-y-8">
+      <HeaderSkeleton />
+      <CardSkeleton rows={4} />
+      <CardSkeleton rows={3} />
+      <CardSkeleton rows={3} />
+      <CardSkeleton rows={6} />
+    </div>
+  );
+}
 
 interface PlayerResult {
   player_id: string;
@@ -316,33 +416,54 @@ function TimeMachinePage(): ReactNode {
       <div className="flex-1 overflow-auto p-4">
         {selectedPlayer && dossier ? (
           <div className="space-y-8">
-            <DossierHeader
-              meta={dossier.meta}
-              totals={dossier.totals}
-              franchise={dossier.franchise}
-              isActive={selectedPlayer.is_active}
-            />
-            <CareerTrajectory perGame={dossier.perGame} />
-            <AwardsGrouped groups={awardsGrouped} />
-            <AwardVotesStrip allStar={dossier.allStar} votes={dossier.votes} />
-            <SeasonTabs
-              perGame={dossier.perGame}
-              totals={dossier.totalsSeason}
-              per36={dossier.per36}
-              advanced={dossier.advanced}
-              shooting={dossier.shooting}
-              playByPlay={dossier.playByPlay}
-            />
-            <ShotZonesCard zones={dossier.shotZones} />
-            <GameLogCard rows={dossier.gameLog} />
-            <DraftCombineCard draft={dossier.draft} combine={dossier.combine} />
+            <SectionErrorBoundary sectionName="Player">
+              <DossierHeader
+                meta={dossier.meta}
+                totals={dossier.totals}
+                franchise={dossier.franchise}
+                isActive={selectedPlayer.is_active}
+              />
+            </SectionErrorBoundary>
+            <SectionErrorBoundary sectionName="Career trajectory">
+              <CareerTrajectory perGame={dossier.perGame} />
+            </SectionErrorBoundary>
+            <SectionErrorBoundary sectionName="Awards">
+              <AwardsGrouped groups={awardsGrouped} />
+            </SectionErrorBoundary>
+            <SectionErrorBoundary sectionName="All-Star">
+              <AwardVotesStrip allStar={dossier.allStar} votes={dossier.votes} />
+            </SectionErrorBoundary>
+            <SectionErrorBoundary sectionName="Season stats">
+              <SeasonTabs
+                perGame={dossier.perGame}
+                totals={dossier.totalsSeason}
+                per36={dossier.per36}
+                advanced={dossier.advanced}
+                shooting={dossier.shooting}
+                playByPlay={dossier.playByPlay}
+              />
+            </SectionErrorBoundary>
+            <SectionErrorBoundary sectionName="Shot zones">
+              <ShotZonesCard zones={dossier.shotZones} />
+            </SectionErrorBoundary>
+            <SectionErrorBoundary sectionName="Recent games">
+              <GameLogCard rows={dossier.gameLog} />
+            </SectionErrorBoundary>
+            <SectionErrorBoundary sectionName="Draft & combine">
+              <DraftCombineCard draft={dossier.draft} combine={dossier.combine} />
+            </SectionErrorBoundary>
           </div>
         ) : selectedPlayer && loading ? (
-          <div className="flex items-center justify-center gap-2 py-20 text-sm text-fg-dim">
-            <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-            Loading player dossier…
+          <div>
+            <div className="mb-4 flex items-center gap-2 text-xs text-fg-dim">
+              <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+              <span>
+                Loading <span className="font-medium text-fg">{selectedPlayer.full_name}</span>…
+              </span>
+            </div>
+            <DossierSkeleton />
           </div>
-        ) : selectedPlayer && !loading ? (
+        ) : selectedPlayer && !loading && !dossier?.meta ? (
           <div className="flex items-center justify-center gap-2 py-20 text-sm text-danger/80">
             <svg
               className="h-5 w-5"
