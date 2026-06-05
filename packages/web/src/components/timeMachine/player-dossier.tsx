@@ -350,26 +350,63 @@ export function CareerTrajectory({ perGame }: { perGame: PlayerPerGameRow[] }): 
 
 export function AwardsGrouped({ groups }: { groups: GroupedAward[] }): ReactNode {
   if (groups.length === 0) return null;
+
+  // Sub-group awards by their label within each category
+  // e.g., ALL-NBA → { "All-NBA 1st": [seasons...], "All-NBA 2nd": [seasons...] }
+  const grouped = groups.map((g) => {
+    const subMap = new Map<string, string[]>();
+    for (const a of g.awards) {
+      const existing = subMap.get(a.label) ?? [];
+      existing.push(a.season);
+      subMap.set(a.label, existing);
+    }
+    return { category: g.category, subGroups: Array.from(subMap.entries()) };
+  });
+
   return (
     <section>
       <SectionHeader>Awards & Honors</SectionHeader>
-      <div className="space-y-2">
-        {groups.map((g) => (
-          <div key={g.category} className="flex flex-wrap items-baseline gap-x-2">
-            <span className="rounded bg-surface-alt px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-widest text-fg-dim">
-              {g.category}
-            </span>
-            <span className="font-mono text-xs text-fg-muted">
-              {g.awards.map((a, i) => (
-                <span key={`${a.season}-${a.label}`}>
-                  {i > 0 ? ', ' : ''}
-                  {a.label} ({a.season})
-                </span>
-              ))}
-            </span>
-          </div>
-        ))}
-      </div>
+      <SectionCard>
+        <div className="space-y-3">
+          {grouped.map((g) => (
+            <div key={g.category}>
+              <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-fg-muted">
+                {g.category}
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {g.subGroups.map(([label, seasons]) => {
+                  const count = seasons.length;
+                  const teamNum = label.match(/(\d+)(st|nd|rd|th)\s*Team/i);
+                  const isMajor =
+                    label.toLowerCase().includes('mvp') || label.toLowerCase().includes('roy');
+                  return (
+                    <span
+                      key={label}
+                      className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 font-mono text-xs transition-colors ${
+                        isMajor
+                          ? 'border-warning/30 bg-warning/10 text-warning'
+                          : teamNum && teamNum[1] === '1'
+                            ? 'border-primary/30 bg-primary/10 text-primary'
+                            : 'border-border/60 bg-surface-alt/60 text-fg-muted'
+                      }`}
+                    >
+                      {count > 1 && <span className="font-bold">{count}×</span>}
+                      <span className={count > 1 ? '' : 'font-medium'}>
+                        {label.replace(/\s+\dst\s+Team/i, count > 1 ? '' : '')}
+                      </span>
+                      <span className="text-fg-dim/70">
+                        {count === 1
+                          ? seasons[0]
+                          : `${seasons[seasons.length - 1]}–${seasons[0].slice(-2)}`}
+                      </span>
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      </SectionCard>
     </section>
   );
 }
@@ -396,23 +433,49 @@ export function AwardVotesStrip({
 
   return (
     <section>
-      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-xs">
-        {allStarYears.length > 0 ? (
-          <span className="text-fg-muted">
-            <span className="font-semibold text-secondary">{allStarYears.length}×</span> All-Star
-            <span className="ml-1 font-mono text-fg-dim">({allStarYears.join(', ')})</span>
-          </span>
-        ) : null}
-        {topVotes.map((v) => (
-          <span key={`${v.award}-${v.season_end_year}`} className="text-fg-muted">
-            <span className="text-fg">{String(v.award).toUpperCase()}</span>{' '}
-            <span className="font-mono text-fg-dim">
-              {formatSeason(v.season_end_year)} · pts {v.pts_won}/{v.pts_max} ·{' '}
-              {formatPct(v.share, 1)} share
-            </span>
-          </span>
-        ))}
-      </div>
+      <SectionHeader>All-Star &amp; Award Voting</SectionHeader>
+      <SectionCard>
+        <div className="space-y-2">
+          {allStarYears.length > 0 ? (
+            <div className="flex items-baseline gap-2">
+              <span className="rounded-md border border-secondary/30 bg-secondary/10 px-2.5 py-1 font-mono text-sm font-bold text-secondary">
+                {allStarYears.length}×
+              </span>
+              <span className="text-xs text-fg-muted">NBA All-Star</span>
+              <span className="font-mono text-[10px] text-fg-dim">
+                ({allStarYears.slice(0, 5).join(', ')}
+                {allStarYears.length > 5 ? ` +${allStarYears.length - 5} more` : ''})
+              </span>
+            </div>
+          ) : null}
+
+          {topVotes.length > 0 ? (
+            <div className="flex flex-wrap gap-x-4 gap-y-1">
+              {topVotes.map((v) => {
+                const share = Number(v.share);
+                const isHighShare = share >= 0.5;
+                return (
+                  <span
+                    key={`${v.award}-${v.season_end_year}`}
+                    className={`rounded px-2 py-0.5 font-mono text-[11px] ${
+                      isHighShare ? 'bg-success/10 text-success' : 'bg-surface-alt/60 text-fg-muted'
+                    }`}
+                  >
+                    <span className="font-medium uppercase">{String(v.award)}</span>{' '}
+                    <span className="text-fg-dim">{formatSeason(v.season_end_year)}</span>
+                    {' · '}
+                    {formatPct(v.share, 1)} share
+                    {' · '}
+                    <span className="text-fg-dim">
+                      {v.pts_won}/{v.pts_max}
+                    </span>
+                  </span>
+                );
+              })}
+            </div>
+          ) : null}
+        </div>
+      </SectionCard>
     </section>
   );
 }
