@@ -62,6 +62,24 @@ function formatPctValue(value: number | string | null | undefined, digits = 1): 
   return `${n.toFixed(digits)}%`;
 }
 
+function PctBar({ value }: { value: number | string | null | undefined }): ReactNode {
+  if (value == null) return <span className="text-fg-dim">—</span>;
+  const n = Number(value);
+  if (!Number.isFinite(n)) return <span className="text-fg-dim">—</span>;
+  const pct = Math.round(Math.min(100, Math.max(0, n * 100)));
+  return (
+    <span className="inline-flex items-center gap-1">
+      <span
+        className="inline-block w-10 h-1.5 rounded-full bg-surface-alt overflow-hidden"
+        aria-hidden="true"
+      >
+        <span className="block h-full rounded-full bg-primary/60" style={{ width: `${pct}%` }} />
+      </span>
+      <span>{formatPct(value)}</span>
+    </span>
+  );
+}
+
 function formatSeason(seasonEndYear: number | string | null | undefined): string {
   if (seasonEndYear == null) return '—';
   const y = Number(seasonEndYear);
@@ -1059,27 +1077,27 @@ function PerGameTable({
       case 'FGA':
         return formatNumber(r.fga_per_game);
       case 'FG%':
-        return formatPct(r.fg_percent);
+        return <PctBar value={r.fg_percent} />;
       case '3P':
         return formatNumber(r.x3p_per_game, 1);
       case '3PA':
         return formatNumber(r.x3pa_per_game, 1);
       case '3P%':
-        return formatPct(r.x3p_percent);
+        return <PctBar value={r.x3p_percent} />;
       case '2P':
         return formatNumber(r.x2p_per_game, 1);
       case '2PA':
         return formatNumber(r.x2pa_per_game, 1);
       case '2P%':
-        return formatPct(r.x2p_percent);
+        return <PctBar value={r.x2p_percent} />;
       case 'eFG%':
-        return formatPct(r.e_fg_percent);
+        return <PctBar value={r.e_fg_percent} />;
       case 'FT':
         return formatNumber(r.ft_per_game, 1);
       case 'FTA':
         return formatNumber(r.fta_per_game, 1);
       case 'FT%':
-        return formatPct(r.ft_percent);
+        return <PctBar value={r.ft_percent} />;
       case 'ORB':
         return formatNumber(r.orb_per_game, 1);
       case 'DRB':
@@ -1405,17 +1423,39 @@ function AdvancedTable({ rows }: { rows: PlayerAdvancedRow[] }): ReactNode {
           <td className={`px-2 py-0.5 ${highlightClass(r.per, best(perValues), worst(perValues))}`}>
             {formatNumber(r.per)}
           </td>
-          <td className="px-2 py-0.5">{formatPct(r.ts_percent)}</td>
-          <td className="px-2 py-0.5">{formatPct(r.x3p_ar)}</td>
-          <td className="px-2 py-0.5">{formatPct(r.f_tr)}</td>
-          <td className="px-2 py-0.5">{formatPctValue(r.orb_percent)}</td>
-          <td className="px-2 py-0.5">{formatPctValue(r.drb_percent)}</td>
-          <td className="px-2 py-0.5">{formatPctValue(r.trb_percent)}</td>
-          <td className="px-2 py-0.5">{formatPctValue(r.ast_percent)}</td>
-          <td className="px-2 py-0.5">{formatPctValue(r.stl_percent)}</td>
-          <td className="px-2 py-0.5">{formatPctValue(r.blk_percent)}</td>
-          <td className="px-2 py-0.5">{formatPctValue(r.tov_percent)}</td>
-          <td className="px-2 py-0.5">{formatPctValue(r.usg_percent)}</td>
+          <td className="px-2 py-0.5">
+            <PctBar value={r.ts_percent} />
+          </td>
+          <td className="px-2 py-0.5">
+            <PctBar value={r.x3p_ar} />
+          </td>
+          <td className="px-2 py-0.5">
+            <PctBar value={r.f_tr} />
+          </td>
+          <td className="px-2 py-0.5">
+            <PctBar value={r.orb_percent} />
+          </td>
+          <td className="px-2 py-0.5">
+            <PctBar value={r.drb_percent} />
+          </td>
+          <td className="px-2 py-0.5">
+            <PctBar value={r.trb_percent} />
+          </td>
+          <td className="px-2 py-0.5">
+            <PctBar value={r.ast_percent} />
+          </td>
+          <td className="px-2 py-0.5">
+            <PctBar value={r.stl_percent} />
+          </td>
+          <td className="px-2 py-0.5">
+            <PctBar value={r.blk_percent} />
+          </td>
+          <td className="px-2 py-0.5">
+            <PctBar value={r.tov_percent} />
+          </td>
+          <td className="px-2 py-0.5">
+            <PctBar value={r.usg_percent} />
+          </td>
           <td className="px-2 py-0.5">{formatNumber(r.ows, 1)}</td>
           <td className="px-2 py-0.5">{formatNumber(r.dws, 1)}</td>
           <td className={`px-2 py-0.5 ${highlightClass(r.ws, best(wsValues), worst(wsValues))}`}>
@@ -1475,23 +1515,53 @@ function ShootingTable({ rows }: { rows: PlayerShootingRow[] }): ReactNode {
           <td className="px-2 py-0.5">{r.team ?? '—'}</td>
           <td className="px-2 py-0.5">{r.g ?? '—'}</td>
           <td className="px-2 py-0.5">{r.mp ?? '—'}</td>
-          <td className="px-2 py-0.5">{formatPct(r.fg_percent)}</td>
+          <td className="px-2 py-0.5">
+            <PctBar value={r.fg_percent} />
+          </td>
           <td className="px-2 py-0.5">{formatNumber(r.avg_dist_fga, 1)}</td>
-          <td className="px-2 py-0.5">{formatPct(r.percent_fga_from_x0_3_range)}</td>
-          <td className="px-2 py-0.5">{formatPct(r.percent_fga_from_x3_10_range)}</td>
-          <td className="px-2 py-0.5">{formatPct(r.percent_fga_from_x10_16_range)}</td>
-          <td className="px-2 py-0.5">{formatPct(r.percent_fga_from_x16_3p_range)}</td>
-          <td className="px-2 py-0.5">{formatPct(r.percent_fga_from_x3p_range)}</td>
-          <td className="px-2 py-0.5">{formatPct(r.fg_percent_from_x0_3_range)}</td>
-          <td className="px-2 py-0.5">{formatPct(r.fg_percent_from_x3_10_range)}</td>
-          <td className="px-2 py-0.5">{formatPct(r.fg_percent_from_x10_16_range)}</td>
-          <td className="px-2 py-0.5">{formatPct(r.fg_percent_from_x16_3p_range)}</td>
-          <td className="px-2 py-0.5">{formatPct(r.fg_percent_from_x3p_range)}</td>
-          <td className="px-2 py-0.5">{formatPct(r.percent_assisted_x2p_fg)}</td>
-          <td className="px-2 py-0.5">{formatPct(r.percent_assisted_x3p_fg)}</td>
-          <td className="px-2 py-0.5">{formatPct(r.percent_dunks_of_fga)}</td>
+          <td className="px-2 py-0.5">
+            <PctBar value={r.percent_fga_from_x0_3_range} />
+          </td>
+          <td className="px-2 py-0.5">
+            <PctBar value={r.percent_fga_from_x3_10_range} />
+          </td>
+          <td className="px-2 py-0.5">
+            <PctBar value={r.percent_fga_from_x10_16_range} />
+          </td>
+          <td className="px-2 py-0.5">
+            <PctBar value={r.percent_fga_from_x16_3p_range} />
+          </td>
+          <td className="px-2 py-0.5">
+            <PctBar value={r.percent_fga_from_x3p_range} />
+          </td>
+          <td className="px-2 py-0.5">
+            <PctBar value={r.fg_percent_from_x0_3_range} />
+          </td>
+          <td className="px-2 py-0.5">
+            <PctBar value={r.fg_percent_from_x3_10_range} />
+          </td>
+          <td className="px-2 py-0.5">
+            <PctBar value={r.fg_percent_from_x10_16_range} />
+          </td>
+          <td className="px-2 py-0.5">
+            <PctBar value={r.fg_percent_from_x16_3p_range} />
+          </td>
+          <td className="px-2 py-0.5">
+            <PctBar value={r.fg_percent_from_x3p_range} />
+          </td>
+          <td className="px-2 py-0.5">
+            <PctBar value={r.percent_assisted_x2p_fg} />
+          </td>
+          <td className="px-2 py-0.5">
+            <PctBar value={r.percent_assisted_x3p_fg} />
+          </td>
+          <td className="px-2 py-0.5">
+            <PctBar value={r.percent_dunks_of_fga} />
+          </td>
           <td className="px-2 py-0.5">{r.num_of_dunks ?? '—'}</td>
-          <td className="px-2 py-0.5">{formatPct(r.percent_corner_3s_of_3pa)}</td>
+          <td className="px-2 py-0.5">
+            <PctBar value={r.percent_corner_3s_of_3pa} />
+          </td>
         </tr>
       ))}
     </DataTable>
@@ -1562,13 +1632,7 @@ export function ShotZonesCard({ zones }: { zones: PlayerShotZoneRow[] }): ReactN
               <td className="px-2 py-0.5">{z.fga}</td>
               <td className="px-2 py-0.5">{z.fgm}</td>
               <td className="px-2 py-0.5">
-                <span className="mr-2 inline-block w-12 align-middle">
-                  <span
-                    className="block h-1.5 rounded bg-primary/40"
-                    style={{ width: `${Math.min(100, z.fg_pct * 100)}%` }}
-                  />
-                </span>
-                {formatPct(z.fg_pct)}
+                <PctBar value={z.fg_pct} />
               </td>
             </tr>
           ))}
