@@ -216,16 +216,21 @@ export function DossierHeader({
       </div>
 
       {totals ? (
-        <div className="flex flex-wrap gap-x-5 gap-y-1 border-t border-border pt-2 font-mono text-xs text-fg-muted">
-          <CareerStat label="GP" value={formatNumber(totals.career_gp, 0)} />
-          <CareerStat label="PPG" value={formatNumber(totals.career_ppg)} />
-          <CareerStat label="RPG" value={formatNumber(totals.career_rpg)} />
-          <CareerStat label="APG" value={formatNumber(totals.career_apg)} />
-          <CareerStat label="SPG" value={formatNumber(totals.career_spg)} />
-          <CareerStat label="BPG" value={formatNumber(totals.career_bpg)} />
-          <CareerStat label="FG%" value={formatPct(totals.career_fg_pct)} />
-          <CareerStat label="3P%" value={formatPct(totals.career_fg3_pct)} />
-          <CareerStat label="FT%" value={formatPct(totals.career_ft_pct)} />
+        <div className="border-t border-border pt-3">
+          <div className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-fg-dim">
+            Career Averages
+          </div>
+          <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 md:grid-cols-9">
+            <StatCard label="GP" value={formatNumber(totals.career_gp, 0)} />
+            <StatCard label="PPG" value={formatNumber(totals.career_ppg)} />
+            <StatCard label="RPG" value={formatNumber(totals.career_rpg)} />
+            <StatCard label="APG" value={formatNumber(totals.career_apg)} />
+            <StatCard label="SPG" value={formatNumber(totals.career_spg)} />
+            <StatCard label="BPG" value={formatNumber(totals.career_bpg)} />
+            <StatCard label="FG%" value={formatPct(totals.career_fg_pct)} />
+            <StatCard label="3P%" value={formatPct(totals.career_fg3_pct)} />
+            <StatCard label="FT%" value={formatPct(totals.career_ft_pct)} />
+          </div>
         </div>
       ) : null}
     </SectionCard>
@@ -241,10 +246,13 @@ function Fact({ label, value }: { label: string; value: ReactNode }): ReactNode 
   );
 }
 
-function CareerStat({ label, value }: { label: string; value: ReactNode }): ReactNode {
+function StatCard({ label, value }: { label: string; value: ReactNode }): ReactNode {
   return (
-    <div>
-      <span className="text-fg-dim">{label}</span> <span className="text-fg">{value}</span>
+    <div className="rounded-lg border border-border/60 bg-surface-elevated/60 px-3 py-2.5 text-center transition-colors hover:border-primary/30">
+      <div className="text-lg font-bold text-fg sm:text-xl">{value}</div>
+      <div className="mt-0.5 text-[10px] font-medium uppercase tracking-wider text-fg-dim">
+        {label}
+      </div>
     </div>
   );
 }
