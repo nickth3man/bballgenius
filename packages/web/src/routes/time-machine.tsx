@@ -343,6 +343,8 @@ const timeMachineSearchSchema = z.object({
     .optional(),
   tab: z.enum(STATS_TAB_IDS).optional().catch(undefined),
   phase: z.enum(PHASE_IDS).optional().catch(undefined),
+  sort: z.string().optional().catch(undefined),
+  dir: z.enum(['asc', 'desc']).optional().catch(undefined),
 });
 
 export const Route = createFileRoute('/time-machine')({
@@ -356,6 +358,8 @@ function TimeMachinePage(): ReactNode {
     pid: urlPid,
     tab: seasonStatsTab = 'per-game',
     phase: seasonPhase = 'regular',
+    sort: urlSort,
+    dir: urlDir,
   } = Route.useSearch();
   const [search, setSearch] = useState('');
   const [players, setPlayers] = useState<PlayerResult[]>([]);
@@ -393,6 +397,20 @@ function TimeMachinePage(): ReactNode {
     (phase: PhaseId) => {
       navigate({
         search: (prev) => ({ ...prev, phase }),
+        replace: true,
+      });
+    },
+    [navigate],
+  );
+
+  const setSortParams = useCallback(
+    (col: string | null, dir: 'asc' | 'desc' | null) => {
+      navigate({
+        search: (prev) => ({
+          ...prev,
+          sort: col ?? undefined,
+          dir: dir ?? undefined,
+        }),
         replace: true,
       });
     },
@@ -661,6 +679,9 @@ function TimeMachinePage(): ReactNode {
                 awards={dossier.awards}
                 activePhase={seasonPhase}
                 activeTab={seasonStatsTab}
+                activeSort={urlSort}
+                activeSortDir={urlDir}
+                onSortChange={setSortParams}
                 onPhaseChange={setSeasonPhase}
                 onTabChange={setSeasonStatsTab}
               />

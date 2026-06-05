@@ -819,6 +819,9 @@ export interface SeasonTabsProps {
   awards: PlayerAwardRow[];
   activePhase?: PhaseId;
   activeTab?: StatsTabId;
+  activeSort?: string;
+  activeSortDir?: 'asc' | 'desc';
+  onSortChange?: (col: string | null, dir: 'asc' | 'desc') => void;
   onPhaseChange?: (phase: PhaseId) => void;
   onTabChange?: (tab: StatsTabId) => void;
 }
@@ -917,7 +920,15 @@ export function SeasonTabs(props: SeasonTabsProps): ReactNode {
         aria-labelledby={`season-phase-tab-${phase}`}
         className="overflow-x-auto rounded border border-border bg-surface focus:outline-none focus:ring-2 focus:ring-primary/50"
       >
-        {tab === 'per-game' ? <PerGameTable rows={activePerGame} awards={props.awards} /> : null}
+        {tab === 'per-game' ? (
+          <PerGameTable
+            rows={activePerGame}
+            awards={props.awards}
+            activeSort={props.activeSort}
+            activeSortDir={props.activeSortDir}
+            onSortChange={props.onSortChange}
+          />
+        ) : null}
         {tab === 'totals' ? <TotalsTable rows={props.totals} /> : null}
         {tab === 'per-36' ? <Per36Table rows={props.per36} /> : null}
         {tab === 'advanced' ? <AdvancedTable rows={props.advanced} /> : null}
@@ -931,9 +942,15 @@ export function SeasonTabs(props: SeasonTabsProps): ReactNode {
 function PerGameTable({
   rows,
   awards,
+  activeSort,
+  activeSortDir,
+  onSortChange,
 }: {
   rows: PlayerPerGameRow[];
   awards: PlayerAwardRow[];
+  activeSort?: string;
+  activeSortDir?: 'asc' | 'desc';
+  onSortChange?: (col: string | null, dir: 'asc' | 'desc') => void;
 }): ReactNode {
   const best = (arr: number[]) => (arr.length > 1 ? Math.max(...arr) : null);
   const worst = (arr: number[]) => (arr.length > 1 ? Math.min(...arr) : null);
@@ -982,8 +999,8 @@ function PerGameTable({
   }, [awards]);
 
   // Column sorting state
-  const [sortCol, setSortCol] = useState<string | null>(null);
-  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
+  const [sortCol, setSortCol] = useState<string | null>(activeSort ?? null);
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>(activeSortDir ?? 'asc');
 
   const sortedRows = useMemo(() => {
     if (!sortCol) return rows;
@@ -999,16 +1016,24 @@ function PerGameTable({
     return sorted;
   }, [rows, sortCol, sortDir]);
 
-  const handleSort = useCallback((col: string) => {
-    setSortCol((prev) => {
-      if (prev === col) {
-        setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+  const handleSort = useCallback(
+    (col: string) => {
+      setSortCol((prev) => {
+        let newDir: 'asc' | 'desc';
+        if (prev === col) {
+          newDir = sortDir === 'asc' ? 'desc' : 'asc';
+          setSortDir(newDir);
+          onSortChange?.(col, newDir);
+          return col;
+        }
+        newDir = 'desc'; // default to descending for new column
+        setSortDir(newDir);
+        onSortChange?.(col, newDir);
         return col;
-      }
-      setSortDir('desc'); // default to descending for new column
-      return col;
-    });
-  }, []);
+      });
+    },
+    [sortDir, onSortChange],
+  );
 
   // Compute career summary rows
   const summaryRows = useMemo(() => {
@@ -1344,78 +1369,177 @@ function PerGameTable({
 
   return (
     <div className="relative">
-      {/* Right-edge fade scroll indicator */}
-      <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-8 bg-gradient-to-l from-surface/80 to-transparent" />
-      {/* Bottom-edge fade scroll indicator */}
-      <div className="pointer-events-none absolute bottom-0 left-0 z-10 h-6 w-full bg-gradient-to-t from-surface/60 to-transparent" />
-      <table className="min-w-full font-mono text-xs">
-        <thead className="sticky top-0 z-10">
-          <tr className="bg-surface text-fg-dim">
-            {perGameHeaders.map((h) => {
-              const sortKey = sortKeyMap[h];
-              const isActive = sortCol === sortKey;
-              return (
-                <th
-                  key={h}
-                  onClick={sortKey ? () => handleSort(sortKey) : undefined}
-                  className={`border-b-2 border-border px-2 py-1.5 text-left font-semibold whitespace-nowrap ${getStickyClass(h)} ${sortKey ? 'cursor-pointer hover:text-fg select-none' : ''}`}
-                >
-                  <span className="inline-flex items-center gap-0.5">
-                    {h}
-                    {isActive && (
-                      <span className="text-[8px] leading-none">
-                        {sortDir === 'desc' ? '▼' : '▲'}
-                      </span>
-                    )}
-                  </span>
-                </th>
-              );
-            })}
-          </tr>
-        </thead>
-        <tbody>
-          {/* Season rows */}
-          {sortedRows.map((r) => (
-            <tr
-              key={`per-game-${r.season_end_year}-${r.team ?? ''}-${r.pos ?? ''}`}
-              className="border-b border-surface-alt/50 text-fg-muted last:border-b-0 hover:bg-surface-alt/40 transition-colors even:bg-surface-alt/20"
-            >
-              {perGameHeaders.map((col) => (
-                <td
-                  key={col}
-                  className={`px-2 py-0.5 ${getStickyClass(col)} ${col === 'Season' ? 'font-medium text-fg whitespace-nowrap' : ''}`}
-                >
-                  {renderCell(r, col)}
-                </td>
-              ))}
+      {/* Mobile: season stat cards */}
+      <div className="md:hidden space-y-2">
+        {sortedRows.map((r) => (
+          <div
+            key={`card-${r.season_end_year}-${r.team ?? ''}`}
+            className="rounded-lg border border-border/60 bg-surface-alt/30 p-3"
+          >
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-sm font-bold text-fg">{formatSeason(r.season_end_year)}</span>
+              <span className="rounded bg-surface px-1.5 py-0.5 text-[10px] font-mono text-fg-dim">
+                {r.team ?? '—'} · {r.pos ?? '—'} · {r.g ?? '—'} G
+              </span>
+            </div>
+            <div className="grid grid-cols-3 gap-x-2 gap-y-1.5 text-center">
+              <div>
+                <div className="text-[9px] text-fg-dim">PTS</div>
+                <div className="text-xs font-semibold">{formatNumber(r.pts_per_game, 1)}</div>
+              </div>
+              <div>
+                <div className="text-[9px] text-fg-dim">REB</div>
+                <div className="text-xs font-semibold">{formatNumber(r.trb_per_game, 1)}</div>
+              </div>
+              <div>
+                <div className="text-[9px] text-fg-dim">AST</div>
+                <div className="text-xs font-semibold">{formatNumber(r.ast_per_game, 1)}</div>
+              </div>
+              <div>
+                <div className="text-[9px] text-fg-dim">STL</div>
+                <div className="text-xs font-semibold">{formatNumber(r.stl_per_game, 1)}</div>
+              </div>
+              <div>
+                <div className="text-[9px] text-fg-dim">BLK</div>
+                <div className="text-xs font-semibold">{formatNumber(r.blk_per_game, 1)}</div>
+              </div>
+              <div>
+                <div className="text-[9px] text-fg-dim">MP</div>
+                <div className="text-xs font-semibold">{formatNumber(r.mp_per_game, 1)}</div>
+              </div>
+              <div>
+                <div className="text-[9px] text-fg-dim">FG%</div>
+                <div className="text-xs font-semibold">{formatPct(r.fg_percent)}</div>
+              </div>
+              <div>
+                <div className="text-[9px] text-fg-dim">3P%</div>
+                <div className="text-xs font-semibold">{formatPct(r.x3p_percent)}</div>
+              </div>
+              <div>
+                <div className="text-[9px] text-fg-dim">FT%</div>
+                <div className="text-xs font-semibold">{formatPct(r.ft_percent)}</div>
+              </div>
+            </div>
+          </div>
+        ))}
+        {summaryRows.map((s) => (
+          <div
+            key={`card-summary-${s.label.replace(/\s+/g, '-')}`}
+            className="rounded-lg border-2 border-primary/20 bg-primary/5 p-3"
+          >
+            <div className="mb-2 text-sm font-bold text-fg">{s.label}</div>
+            <div className="grid grid-cols-3 gap-x-2 gap-y-1.5 text-center">
+              <div>
+                <div className="text-[9px] text-fg-dim">PTS</div>
+                <div className="text-xs font-semibold">{formatNumber(s.row.pts_per_game, 1)}</div>
+              </div>
+              <div>
+                <div className="text-[9px] text-fg-dim">REB</div>
+                <div className="text-xs font-semibold">{formatNumber(s.row.trb_per_game, 1)}</div>
+              </div>
+              <div>
+                <div className="text-[9px] text-fg-dim">AST</div>
+                <div className="text-xs font-semibold">{formatNumber(s.row.ast_per_game, 1)}</div>
+              </div>
+              <div>
+                <div className="text-[9px] text-fg-dim">STL</div>
+                <div className="text-xs font-semibold">{formatNumber(s.row.stl_per_game, 1)}</div>
+              </div>
+              <div>
+                <div className="text-[9px] text-fg-dim">BLK</div>
+                <div className="text-xs font-semibold">{formatNumber(s.row.blk_per_game, 1)}</div>
+              </div>
+              <div>
+                <div className="text-[9px] text-fg-dim">FG%</div>
+                <div className="text-xs font-semibold">{formatPct(s.row.fg_percent)}</div>
+              </div>
+              <div>
+                <div className="text-[9px] text-fg-dim">3P%</div>
+                <div className="text-xs font-semibold">{formatPct(s.row.x3p_percent)}</div>
+              </div>
+              <div>
+                <div className="text-[9px] text-fg-dim">FT%</div>
+                <div className="text-xs font-semibold">{formatPct(s.row.ft_percent)}</div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+      {/* Desktop: table */}
+      <div className="hidden md:block">
+        {/* Right-edge fade scroll indicator */}
+        <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-8 bg-gradient-to-l from-surface/80 to-transparent" />
+        {/* Bottom-edge fade scroll indicator */}
+        <div className="pointer-events-none absolute bottom-0 left-0 z-10 h-6 w-full bg-gradient-to-t from-surface/60 to-transparent" />
+        <table className="min-w-full font-mono text-xs">
+          <thead className="sticky top-0 z-10">
+            <tr className="bg-surface text-fg-dim">
+              {perGameHeaders.map((h) => {
+                const sortKey = sortKeyMap[h];
+                const isActive = sortCol === sortKey;
+                return (
+                  <th
+                    key={h}
+                    onClick={sortKey ? () => handleSort(sortKey) : undefined}
+                    className={`border-b-2 border-border px-2 py-1.5 text-left font-semibold whitespace-nowrap ${getStickyClass(h)} ${sortKey ? 'cursor-pointer hover:text-fg select-none' : ''}`}
+                  >
+                    <span className="inline-flex items-center gap-0.5">
+                      {h}
+                      {isActive && (
+                        <span className="text-[8px] leading-none">
+                          {sortDir === 'desc' ? '▼' : '▲'}
+                        </span>
+                      )}
+                    </span>
+                  </th>
+                );
+              })}
             </tr>
-          ))}
-          {/* Summary rows */}
-          {summaryRows.map((s) => (
-            <tr
-              key={`summary-pergame-${s.label.replace(/\s+/g, '-')}`}
-              className={`border-t-2 border-border text-fg last:border-b-0 ${
-                s.isBold ? 'font-bold' : 'font-medium'
-              } bg-surface-alt/40`}
-            >
-              {perGameHeaders.map((col) => (
-                <td
-                  key={col}
-                  className={`px-2 py-0.5 ${getStickyClass(col)} ${
-                    col === 'Season'
-                      ? 'font-bold text-fg whitespace-nowrap'
-                      : col === 'Age' || col === 'Tm' || col === 'G'
-                        ? 'text-fg-muted'
-                        : ''
-                  }`}
-                >
-                  {col === 'Season' ? s.label : renderCell(s.row as PlayerPerGameRow, col)}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {/* Season rows */}
+            {sortedRows.map((r) => (
+              <tr
+                key={`per-game-${r.season_end_year}-${r.team ?? ''}-${r.pos ?? ''}`}
+                className="border-b border-surface-alt/50 text-fg-muted last:border-b-0 hover:bg-surface-alt/40 transition-colors even:bg-surface-alt/20"
+              >
+                {perGameHeaders.map((col) => (
+                  <td
+                    key={col}
+                    className={`px-2 py-0.5 ${getStickyClass(col)} ${col === 'Season' ? 'font-medium text-fg whitespace-nowrap' : ''}`}
+                  >
+                    {renderCell(r, col)}
+                  </td>
+                ))}
+              </tr>
+            ))}
+            {/* Summary rows */}
+            {summaryRows.map((s) => (
+              <tr
+                key={`summary-pergame-${s.label.replace(/\s+/g, '-')}`}
+                className={`border-t-2 border-border text-fg last:border-b-0 ${
+                  s.isBold ? 'font-bold' : 'font-medium'
+                } bg-surface-alt/40`}
+              >
+                {perGameHeaders.map((col) => (
+                  <td
+                    key={col}
+                    className={`px-2 py-0.5 ${getStickyClass(col)} ${
+                      col === 'Season'
+                        ? 'font-bold text-fg whitespace-nowrap'
+                        : col === 'Age' || col === 'Tm' || col === 'G'
+                          ? 'text-fg-muted'
+                          : ''
+                    }`}
+                  >
+                    {col === 'Season' ? s.label : renderCell(s.row as PlayerPerGameRow, col)}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
