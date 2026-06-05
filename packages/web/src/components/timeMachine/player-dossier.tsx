@@ -445,7 +445,19 @@ export function PlayoffStatsCard({ rows }: { rows: CareerStatRow[] }): ReactNode
         </div>
         <div className="overflow-x-auto rounded border border-border bg-surface focus:outline-none focus:ring-2 focus:ring-primary/50">
           <DataTable
-            headers={['Season', 'GP', 'PTS', 'REB', 'AST', 'STL', 'BLK', 'PER', 'BPM', 'VORP']}
+            headers={[
+              'Season',
+              'GP',
+              'PPG',
+              'PTS',
+              'APG',
+              'AST',
+              'STL',
+              'BLK',
+              'PER',
+              'BPM',
+              'VORP',
+            ]}
           >
             {visibleRows.map((row) => (
               <tr
@@ -459,8 +471,13 @@ export function PlayoffStatsCard({ rows }: { rows: CareerStatRow[] }): ReactNode
                   {formatSeasonLabel(row.season_year)}
                 </th>
                 <td className="px-2 py-0.5">{formatNumber(row.gp, 0)}</td>
+                <td className="px-2 py-0.5 font-semibold text-fg">
+                  {formatNumber(safeRate(Number(row.pts), Number(row.gp)))}
+                </td>
                 <td className="px-2 py-0.5">{formatNumber(row.pts, 0)}</td>
-                <td className="px-2 py-0.5">{formatNumber(row.reb, 0)}</td>
+                <td className="px-2 py-0.5 font-semibold text-fg">
+                  {formatNumber(safeRate(Number(row.ast), Number(row.gp)))}
+                </td>
                 <td className="px-2 py-0.5">{formatNumber(row.ast, 0)}</td>
                 <td className="px-2 py-0.5">{formatNumber(row.stl, 0)}</td>
                 <td className="px-2 py-0.5">{formatNumber(row.blk, 0)}</td>
