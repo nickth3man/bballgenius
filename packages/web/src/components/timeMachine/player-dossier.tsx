@@ -67,21 +67,25 @@ function formatDate(value: string | null | undefined): string {
 
 function DataTable({ headers, children }: { headers: string[]; children: ReactNode }): ReactNode {
   return (
-    <table className="min-w-full font-mono text-xs">
-      <thead className="sticky top-0 z-10">
-        <tr className="bg-surface text-fg-dim">
-          {headers.map((h) => (
-            <th
-              key={h}
-              className="border-b-2 border-border px-2 py-1.5 text-left font-semibold whitespace-nowrap"
-            >
-              {h}
-            </th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>{children}</tbody>
-    </table>
+    <div className="relative">
+      {/* Right-edge fade scroll indicator */}
+      <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-8 bg-gradient-to-l from-surface/80 to-transparent" />
+      <table className="min-w-full font-mono text-xs">
+        <thead className="sticky top-0 z-10">
+          <tr className="bg-surface text-fg-dim">
+            {headers.map((h) => (
+              <th
+                key={h}
+                className="border-b-2 border-border px-2 py-1.5 text-left font-semibold whitespace-nowrap"
+              >
+                {h}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>{children}</tbody>
+      </table>
+    </div>
   );
 }
 
@@ -596,7 +600,7 @@ function PerGameTable({ rows }: { rows: PlayerPerGameRow[] }): ReactNode {
           key={`per-game-${r.season_end_year}-${r.team ?? ''}-${r.pos ?? ''}`}
           className="border-b border-surface-alt/50 text-fg-muted even:bg-surface-alt/20 last:border-b-0 hover:bg-surface-alt/40 transition-colors"
         >
-          <td className="sticky left-0 z-[5] bg-surface px-2 py-0.5 font-medium text-fg">
+          <td className="sticky left-0 z-[5] whitespace-nowrap bg-surface px-2 py-0.5 font-medium text-fg">
             {formatSeason(r.season_end_year)}
           </td>
           <td className="px-2 py-0.5">{r.age ?? '—'}</td>
