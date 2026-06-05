@@ -87,6 +87,34 @@ function formatSeason(seasonEndYear: number | string | null | undefined): string
   return `${y - 1}-${String(y).slice(-2)}`;
 }
 
+/** Generate a deterministic color from a string (player_id). */
+function pickPlayerColor(id: string): string {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = id.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const h = Math.abs(hash) % 360;
+  return `hsl(${h}, 55%, 45%)`;
+}
+
+/** Darken/lighten an HSL color by adjusting lightness. */
+function adjustColor(hsl: string, amount: number): string {
+  const m = hsl.match(/hsl\((\d+),\s*(\d+)%,\s*(\d+)%\)/);
+  if (!m) return hsl;
+  const h = Number(m[1]);
+  const s = Number(m[2]);
+  const l = Math.max(0, Math.min(100, Number(m[3]) + amount));
+  return `hsl(${h}, ${s}%, ${l}%)`;
+}
+
+/** Get initials from a full name (e.g. "Pete Maravich" → "PM"). */
+function getInitials(name: string): string {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 0) return '?';
+  if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+}
+
 function formatDate(value: string | null | undefined): string {
   if (!value) return '—';
   return value;
@@ -236,38 +264,67 @@ export function DossierHeader({
         }`
       : null;
 
+  // Color accent based on player_id (deterministic per-player)
+  const playerColor = pickPlayerColor(meta?.person_id ?? '');
+
   return (
     <SectionCard>
-      <div className="mb-2 flex items-baseline gap-3">
-        <div>
-          <div className="text-2xl font-bold text-fg">{fullName}</div>
+      {/* Team-color accent gradient at top */}
+      <div
+        className="mb-3 -mx-3 -mt-3 h-1.5 rounded-t-lg"
+        style={{
+          background: `linear-gradient(90deg, ${playerColor}, ${adjustColor(playerColor, -40)})`,
+        }}
+      />
+
+      <div className="mb-3 flex items-start gap-4">
+        {/* Player avatar placeholder */}
+        <div
+          className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full border-2 text-2xl font-black text-white shadow-md"
+          style={{
+            background: `linear-gradient(135deg, ${playerColor}, ${adjustColor(playerColor, -30)})`,
+            borderColor: adjustColor(playerColor, -20),
+          }}
+          aria-hidden="true"
+        >
+          {getInitials(fullName)}
         </div>
-        {meta?.is_hall_of_fame ? (
-          <span className="rounded border border-warning/40 bg-warning/20 px-2 py-0.5 text-xs font-bold text-warning">
-            HOF
-          </span>
-        ) : null}
-      </div>
 
-      <div className="mb-3 grid grid-cols-2 gap-x-6 gap-y-1 text-xs md:grid-cols-3">
-        <Fact label="Position" value={position} />
-        <Fact label="Height" value={heightFt} />
-        <Fact label="Weight" value={weight} />
-        <Fact label="Born" value={`${born} (${age})`} />
-        <Fact label="College" value={school} />
-        <Fact label="Country" value={country} />
-      </div>
+        <div className="flex-1 min-w-0">
+          <div className="mb-1 flex items-baseline gap-2 flex-wrap">
+            <h1 className="text-2xl font-bold text-fg">{fullName}</h1>
+            {meta?.is_hall_of_fame ? (
+              <span className="rounded border border-warning/40 bg-warning/20 px-2 py-0.5 text-xs font-bold text-warning">
+                HOF
+              </span>
+            ) : null}
+            {isActive ? (
+              <span className="inline-block h-2 w-2 rounded-full bg-success" title="Active" />
+            ) : null}
+          </div>
 
-      <div className="mb-1 text-xs text-fg-muted">
-        <span className="text-fg-dim">Draft:</span> {draftLine}
-      </div>
+          <div className="mb-2 grid grid-cols-2 gap-x-5 gap-y-0.5 text-xs sm:grid-cols-3">
+            <Fact label="Position" value={position} />
+            <Fact label="Height" value={heightFt} />
+            <Fact label="Weight" value={weight} />
+            <Fact label="Born" value={`${born} (${age})`} />
+            <Fact label="College" value={school} />
+            <Fact label="Country" value={country} />
+          </div>
 
-      {franchiseLine ? (
-        <div className="mb-1 text-xs italic text-secondary">{franchiseLine}</div>
-      ) : null}
+          <div className="flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-fg-muted">
+            <span>
+              <span className="text-fg-dim">Draft:</span> {draftLine}
+            </span>
+            <span>
+              <span className="text-fg-dim">Career:</span> {seasonSpan}
+            </span>
+          </div>
 
-      <div className="mb-3 text-xs text-fg-muted">
-        <span className="text-fg-dim">Career span:</span> {seasonSpan}
+          {franchiseLine ? (
+            <div className="mt-1 text-xs italic text-secondary">{franchiseLine}</div>
+          ) : null}
+        </div>
       </div>
 
       {totals ? (
