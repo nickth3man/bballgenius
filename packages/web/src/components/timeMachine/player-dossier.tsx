@@ -1,4 +1,4 @@
-import { type ReactNode, useState } from 'react';
+import type { ReactNode } from 'react';
 
 /**
  * Player dossier subcomponents. Purely presentational: every prop is a typed
@@ -544,15 +544,19 @@ export function AwardVotesStrip({
 /*  Season Tabs                                                               */
 /* -------------------------------------------------------------------------- */
 
-const STATS_TABS = [
-  'Per Game',
-  'Totals',
-  'Per 36',
-  'Advanced',
-  'Shooting',
-  'Play-by-Play',
+export const STATS_TABS = [
+  { id: 'per-game', label: 'Per Game' },
+  { id: 'totals', label: 'Totals' },
+  { id: 'per-36', label: 'Per 36' },
+  { id: 'advanced', label: 'Advanced' },
+  { id: 'shooting', label: 'Shooting' },
+  { id: 'play-by-play', label: 'Play-by-Play' },
 ] as const;
-type StatsTab = (typeof STATS_TABS)[number];
+export const STATS_TAB_IDS = STATS_TABS.map((tab) => tab.id) as [
+  (typeof STATS_TABS)[number]['id'],
+  ...(typeof STATS_TABS)[number]['id'][],
+];
+export type StatsTabId = (typeof STATS_TABS)[number]['id'];
 
 export interface SeasonTabsProps {
   perGame: PlayerPerGameRow[];
@@ -561,34 +565,40 @@ export interface SeasonTabsProps {
   advanced: PlayerAdvancedRow[];
   shooting: PlayerShootingRow[];
   playByPlay: PlayerPlayByPlayRow[];
+  activeTab?: StatsTabId;
+  onTabChange?: (tab: StatsTabId) => void;
 }
 
 export function SeasonTabs(props: SeasonTabsProps): ReactNode {
-  const [tab, setTab] = useState<StatsTab>('Per Game');
+  const tab = props.activeTab ?? 'per-game';
   return (
     <section>
       <SectionHeader>Season Stats</SectionHeader>
-      <div className="mb-2 flex flex-wrap gap-1">
+      <div className="mb-2 flex flex-wrap gap-1" role="tablist" aria-label="Season stat table">
         {STATS_TABS.map((t) => (
           <button
-            key={t}
+            key={t.id}
             type="button"
-            onClick={() => setTab(t)}
+            role="tab"
+            aria-selected={tab === t.id}
+            onClick={() => props.onTabChange?.(t.id)}
             className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-              tab === t ? 'bg-primary text-bg' : 'text-fg-muted hover:bg-surface-alt hover:text-fg'
+              tab === t.id
+                ? 'bg-primary text-bg'
+                : 'text-fg-muted hover:bg-surface-alt hover:text-fg'
             }`}
           >
-            {t}
+            {t.label}
           </button>
         ))}
       </div>
       <div className="overflow-x-auto rounded border border-border bg-surface">
-        {tab === 'Per Game' ? <PerGameTable rows={props.perGame} /> : null}
-        {tab === 'Totals' ? <TotalsTable rows={props.totals} /> : null}
-        {tab === 'Per 36' ? <Per36Table rows={props.per36} /> : null}
-        {tab === 'Advanced' ? <AdvancedTable rows={props.advanced} /> : null}
-        {tab === 'Shooting' ? <ShootingTable rows={props.shooting} /> : null}
-        {tab === 'Play-by-Play' ? <PlayByPlayTable rows={props.playByPlay} /> : null}
+        {tab === 'per-game' ? <PerGameTable rows={props.perGame} /> : null}
+        {tab === 'totals' ? <TotalsTable rows={props.totals} /> : null}
+        {tab === 'per-36' ? <Per36Table rows={props.per36} /> : null}
+        {tab === 'advanced' ? <AdvancedTable rows={props.advanced} /> : null}
+        {tab === 'shooting' ? <ShootingTable rows={props.shooting} /> : null}
+        {tab === 'play-by-play' ? <PlayByPlayTable rows={props.playByPlay} /> : null}
       </div>
     </section>
   );

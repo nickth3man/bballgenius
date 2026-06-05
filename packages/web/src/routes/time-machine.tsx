@@ -22,6 +22,8 @@ import {
   GameLogCard,
   SeasonTabs,
   ShotZonesCard,
+  STATS_TAB_IDS,
+  type StatsTabId,
 } from '../components/timeMachine/player-dossier';
 
 /* -------------------------------------------------------------------------- */
@@ -337,6 +339,7 @@ const timeMachineSearchSchema = z.object({
     .union([z.string(), z.number()])
     .transform((v) => String(v))
     .optional(),
+  tab: z.enum(STATS_TAB_IDS).optional().catch(undefined),
 });
 
 export const Route = createFileRoute('/time-machine')({
@@ -346,7 +349,7 @@ export const Route = createFileRoute('/time-machine')({
 
 function TimeMachinePage(): ReactNode {
   const navigate = useNavigate({ from: Route.fullPath });
-  const { pid: urlPid } = Route.useSearch();
+  const { pid: urlPid, tab: seasonStatsTab = 'per-game' } = Route.useSearch();
   const [search, setSearch] = useState('');
   const [players, setPlayers] = useState<PlayerResult[]>([]);
   const [selectedPlayer, setSelectedPlayer] = useState<PlayerResult | null>(null);
@@ -363,6 +366,16 @@ function TimeMachinePage(): ReactNode {
     (playerId: string | null) => {
       navigate({
         search: (prev) => ({ ...prev, pid: playerId ? Number(playerId) : undefined }),
+        replace: true,
+      });
+    },
+    [navigate],
+  );
+
+  const setSeasonStatsTab = useCallback(
+    (tab: StatsTabId) => {
+      navigate({
+        search: (prev) => ({ ...prev, tab }),
         replace: true,
       });
     },
@@ -616,6 +629,8 @@ function TimeMachinePage(): ReactNode {
                 advanced={dossier.advanced}
                 shooting={dossier.shooting}
                 playByPlay={dossier.playByPlay}
+                activeTab={seasonStatsTab}
+                onTabChange={setSeasonStatsTab}
               />
             </SectionErrorBoundary>
             <SectionErrorBoundary sectionName="Shot zones">
