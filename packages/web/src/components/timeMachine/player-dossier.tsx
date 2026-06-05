@@ -53,6 +53,14 @@ function formatPct(value: number | string | null | undefined, digits = 1): strin
   return `${(n * 100).toFixed(digits)}%`;
 }
 
+/** Format a value that is already in percentage units (e.g. 6.7 means 6.7%). */
+function formatPctValue(value: number | string | null | undefined, digits = 1): string {
+  if (value == null) return '—';
+  const n = Number(value);
+  if (!Number.isFinite(n)) return '—';
+  return `${n.toFixed(digits)}%`;
+}
+
 function formatSeason(seasonEndYear: number | string | null | undefined): string {
   if (seasonEndYear == null) return '—';
   const y = Number(seasonEndYear);
@@ -390,14 +398,17 @@ export function AwardsGrouped({ groups }: { groups: GroupedAward[] }): ReactNode
           {grouped.map((g) => (
             <div key={g.category}>
               <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-fg-muted">
-                {g.category}
+                {titleCase(g.category)}
               </div>
               <div className="flex flex-wrap gap-1.5">
                 {g.subGroups.map(([label, seasons]) => {
                   const count = seasons.length;
+                  // Sort seasons ascending for clean range display
+                  const sorted = [...seasons].sort((a, b) => a.localeCompare(b));
                   const teamNum = label.match(/(\d+)(st|nd|rd|th)\s*Team/i);
-                  const isMajor =
-                    label.toLowerCase().includes('mvp') || label.toLowerCase().includes('roy');
+                  const lower = label.toLowerCase();
+                  const isMajor = lower.includes('mvp') || lower.includes('roy');
+                  const isAllStar = lower.includes('all-star') || lower.includes('all star');
                   return (
                     <span
                       key={label}
@@ -406,17 +417,17 @@ export function AwardsGrouped({ groups }: { groups: GroupedAward[] }): ReactNode
                           ? 'border-warning/30 bg-warning/10 text-warning'
                           : teamNum && teamNum[1] === '1'
                             ? 'border-primary/30 bg-primary/10 text-primary'
-                            : 'border-border/60 bg-surface-alt/60 text-fg-muted'
+                            : isAllStar
+                              ? 'border-secondary/30 bg-secondary/10 text-secondary'
+                              : 'border-border/60 bg-surface-alt/60 text-fg-muted'
                       }`}
                     >
                       {count > 1 && <span className="font-bold">{count}×</span>}
                       <span className={count > 1 ? '' : 'font-medium'}>
-                        {label.replace(/\s+\dst\s+Team/i, count > 1 ? '' : '')}
+                        {titleCase(label.replace(/\s+\d+(st|nd|rd|th)\s+Team/i, ''))}
                       </span>
                       <span className="text-fg-dim/70">
-                        {count === 1
-                          ? seasons[0]
-                          : `${seasons[seasons.length - 1]}–${seasons[0].slice(-2)}`}
+                        {count === 1 ? sorted[0] : `${sorted[0]}–${sorted[sorted.length - 1]}`}
                       </span>
                     </span>
                   );
@@ -428,6 +439,36 @@ export function AwardsGrouped({ groups }: { groups: GroupedAward[] }): ReactNode
       </SectionCard>
     </section>
   );
+}
+
+/** Title-case an award label (handles "nba mvp" → "NBA MVP", "all-nba 1st" → "All-NBA 1st"). */
+function titleCase(label: string): string {
+  return label
+    .split(/\s+/)
+    .map((w) => {
+      const upper = w.toUpperCase();
+      if (
+        upper === 'NBA' ||
+        upper === 'MVP' ||
+        upper === 'ROY' ||
+        upper === 'DPOY' ||
+        upper === 'POY'
+      ) {
+        return upper;
+      }
+      if (
+        upper === 'ALL-NBA' ||
+        upper === 'ALL-STAR' ||
+        upper === 'ALL-DEFENSE' ||
+        upper === 'ALL-ROOKIE'
+      ) {
+        return upper;
+      }
+      if (/^\d/.test(w) || /^(st|nd|rd|th)$/i.test(w)) return w;
+      if (w.length === 0) return w;
+      return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
+    })
+    .join(' ');
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1128,7 +1169,7 @@ export function DraftCombineCard({ draft, combine }: DraftCombineProps): ReactNo
                 </div>
                 <div>
                   <span className="text-fg-dim">Body fat:</span>{' '}
-                  {formatPct(combine.body_fat_pct, 1)}
+                  {formatPctValue(combine.body_fat_pct, 1)}
                 </div>
                 <div>
                   <span className="text-fg-dim">Standing vert:</span>{' '}

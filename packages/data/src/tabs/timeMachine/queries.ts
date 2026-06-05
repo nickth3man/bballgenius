@@ -1,8 +1,20 @@
 import { query } from '../../core/db.js';
 import { isHonorsDbConfigured, queryHonors } from '../../core/dbHonors.js';
 import type { DbRow } from '../../core/types.js';
+// Pure (non-DB) helpers re-exported from their canonical home so existing
+// server-side imports keep working. The canonical module is intentionally free
+// of `core/db.js` imports, which lets client bundles import it without pulling
+// the CJS native `@duckdb/node-api` module into the browser graph.
+//
+// `import type` is required so the names are available in this file's local
+// scope for type annotations below (a bare `export type { X } from 'y'` does
+// NOT bring `X` into local scope — it only re-exports).
+import type { GroupedAward, PlayerAwardRow } from './groupAwards.js';
 import { dedupeCareerStats } from './utils/careerStats.js';
 import { seasonEndYearToNbaLabel } from './utils/seasonYear.js';
+
+export { groupAwardsByCategory } from './groupAwards.js';
+export type { GroupedAward, PlayerAwardRow };
 
 export interface PlayerSuggestion {
   player_id: string;
@@ -10,12 +22,6 @@ export interface PlayerSuggestion {
   from_year: number | string;
   to_year: number | string;
   is_active: boolean;
-}
-
-export interface PlayerAwardRow {
-  award: string;
-  season_year: string;
-  count: number | string;
 }
 
 export interface CareerStatRow {
@@ -358,11 +364,6 @@ export interface PlayerShotZoneRow {
   fga: number;
   fgm: number;
   fg_pct: number;
-}
-
-export interface GroupedAward {
-  category: string;
-  awards: { season: string; label: string }[];
 }
 
 /* ───────────────────────────────────────────────
@@ -878,13 +879,18 @@ export async function loadPlayerGameLog(
 /**
  * Franchise standing rows — scans all 5 `*_person_id` columns in
  * api.v_franchise_leaders for a match and returns the category label.
+ *
+ * v_franchise_leaders may have multiple rows per (team, season) combination
+ * with inconsistent `team` string formats, so we dedupe to one row per
+ * category — keeping the highest value seen across all rows — to avoid
+ * listing the same leader record several times for the same player.
  */
 export async function loadPlayerFranchiseStanding(
   playerId: string,
 ): Promise<PlayerFranchiseStandingRow[]> {
   const pid = Number(playerId);
   const all = await query<DbRow>('SELECT * FROM api.v_franchise_leaders');
-  const result: PlayerFranchiseStandingRow[] = [];
+  const dedupe = new Map<PlayerFranchiseStandingRow['category'], PlayerFranchiseStandingRow>();
 
   for (const row of all) {
     const cats: [string, string, string][] = [
@@ -896,17 +902,18 @@ export async function loadPlayerFranchiseStanding(
     ];
     for (const [category, idCol, valCol] of cats) {
       if (String(row[idCol]) === String(pid)) {
-        const value = row[valCol];
-        result.push({
-          category: category as PlayerFranchiseStandingRow['category'],
-          team: String(row.team),
-          value: Number(value),
-        });
+        const value = Number(row[valCol]);
+        const team = String(row.team);
+        const cat = category as PlayerFranchiseStandingRow['category'];
+        const existing = dedupe.get(cat);
+        if (!existing || value > existing.value) {
+          dedupe.set(cat, { category: cat, team, value });
+        }
       }
     }
   }
 
-  return result;
+  return Array.from(dedupe.values());
 }
 
 /**
@@ -941,49 +948,6 @@ export async function loadPlayerShotZones(playerId: string): Promise<PlayerShotZ
     fgm: Number(r.fgm) || 0,
     fg_pct: Number(r.fga) ? Number(r.fgm) / Number(r.fga) : 0,
   }));
-}
-
-/**
- * Groups award rows by the leading token of the award label.
- * e.g. "All-NBA 1st" → group "All-NBA", "All-Star" → group "All-Star".
- * All-NBA groups sort by team number.
- */
-export function groupAwardsByCategory(awards: PlayerAwardRow[]): GroupedAward[] {
-  const map = new Map<string, { season: string; label: string }[]>();
-
-  for (const a of awards) {
-    const label = a.award;
-    // Leading token is the first word(s) before a space followed by a number (e.g. "All-NBA 1st")
-    // or just the first word (e.g. "All-Star")
-    const leading = label.split(/\s+/).slice(0, -1).join(' ') || label;
-    const category = leading || label;
-
-    if (!map.has(category)) {
-      map.set(category, []);
-    }
-    map.get(category)!.push({ season: a.season_year, label });
-  }
-
-  // Sort All-NBA groups by team number ascending
-  for (const [, entries] of map) {
-    entries.sort((a, b) => {
-      const aNum = extractTeamNumber(a.label);
-      const bNum = extractTeamNumber(b.label);
-      if (aNum !== null && bNum !== null) return aNum - bNum;
-      return a.label.localeCompare(b.label);
-    });
-  }
-
-  return Array.from(map.entries()).map(([category, awards]) => ({
-    category,
-    awards,
-  }));
-}
-
-/** Extract the team number from labels like "All-NBA 1st" → 1. */
-function extractTeamNumber(label: string): number | null {
-  const m = label.match(/(\d+)(st|nd|rd|th)$/);
-  return m ? Number(m[1]) : null;
 }
 
 /* ───────────────────────────────────────────────
