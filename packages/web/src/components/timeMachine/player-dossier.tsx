@@ -545,14 +545,15 @@ export function PlayoffStatsCard({ rows }: { rows: CareerStatRow[] }): ReactNode
           </DataTable>
         </div>
         {hiddenCount > 0 || showAllRows ? (
-          <div className="mt-2 flex items-center justify-between gap-3 text-[10px] text-fg-dim">
+          <div className="mt-2 flex flex-col gap-2 text-[10px] text-fg-dim sm:flex-row sm:items-center sm:justify-between">
             <span>
               Showing {visibleRows.length} of {playoffRows.length} playoff seasons
             </span>
             <button
               type="button"
+              aria-expanded={showAllRows}
               onClick={() => setShowAllRows((value) => !value)}
-              className="rounded-full border border-border bg-surface-alt px-2.5 py-1 font-medium text-fg-muted transition-colors hover:border-accent/50 hover:text-accent"
+              className="w-full rounded-full border border-border bg-surface-alt px-2.5 py-1 font-medium text-fg-muted transition-colors hover:border-accent/50 hover:text-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:w-auto"
             >
               {showAllRows ? 'Show latest 8' : `Show all ${playoffRows.length}`}
             </button>
