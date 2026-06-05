@@ -373,6 +373,77 @@ function StatCard({ label, value }: { label: string; value: ReactNode }): ReactN
 /*  Career Trajectory Sparklines                                              */
 /* -------------------------------------------------------------------------- */
 
+function CareerLineChart({
+  rows,
+  valueKey,
+  color,
+}: {
+  rows: PlayerPerGameRow[];
+  valueKey: string;
+  color: string;
+}): ReactNode {
+  if (rows.length === 0) return null;
+
+  const values = rows.map((r) => {
+    const v = (r as unknown as Record<string, unknown>)[valueKey];
+    return typeof v === 'number' ? v : Number(v) || 0;
+  });
+  const max = Math.max(...values);
+  const min = Math.min(...values);
+  const range = max - min || 1;
+  if (max === 0) return null;
+
+  const H = 64;
+  const W = 200;
+  const points = values
+    .map((v, i) => {
+      const x = values.length > 1 ? (i / (values.length - 1)) * W : W / 2;
+      const y = H - ((v - min) / range) * H;
+      return `${x},${y}`;
+    })
+    .join(' ');
+
+  const areaPath = `${0},${H} ${points} ${W},${H}`;
+
+  return (
+    <div className="relative">
+      <div className="mb-0.5 flex items-baseline justify-between text-[9px] text-fg-dim">
+        <span>{formatNumber(Math.max(...values), 1)}</span>
+        <span className="text-fg-dim/50">{formatNumber(min, 1)}</span>
+      </div>
+      <svg viewBox={`0 0 ${W} ${H}`} className="h-16 w-full overflow-visible" aria-hidden="true">
+        {/* Area fill */}
+        <polygon fill={color} fillOpacity={0.1} points={areaPath} />
+        {/* Line */}
+        <polyline
+          fill="none"
+          stroke={color}
+          strokeWidth={1.5}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          points={points}
+        />
+        {/* Dot markers every 3 seasons */}
+        {values.map((v, i) =>
+          values.length <= 12 || i % Math.max(1, Math.floor(values.length / 8)) === 0 ? (
+            <circle
+              key={`dot-${rows[i].season_end_year}`}
+              cx={values.length > 1 ? (i / (values.length - 1)) * W : W / 2}
+              cy={H - ((v - min) / range) * H}
+              r={2}
+              fill={color}
+            />
+          ) : null,
+        )}
+      </svg>
+      <div className="flex justify-between text-[8px] text-fg-dim">
+        {rows.length > 0 && <span>{formatSeason(rows[0].season_end_year)}</span>}
+        {rows.length > 1 && <span>{formatSeason(rows[rows.length - 1].season_end_year)}</span>}
+      </div>
+    </div>
+  );
+}
+
 function CareerSparkline({
   rows,
   valueKey,
@@ -439,27 +510,35 @@ function CareerSparkline({
 export function CareerTrajectory({ perGame }: { perGame: PlayerPerGameRow[] }): ReactNode {
   const regularSeasonRows = perGame.filter((row) => !('is_playoffs' in row) || !row.is_playoffs);
   if (regularSeasonRows.length === 0) return null;
+
+  const sparklineMetrics = [
+    { label: 'PPG', key: 'pts_per_game', variant: 'line' as const, color: '#60a5fa' },
+    { label: 'RPG', key: 'trb_per_game', variant: 'line' as const, color: '#34d399' },
+    { label: 'APG', key: 'ast_per_game', variant: 'line' as const, color: '#f472b6' },
+    { label: 'STL', key: 'stl_per_game', variant: 'line' as const, color: '#fbbf24' },
+    { label: 'MPG', key: 'mp_per_game', variant: 'bar' as const },
+    { label: 'FG%', key: 'fg_percent', variant: 'bar' as const },
+    { label: '3P%', key: 'x3p_percent', variant: 'bar' as const },
+    { label: 'FT%', key: 'ft_percent', variant: 'bar' as const },
+  ];
+
   return (
     <section>
       <SectionHeader>Career Trajectory</SectionHeader>
       <SectionCard>
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-          <div>
-            <div className="mb-1 text-[10px] uppercase tracking-widest text-fg-dim">PPG</div>
-            <CareerSparkline rows={regularSeasonRows} valueKey="pts_per_game" />
-          </div>
-          <div>
-            <div className="mb-1 text-[10px] uppercase tracking-widest text-fg-dim">RPG</div>
-            <CareerSparkline rows={regularSeasonRows} valueKey="trb_per_game" />
-          </div>
-          <div>
-            <div className="mb-1 text-[10px] uppercase tracking-widest text-fg-dim">APG</div>
-            <CareerSparkline rows={regularSeasonRows} valueKey="ast_per_game" />
-          </div>
-          <div>
-            <div className="mb-1 text-[10px] uppercase tracking-widest text-fg-dim">MPG</div>
-            <CareerSparkline rows={regularSeasonRows} valueKey="mp_per_game" />
-          </div>
+        <div className="grid grid-cols-2 gap-x-4 gap-y-5 md:grid-cols-4">
+          {sparklineMetrics.map((m) => (
+            <div key={m.key}>
+              <div className="mb-1 text-[10px] uppercase tracking-widest text-fg-dim">
+                {m.label}
+              </div>
+              {m.variant === 'line' ? (
+                <CareerLineChart rows={regularSeasonRows} valueKey={m.key} color={m.color} />
+              ) : (
+                <CareerSparkline rows={regularSeasonRows} valueKey={m.key} />
+              )}
+            </div>
+          ))}
         </div>
       </SectionCard>
     </section>
