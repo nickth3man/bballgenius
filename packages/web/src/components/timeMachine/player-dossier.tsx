@@ -270,11 +270,9 @@ function StatCard({ label, value }: { label: string; value: ReactNode }): ReactN
 function CareerSparkline({
   rows,
   valueKey,
-  label,
 }: {
   rows: PlayerPerGameRow[];
   valueKey: string;
-  label: string;
 }): ReactNode {
   if (rows.length === 0) return null;
 
@@ -283,34 +281,51 @@ function CareerSparkline({
     return typeof v === 'number' ? v : Number(v) || 0;
   });
   const max = Math.max(...values);
+  const avg = values.reduce((a, b) => a + b, 0) / values.length;
   if (max === 0) return null;
 
-  const barHeight = 48;
+  const barHeight = 64;
   const barWidth = Math.max(4, Math.min(14, Math.floor(500 / rows.length)));
 
   return (
-    <div className="flex items-end gap-px" style={{ height: barHeight + 18 }}>
-      {values.map((v, i) => {
-        const h = max > 0 ? (v / max) * barHeight : 0;
-        const season = rows[i].season_end_year;
-        return (
-          <div key={season} className="group relative flex flex-col items-center">
-            <div
-              className="w-full rounded-t bg-primary/60 transition-all duration-150 hover:bg-primary hover:opacity-100"
-              style={{ width: barWidth, height: Math.max(1, h) }}
-            />
-            <div className="pointer-events-none absolute -top-7 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-bg px-1.5 py-0.5 text-[10px] font-medium text-fg opacity-0 shadow-sm transition-opacity duration-150 group-hover:opacity-100">
-              {formatNumber(v, 1)}
-              <span className="ml-1 text-fg-dim">{String(season).slice(-2)}</span>
-            </div>
-            {(i === 0 ||
-              i === rows.length - 1 ||
-              i % Math.max(1, Math.floor(rows.length / 6)) === 0) && (
-              <div className="mt-0.5 text-[8px] text-fg-dim">{String(season).slice(-2)}</div>
-            )}
-          </div>
-        );
-      })}
+    <div className="relative">
+      {/* Max value label */}
+      <div className="mb-0.5 flex items-baseline justify-between text-[9px] text-fg-dim">
+        <span>{formatNumber(max, 1)}</span>
+      </div>
+      <div className="relative" style={{ height: barHeight + 2 }}>
+        {/* Average reference line */}
+        <div
+          className="absolute left-0 right-0 border-t border-dashed border-primary/20"
+          style={{ top: barHeight - (avg / max) * barHeight }}
+        />
+        <div className="flex items-end gap-px" style={{ height: barHeight }}>
+          {values.map((v, i) => {
+            const h = max > 0 ? (v / max) * barHeight : 0;
+            const season = rows[i].season_end_year;
+            const isPeak = v === max;
+            return (
+              <div key={season} className="group relative flex flex-col items-center">
+                <div
+                  className={`w-full rounded-t transition-all duration-150 hover:opacity-100 ${
+                    isPeak ? 'bg-accent' : 'bg-primary/50 hover:bg-primary'
+                  }`}
+                  style={{ width: barWidth, height: Math.max(1, h) }}
+                />
+                <div className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-bg px-1.5 py-0.5 text-[10px] font-medium text-fg opacity-0 shadow-sm transition-opacity duration-150 group-hover:opacity-100">
+                  {formatNumber(v, 1)}
+                  <span className="ml-1 text-fg-dim">{formatSeason(season)}</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+      {/* Season labels */}
+      <div className="flex justify-between text-[8px] text-fg-dim">
+        {rows.length > 0 && <span>{formatSeason(rows[0].season_end_year)}</span>}
+        {rows.length > 1 && <span>{formatSeason(rows[rows.length - 1].season_end_year)}</span>}
+      </div>
     </div>
   );
 }
@@ -324,19 +339,19 @@ export function CareerTrajectory({ perGame }: { perGame: PlayerPerGameRow[] }): 
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           <div>
             <div className="mb-1 text-[10px] uppercase tracking-widest text-fg-dim">PPG</div>
-            <CareerSparkline rows={perGame} valueKey="pts_per_game" label="Points Per Game" />
+            <CareerSparkline rows={perGame} valueKey="pts_per_game" />
           </div>
           <div>
             <div className="mb-1 text-[10px] uppercase tracking-widest text-fg-dim">RPG</div>
-            <CareerSparkline rows={perGame} valueKey="trb_per_game" label="Rebounds Per Game" />
+            <CareerSparkline rows={perGame} valueKey="trb_per_game" />
           </div>
           <div>
             <div className="mb-1 text-[10px] uppercase tracking-widest text-fg-dim">APG</div>
-            <CareerSparkline rows={perGame} valueKey="ast_per_game" label="Assists Per Game" />
+            <CareerSparkline rows={perGame} valueKey="ast_per_game" />
           </div>
           <div>
             <div className="mb-1 text-[10px] uppercase tracking-widest text-fg-dim">MPG</div>
-            <CareerSparkline rows={perGame} valueKey="mp_per_game" label="Minutes Per Game" />
+            <CareerSparkline rows={perGame} valueKey="mp_per_game" />
           </div>
         </div>
       </SectionCard>
