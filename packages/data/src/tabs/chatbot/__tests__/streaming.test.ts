@@ -1,0 +1,451 @@
+import { test as baseTest, beforeEach, describe, expect, mock } from 'bun:test';
+import { AIMessage, HumanMessage, SystemMessage } from '@langchain/core/messages';
+
+const test = baseTest.serial;
+
+// Shared spy array for logMetric calls; reset between tests via beforeEach.
+const logMetricCalls: unknown[][] = [];
+const toolErrorCalls: unknown[][] = [];
+
+describe.serial('streamQuery', () => {
+  mock.module('../utils/metrics.js', () => ({
+    recordToolCall: () => {},
+    recordToolEnd: () => {},
+    startMetrics: () => {},
+    flushMetrics: () => {},
+    recordToken: () => {},
+    recordUsage: () => {},
+    recordError: () => {},
+    recordChainStage: () => {},
+    logMetric: (...args: unknown[]) => {
+      logMetricCalls.push(args);
+    },
+  }));
+
+  beforeEach(() => {
+    logMetricCalls.length = 0;
+    toolErrorCalls.length = 0;
+  });
+
+  test('yields token events from on_chat_model_stream', async () => {
+    mock.module('../agent/graph.js', () => ({
+      setAbortSignal: () => {},
+      getChatbotGraph: () => ({
+        streamEvents: async () =>
+          (async function* () {
+            yield {
+              event: 'on_chat_model_stream',
+              data: { chunk: { content: 'LeBron' } },
+              run_id: 'run-1',
+            };
+            yield {
+              event: 'on_chat_model_stream',
+              data: { chunk: { content: ' James' } },
+              run_id: 'run-1',
+            };
+          })(),
+        getState: async () => ({
+          values: { messages: [new AIMessage('LeBron James')] },
+        }),
+      }),
+    }));
+
+    const { streamQuery } = await import('../agent/streaming.js');
+    const events: Record<string, unknown>[] = [];
+    for await (const event of streamQuery([new HumanMessage('Hello')], 'token-test')) {
+      events.push(event);
+    }
+
+    const tokens = events.filter((e) => e.type === 'token');
+    expect(tokens.length).toBe(2);
+    expect(tokens[0].content).toBe('LeBron');
+    expect(tokens[1].content).toBe(' James');
+    expect(events.some((e) => e.type === 'done')).toBe(true);
+  });
+
+  test('yields tool_start and tool_end events', async () => {
+    const runId = 'tool-run-1';
+    mock.module('../agent/graph.js', () => ({
+      setAbortSignal: () => {},
+      getChatbotGraph: () => ({
+        streamEvents: async () =>
+          (async function* () {
+            yield {
+              event: 'on_tool_start',
+              name: 'query_nba_db',
+              data: { input: { sql: 'SELECT * FROM dim_player LIMIT 1' } },
+              run_id: runId,
+            };
+            yield {
+              event: 'on_tool_end',
+              name: 'query_nba_db',
+              data: { output: 'player_name\n---\nLeBron James' },
+              run_id: runId,
+            };
+          })(),
+        getState: async () => ({
+          values: { messages: [new AIMessage('Results found.')] },
+        }),
+      }),
+    }));
+
+    const { streamQuery } = await import('../agent/streaming.js');
+    const events: Record<string, unknown>[] = [];
+    for await (const event of streamQuery([new HumanMessage('Query')], 'tool-test')) {
+      events.push(event);
+    }
+
+    const toolStart = events.find((e) => e.type === 'tool_start');
+    expect(toolStart).toBeDefined();
+    expect(toolStart!.name).toBe('query_nba_db');
+    expect(toolStart!.input).toEqual({ sql: 'SELECT * FROM dim_player LIMIT 1' });
+    expect(toolStart!.runId).toBe(runId);
+
+    const toolEnd = events.find((e) => e.type === 'tool_end');
+    expect(toolEnd).toBeDefined();
+    expect(toolEnd!.name).toBe('query_nba_db');
+    expect(toolEnd!.input).toEqual({ sql: 'SELECT * FROM dim_player LIMIT 1' });
+    expect(toolEnd!.output).toContain('LeBron James');
+    expect(toolEnd!.runId).toBe(runId);
+    expect(typeof toolEnd!.durationMs).toBe('number');
+
+    expect(events.some((e) => e.type === 'done')).toBe(true);
+  });
+
+  test('yields tool_error event on tool failure', async () => {
+    mock.module('../agent/graph.js', () => ({
+      setAbortSignal: () => {},
+      getChatbotGraph: () => ({
+        streamEvents: async () =>
+          (async function* () {
+            yield {
+              event: 'on_tool_error',
+              name: 'query_nba_db',
+              data: { error: new Error('table not found') },
+              run_id: 'err-1',
+            };
+          })(),
+        getState: async () => ({
+          values: { messages: [new AIMessage('Error encountered.')] },
+        }),
+      }),
+    }));
+
+    const { streamQuery } = await import('../agent/streaming.js');
+    const events: Record<string, unknown>[] = [];
+    for await (const event of streamQuery([new HumanMessage('Bad query')], 'err-test')) {
+      events.push(event);
+    }
+
+    const toolError = events.find((e) => e.type === 'tool_error');
+    expect(toolError).toBeDefined();
+    expect(toolError!.name).toBe('query_nba_db');
+    expect(toolError!.error).toContain('table not found');
+    expect(toolError!.runId).toBe('err-1');
+  });
+
+  test('yields usage event with token counts', async () => {
+    mock.module('../agent/graph.js', () => ({
+      setAbortSignal: () => {},
+      getChatbotGraph: () => ({
+        streamEvents: async () =>
+          (async function* () {
+            yield {
+              event: 'on_chat_model_end',
+              data: {
+                output: {
+                  usage_metadata: { input_tokens: 150, output_tokens: 75 },
+                },
+              },
+              run_id: 'usage-1',
+            };
+          })(),
+        getState: async () => ({
+          values: { messages: [new AIMessage('Answer')] },
+        }),
+      }),
+    }));
+
+    const { streamQuery } = await import('../agent/streaming.js');
+    const events: Record<string, unknown>[] = [];
+    for await (const event of streamQuery([new HumanMessage('Stats')], 'usage-test')) {
+      events.push(event);
+    }
+
+    const usageEvent = events.find((e) => e.type === 'usage');
+    expect(usageEvent).toBeDefined();
+    expect(usageEvent!.usage).toEqual({ inputTokens: 150, outputTokens: 75 });
+  });
+
+  test('yields error event on exception in stream', async () => {
+    mock.module('../agent/graph.js', () => ({
+      setAbortSignal: () => {},
+      getChatbotGraph: () => ({
+        streamEvents: async () =>
+          (async function* () {
+            yield { event: '_sentinel' };
+            throw new Error('stream failure');
+          })(),
+        getState: async () => ({
+          values: { messages: [] },
+        }),
+      }),
+    }));
+
+    const { streamQuery } = await import('../agent/streaming.js');
+    const events: Record<string, unknown>[] = [];
+    for await (const event of streamQuery([new HumanMessage('Crash')], 'crash-test')) {
+      events.push(event);
+    }
+
+    const errorEvent = events.find((e) => e.type === 'error');
+    expect(errorEvent).toBeDefined();
+    expect(errorEvent!.message).toBe('stream failure');
+  });
+
+  test('error event payload includes runId and stage', async () => {
+    mock.module('../agent/graph.js', () => ({
+      setAbortSignal: () => {},
+      getChatbotGraph: () => ({
+        streamEvents: async () =>
+          (async function* () {
+            yield { event: '_sentinel' };
+            throw new Error('stream failure');
+          })(),
+        getState: async () => ({
+          values: { messages: [] },
+        }),
+      }),
+    }));
+
+    const { streamQuery } = await import('../agent/streaming.js');
+    const events: Record<string, unknown>[] = [];
+    for await (const event of streamQuery([new HumanMessage('Crash')], 'runid-test')) {
+      events.push(event);
+    }
+
+    const errorEvent = events.find((e) => e.type === 'error') as
+      | Record<string, unknown>
+      | undefined;
+    expect(errorEvent).toBeDefined();
+    expect(errorEvent!.runId).toBeDefined();
+    expect(typeof errorEvent!.runId).toBe('string');
+    expect(errorEvent!.runId).not.toBe('');
+  });
+
+  test('yields friendly error when graph construction fails from auth', async () => {
+    mock.module('../agent/graph.js', () => ({
+      setAbortSignal: () => {},
+      getChatbotGraph: () => {
+        throw new Error(
+          '401 User not found. Troubleshooting URL: https://docs.langchain.com/oss/javascript/langchain/errors/MODEL_AUTHENTICATION/',
+        );
+      },
+    }));
+
+    const { streamQuery } = await import('../agent/streaming.js');
+    const events: Record<string, unknown>[] = [];
+    for await (const event of streamQuery([new HumanMessage('Crash')], 'auth-error-test')) {
+      events.push(event);
+    }
+
+    const errorEvent = events.find((e) => e.type === 'error');
+    expect(errorEvent).toBeDefined();
+    expect(errorEvent!.message).toBe(
+      'OpenRouter authentication failed. Check that OPENROUTER_API_KEY is set to a valid key for your OpenRouter account, then restart BBallGenius Chat.',
+    );
+  });
+
+  test('yields chain_stage events for graph node transitions', async () => {
+    mock.module('../agent/graph.js', () => ({
+      setAbortSignal: () => {},
+      getChatbotGraph: () => ({
+        streamEvents: async () =>
+          (async function* () {
+            yield { event: 'on_chain_start', name: 'prepare_turn', run_id: 'r-start' };
+            yield { event: 'on_chain_start', name: 'classify_intent', run_id: 'r0' };
+            yield { event: 'on_chain_start', name: 'llm', run_id: 'r1' };
+            yield {
+              event: 'on_chat_model_stream',
+              data: { chunk: { content: 'Thinking' } },
+              run_id: 'r1',
+            };
+            yield { event: 'on_chain_start', name: 'tools', run_id: 'r2' };
+            yield {
+              event: 'on_tool_start',
+              name: 'query_nba_db',
+              data: { input: { sql: 'SELECT 1' } },
+              run_id: 'r3',
+            };
+            yield {
+              event: 'on_tool_end',
+              name: 'query_nba_db',
+              data: { output: 'result' },
+              run_id: 'r3',
+            };
+            yield { event: 'on_chain_start', name: 'tool_budget_guard', run_id: 'r4' };
+            yield { event: 'on_chain_start', name: 'sql_error_guard', run_id: 'r5' };
+            yield { event: 'on_chain_start', name: 'finalize_turn', run_id: 'r6' };
+          })(),
+        getState: async () => ({
+          values: { messages: [new AIMessage('Done')] },
+        }),
+      }),
+    }));
+
+    const { streamQuery } = await import('../agent/streaming.js');
+    const events: Record<string, unknown>[] = [];
+    for await (const event of streamQuery([new HumanMessage('Test')], 'chain-stage-test')) {
+      events.push(event);
+    }
+
+    const chainStages = events.filter((e) => e.type === 'chain_stage');
+    expect(chainStages.length).toBe(7);
+    expect(chainStages[0]).toEqual({ type: 'chain_stage', stage: 'prepare_turn' });
+    expect(chainStages[1]).toEqual({ type: 'chain_stage', stage: 'classify_intent' });
+    expect(chainStages[2]).toEqual({ type: 'chain_stage', stage: 'llm' });
+    expect(chainStages[3]).toEqual({ type: 'chain_stage', stage: 'tools' });
+    expect(chainStages[4]).toEqual({ type: 'chain_stage', stage: 'tool_budget_guard' });
+    expect(chainStages[5]).toEqual({ type: 'chain_stage', stage: 'sql_error_guard' });
+    expect(chainStages[6]).toEqual({ type: 'chain_stage', stage: 'finalize_turn' });
+    expect(events.some((e) => e.type === 'done')).toBe(true);
+  });
+
+  test('ignores on_chain_start for unknown node names', async () => {
+    mock.module('../agent/graph.js', () => ({
+      setAbortSignal: () => {},
+      getChatbotGraph: () => ({
+        streamEvents: async () =>
+          (async function* () {
+            yield { event: 'on_chain_start', name: 'unknown_node', run_id: 'r1' };
+            yield { event: 'on_chain_start', name: 'llm', run_id: 'r2' };
+            yield {
+              event: 'on_chat_model_stream',
+              data: { chunk: { content: 'Hi' } },
+              run_id: 'r2',
+            };
+          })(),
+        getState: async () => ({
+          values: { messages: [new AIMessage('Hi')] },
+        }),
+      }),
+    }));
+
+    const { streamQuery } = await import('../agent/streaming.js');
+    const events: Record<string, unknown>[] = [];
+    for await (const event of streamQuery([new HumanMessage('Test')], 'unknown-node-test')) {
+      events.push(event);
+    }
+
+    const chainStages = events.filter((e) => e.type === 'chain_stage');
+    expect(chainStages.length).toBe(1);
+    expect(chainStages[0]).toEqual({ type: 'chain_stage', stage: 'llm' });
+  });
+
+  test('resolves tool name from activeTools map on tool_end without event name', async () => {
+    const runId = 'anon-tool-run';
+    mock.module('../agent/graph.js', () => ({
+      setAbortSignal: () => {},
+      getChatbotGraph: () => ({
+        streamEvents: async () =>
+          (async function* () {
+            yield {
+              event: 'on_tool_start',
+              name: 'get_schema_info',
+              data: { input: { tableName: 'dim_player' } },
+              run_id: runId,
+            };
+            yield {
+              event: 'on_tool_end',
+              data: { output: 'columns found' },
+              run_id: runId,
+            };
+          })(),
+        getState: async () => ({
+          values: { messages: [new AIMessage('Schema listed.')] },
+        }),
+      }),
+    }));
+
+    const { streamQuery } = await import('../agent/streaming.js');
+    const events: Record<string, unknown>[] = [];
+    for await (const event of streamQuery([new HumanMessage('Schema')], 'anon-tool-test')) {
+      events.push(event);
+    }
+
+    const toolEnd = events.find((e) => e.type === 'tool_end');
+    expect(toolEnd).toBeDefined();
+    expect(toolEnd!.name).toBe('get_schema_info');
+    expect(toolEnd!.input).toEqual({ tableName: 'dim_player' });
+  });
+
+  test('yields done event with final messages', async () => {
+    const finalMessages = [
+      new HumanMessage('Query'),
+      new AIMessage('Here is the answer.'),
+      new SystemMessage('end'),
+    ];
+    mock.module('../agent/graph.js', () => ({
+      setAbortSignal: () => {},
+      getChatbotGraph: () => ({
+        streamEvents: async () =>
+          (async function* () {
+            yield { event: '_sentinel' };
+          })(),
+        getState: async () => ({
+          values: { messages: finalMessages },
+        }),
+      }),
+    }));
+
+    const { streamQuery } = await import('../agent/streaming.js');
+    const events: Record<string, unknown>[] = [];
+    for await (const event of streamQuery([new HumanMessage('Done')], 'done-test')) {
+      events.push(event);
+    }
+
+    const doneEvent = events.find((e) => e.type === 'done');
+    expect(doneEvent).toBeDefined();
+    expect(doneEvent!.messages).toBe(finalMessages);
+  });
+
+  test('span summary log is written on success', async () => {
+    mock.module('../agent/graph.js', () => ({
+      setAbortSignal: () => {},
+      getChatbotGraph: () => ({
+        streamEvents: async () =>
+          (async function* () {
+            yield { event: 'on_chain_start', name: 'llm', run_id: 'r1' };
+            yield {
+              event: 'on_chat_model_stream',
+              data: { chunk: { content: 'Hello' } },
+              run_id: 'r1',
+            };
+          })(),
+        getState: async () => ({
+          values: { messages: [new AIMessage('Hello')] },
+        }),
+      }),
+    }));
+
+    const { streamQuery } = await import('../agent/streaming.js');
+    const events: Record<string, unknown>[] = [];
+    for await (const event of streamQuery([new HumanMessage('Hi')], 'span-test')) {
+      events.push(event);
+    }
+
+    const spanCalls = logMetricCalls.filter(
+      (args) =>
+        args[0] &&
+        typeof args[0] === 'object' &&
+        (args[0] as Record<string, unknown>).event === 'span',
+    );
+    expect(spanCalls.length).toBe(1);
+    const spanEvent = spanCalls[0][0] as Record<string, unknown>;
+    expect(spanEvent.status).toBe('ok');
+    expect(spanEvent.tokenCount).toBe(1);
+    expect(spanEvent.chainStages).toBeDefined();
+    expect(spanEvent.runId).toBeDefined();
+    expect(events.some((e) => e.type === 'done')).toBe(true);
+  });
+});

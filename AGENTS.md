@@ -4,67 +4,68 @@ This file provides guidance to coding agents working with code in this repositor
 
 ## Project Overview
 
-BBallGenius is a **Bun monorepo** with a single unified NBA analytics application under `src/`:
+BBallGenius is a **Bun workspace monorepo** with two packages:
 
-The application is a terminal NBA analytics hub (OpenTUI + DuckDB) with four tabs:
-- **Game Center** (F1): Game directory, box scores, shot charts
-- **Career Time-Machine** (F2): Player/team search, BBR mirror, dossier, honors
-- **SQL Sandbox** (F3): Schema browser, SQL editor, autocomplete
-- **Chat** (F4): LangGraph-powered conversational NBA agent (DuckDB + OpenRouter)
+- **`packages/web`** — TanStack Start + React web app (Game Center, Career Time-Machine, SQL Sandbox, Chat)
+- **`packages/data`** — DuckDB access, tab queries, LangGraph chatbot agent, shared formatters
 
-The hub consolidates game-by-game directories, box scores, play-by-play shot charts, and an ad-hoc SQL console into a single keyboard-driven TUI. It connects to a local DuckDB file (`data/nba.duckdb`) and has a comprehensive virtual-rendering test suite under `src/tests/`.
+The web app queries a local DuckDB file (`data/nba.duckdb`) through the `data` workspace package. The chatbot uses a LangGraph ReAct agent with SQL critic node (error-correction loop), multi-tool support (schema discovery + query execution), streaming token output, checkpointing for multi-turn conversation, and an eval suite with 100 categorized NBA test queries.
 
-The chatbot tab provides a TUI chat interface powered by a LangGraph ReAct agent with SQL critic node (error-correction loop), multi-tool support (schema discovery + query execution), streaming token output, checkpointing for multi-turn conversation, and an eval suite with 100 categorized NBA test queries.
+**Entry points:**
 
-**Entry points:** `bun start` / `bun run hub:start` → hub TUI.
+```bash
+bun run web          # Dev server (packages/web)
+bun run build:web    # Production build
+```
 
 ## Repository Structure
 
 ```text
 bballgenius/
 ├── .github/workflows/     # CI (ci.yml)
+├── packages/
+│   ├── web/               # TanStack Start + React UI
+│   │   └── src/
+│   │       ├── routes/    # game-center, time-machine, sql-sandbox, chat, api/copilotkit
+│   │       └── components/
+│   └── data/              # DuckDB + LangGraph agent + tab queries
+│       └── src/
+│           ├── core/      # db.ts, dbHonors.ts, errors, types
+│           ├── shared/    # dbPath, formatters, theme, errors
+│           └── tabs/      # gameCenter/, timeMachine/, sqlSandbox/, chatbot/
+│               └── chatbot/
+│                   ├── agent/     # LangGraph graph, tools, streaming
+│                   ├── db.ts      # DuckDB access + schema introspection
+│                   ├── openrouter.ts
+│                   ├── systemPrompt.ts
+│                   ├── utils/     # sql, retry, metrics, streamFormatting
+│                   ├── eval/      # nba-100-queries.ts, question-matrix, iterate harness
+│                   └── __tests__/ # Bun tests with LangChain mocking
 ├── data/
 │   ├── fixtures/          # Committed nba.ci.duckdb (~2.8 MB) for CI
 │   └── nba.duckdb         # Local full DB (gitignored, ~21.7 GB)
-├── scripts/               # Topical subdirs: ci/, db/, dev/, eval/, bbr/
-├── NBA_DB_SCHEMA_REFERENCE.md # Generated full column reference (509 tables, 12 schemas)
-├── .firecrawl/            # BBR markdown cache (gitignored map artifacts)
-├── bbr-screenshots/       # BBR PNG + JSON mirrors (gitignored)
-└── src/
-    ├── index.ts           # TUI bootstrap
-    ├── core/              # appShell, db, dbHonors, errors, types
-    ├── shared/            # dbPath, errors + ui/ (panels, focus, keyDispatch, statusLine) + utils/ (formatters, theme, keyboardHelp)
-    ├── tabs/              # registry + gameCenter/, timeMachine/, sqlSandbox/, chatbot/
-    │   └── chatbot/       # Chatbot tab (LangGraph agent + UI)
-    │       ├── tab.ts     # AppShellTab adapter
-    │       ├── chatApp.ts # Chat UI controller (OpenTUI, streaming, metrics)
-    │       ├── db.ts      # DuckDB access + schema introspection
-    │       ├── openrouter.ts # OpenRouter API client
-    │       ├── systemPrompt.ts # Dynamic schema-aware system prompt builder
-    │       ├── agent/     # LangGraph agent
-    │       ├── utils/     # sql.ts, retry.ts, metrics.ts, ansi.ts, theme.ts
-    │       ├── features/  # modelSelector.ts (interactive model picker)
-    │       ├── eval/      # nba-100-queries.ts (100 categorized NBA questions)
-    │       └── __tests__/ # Bun tests with LangChain mocking
-    └── tests/             # Hub tests + snapshots/
+├── scripts/               # Topical subdirs: ci/, db/, eval/, bbr/
+├── NBA_DB_SCHEMA_REFERENCE.md
+├── .firecrawl/            # BBR markdown cache (gitignored)
+└── bbr-screenshots/       # BBR PNG + JSON mirrors (gitignored)
 ```
 
-- **`src/shared/dbPath.ts`** — Single shared DB path resolver.
-- **`src/shared/ui/`** — Reusable TUI primitives shared across tabs (`panels`, `focus`, `keyDispatch`, `statusLine`); barrel-exported via `index.ts`. Time Machine is the reference consumer.
-- **`src/tabs/chatbot/agent/`** — LangGraph agent: graph definition, state schema, tools, model binding, streaming.
-- **`src/tabs/chatbot/utils/`** — SQL validation/extraction/execution, retry with backoff, metrics logger, ANSI parser, theme.
-- **`src/tabs/chatbot/eval/`** — 100 categorized NBA test questions across 17 categories.
-- **`scripts/`** — Automation, organized into topical subdirs:
-  - **`scripts/ci/`** — `ci-guards.sh`, `build-ci-fixture.ts`, `agent-smoke.sh`, branch protection.
-  - **`scripts/db/`** — DuckDB warehouse tooling: `verify-dq.ts` (data-quality suite), canonical views/merge, entity xref, source registry, crosswalk sync (`@duckdb/node-api`).
-  - **`scripts/dev/`** — `sync-keyboard-map.ts`, `capture-spans-dump.ts`, frame capture.
+- **`packages/data/src/shared/dbPath.ts`** — Single shared DB path resolver (used by web server routes and chatbot).
+- **`packages/data/src/tabs/*/queries.ts`** — Production SQL per feature area; imported by web routes via `data` package exports.
+- **`packages/data/src/tabs/chatbot/agent/`** — LangGraph agent: graph definition, state schema, tools, model binding, streaming.
+- **`packages/data/src/tabs/chatbot/utils/`** — SQL validation/extraction/execution, retry with backoff, metrics logger.
+- **`packages/data/src/tabs/chatbot/eval/`** — 100 categorized NBA test questions across 17 categories.
+- **`scripts/`** — Automation:
+  - **`scripts/ci/`** — `ci-guards.sh`, `build-ci-fixture.ts`.
+  - **`scripts/db/`** — DuckDB warehouse tooling: `verify-dq.ts`, canonical views/merge, entity xref.
   - **`scripts/eval/`** — `chatbot-smoke.ts`, multi-model eval, iterate loop.
   - **`scripts/bbr/`** — BBR Firecrawl map/crawl/observe.
 
 ### Package boundaries
 
-- **Tabs** must not import sibling tabs — only `src/core/*`, `src/shared/*`, and their own `src/tabs/<tabId>/` folder (enforced by `scripts/ci/ci-guards.sh`).
-- **Chatbot tab modules** import from `./agent/*`, `./utils/*`, `./features/*`, and `../../shared/*`.
+- **`packages/web`** imports from `data` workspace exports (`import { ... } from 'data/tabs/...'`). It must not reach into `packages/data/src/` with relative paths.
+- **`packages/data`** tab modules under `tabs/<tabId>/` should not import sibling tabs — only `core/*`, `shared/*`, and their own folder.
+- **Eval scripts** at repo root import chatbot internals via `packages/data/src/tabs/chatbot/...` (not via workspace alias).
 - **Repo-root assets** (`.firecrawl/`, `bbr-screenshots/`, `data/`) are resolved from code via relative paths up to the repository root.
 
 ### Subagent delegation
@@ -75,121 +76,98 @@ bballgenius/
 ## Tech Stack
 
 - **Language:** TypeScript 5.x / 6.x (Bun runtime)
-- **Hub UI:** OpenTUI (`@opentui/core`)
-- **Chatbot UI:** OpenTUI (`@opentui/core`)
+- **Web UI:** TanStack Start, TanStack Router, React 19, Tailwind CSS v4, CopilotKit (chat)
 - **Agent framework:** LangGraph (`@langchain/langgraph` v1.3+), LangChain (`@langchain/core`, `@langchain/openai`)
 - **Database:** DuckDB (`@duckdb/node-api`, `@duckdb/node-bindings`)
 - **Model provider:** OpenRouter API (multi-model, configurable via `MODEL` env var)
-- **Lint / format:** Biome (`biome.json`)
-- **Typecheck:** `tsc --noEmit -p tsconfig.json` for the full repo.
+- **Lint / format:** Biome (`biome.json`) on `packages/` and `scripts/`
+- **Typecheck:** `tsc --noEmit -p packages/data/tsconfig.json` (root `bun run typecheck`)
 
 ## Build & Development Commands
 
-### Hub & chatbot entrypoints
+### Web & data entrypoints
 
 ```bash
-bun start              # alias: bun run hub:start → src/index.ts
-bun run hub:start      # Terminal analytics TUI
+bun run web              # TanStack Start dev server (packages/web)
+bun run build:web        # Production build
+bun run data:test        # All data package tests (alias: bun --filter data test)
+bun run data:build       # Data package typecheck
 ```
 
 ### Chatbot-specific commands
 
 ```bash
-bun test src/tabs/chatbot/__tests__ --concurrency=1   # Run chatbot tests (DB + mocked LLM)
-bun run chatbot:smoke                                   # Smoke test with fact-checked NBA questions
-bun run chatbot:smoke:free                              # Free-tier model matrix (10 cases)
-bun run chatbot:smoke:baseline                          # Paid baseline model matrix (10 cases)
-bun run chatbot:smoke:100                               # Full 100-query smoke suite
+bun --filter data test --concurrency=1                 # Full data package tests (DB + mocked LLM)
+bun test packages/data/src/tabs/chatbot/__tests__ --concurrency=1
+bun run chatbot:smoke                                  # Smoke test with fact-checked NBA questions
+bun run chatbot:smoke:free                             # Free-tier model matrix (10 cases)
+bun run chatbot:smoke:baseline                         # Paid baseline model matrix (10 cases)
+bun run chatbot:smoke:100                              # Full 100-query smoke suite
 ```
 
 ### Fast-Feedback TDD Loop (Preferred for Daily Work)
 
 ```bash
-# Run only tests affected by uncommitted changes (Bun 1.3.13+)
-bun run test:changed
-
-# Watch mode — re-runs affected tests on every file save
+bun run test:changed       # Only tests affected by uncommitted changes (Bun 1.3.13+)
 bun run test:changed:watch
-
-# Stop at first failure, only changed tests
-bun run test:quick
-
-# Pre-commit sanity (typecheck + changed tests)
+bun run test:quick         # --changed + --bail
 bun run typecheck && bun run test:quick
 ```
 
 ### File-Scoped Commands (Preferred for Fast Feedback)
 
 ```bash
-# Type check a single file
-bunx tsc --noEmit src/tabs/chatbot/agent/graph.ts
-
-# Lint or format a single file
-bunx biome check --write src/tabs/chatbot/agent/graph.ts
-
-# Run a single test file
-bun test src/chatbot/__tests__/processQuestion.test.ts --concurrency=1
+bunx tsc --noEmit packages/data/src/tabs/chatbot/agent/graph.ts
+bunx biome check --write packages/data/src/tabs/chatbot/agent/graph.ts
+bun test packages/data/src/tabs/chatbot/__tests__/processQuestion.test.ts --concurrency=1
 ```
 
 ### Project-Wide Commands (Use Sparingly)
 
 ```bash
 bun install --frozen-lockfile
-bun run ci                    # guards, lint, format:check, typecheck, unit, integration, audit
-bun run test:unit             # hub formatters only (no DB)
-bun run ci:integration        # full hub suite on CI fixture
-bun run fixture:build         # rebuild data/fixtures/nba.ci.duckdb from local DB
-bun run keyboard-map:sync     # src/shared/utils/keyboard-map.json from keyboardHelp.ts
+bun run ci                 # guards, lint, format:check, typecheck, unit, audit
+bun run test:unit          # formatters only (no DB)
+bun run fixture:build      # rebuild data/fixtures/nba.ci.duckdb from local DB
 ```
 
 ### BBR screenshot crawl (Firecrawl)
 
-Mirrors [Basketball-Reference](https://www.basketball-reference.com) into repo-root `bbr-screenshots/` (PNG + JSON) and `.firecrawl/` (markdown). Used by hub Time Machine BBR views (`src/tabs/timeMachine/utils/bbr/`). Requires `FIRECRAWL_API_KEY` and the [Firecrawl CLI](https://firecrawl.dev).
+Mirrors [Basketball-Reference](https://www.basketball-reference.com) into repo-root `bbr-screenshots/` (PNG + JSON) and `.firecrawl/` (markdown). Used by Time Machine BBR views (`packages/data/src/tabs/timeMachine/utils/bbr/`). Requires `FIRECRAWL_API_KEY` and the [Firecrawl CLI](https://firecrawl.dev).
 
-**Per-directory quota:** each mirrored folder gets up to **2 PNG** and **2 JSON** files (full scrape payload: `markdown`, `links`, `metadata`, `screenshot` URL).
+**Per-directory quota:** each mirrored folder gets up to **2 PNG** and **2 JSON** files.
 
-**Map/crawl scope (default):** `players`, `teams`, `leagues` (seasons), `leaders`, `awards`, and player **gamelog** discovery only — no site-wide map passes or other BBR sections.
+**Map/crawl scope (default):** `players`, `teams`, `leagues`, `leaders`, `awards`, and player **gamelog** discovery only.
 
-**Throughput (Firecrawl 2 concurrent jobs):** `BBR_MAP_PARALLEL=2`, `BBR_MAP_DELAY_SEC=0` (defaults). Crawl: `BBR_CRAWL_CONCURRENCY=2`, `BBR_SCRAPE_TIMEOUT_MS=120000`. Do not run map + crawl together — they share the same API quota.
-
-**Always run map before crawl** (map is rebuilt from scratch every time; legacy `bbr-map*.txt` files are not merged in):
+**Always run map before crawl:**
 
 ```bash
-bun run bbr:map      # multi-pass firecrawl map → .firecrawl/bbr-map-full.txt + bbr-depth-index.json
-bun run bbr:crawl    # wipes bbr-screenshots/*, then node scripts/bbr/takeBbrScreenshots.cjs
-bun run bbr:verify   # map + per-directory 2 PNG / 2 JSON checks
-bun run bbr:verify:map  # fails if players scope lacks enough /players/x/id.html profiles (see BBR_MIN_PLAYER_PROFILES)
-bun run bbr:status   # heartbeat + progress JSON (no full log tailing)
-bun run bbr:watch    # refresh status every 3s
+bun run bbr:map
+bun run bbr:crawl
+bun run bbr:verify
+bun run bbr:verify:map
+bun run bbr:status
+bun run bbr:watch
 bun run bbr:map:cancel
-bun run bbr:observe  # kaizen: 5× cancel → 15s map probe → snapshot (scripts/bbr/bbrMapObserveCycle.sh)
+bun run bbr:observe
 ```
-
-- Map observability: `.firecrawl/bbr-map-progress.json`, `.firecrawl/bbr-map-heartbeat.txt`, `.firecrawl/bbr-map-observe-cycles.jsonl`.
-- `bbr:crawl` calls `scripts/bbr/bbrPreflightCrawl.sh` (wipe + map freshness check).
-- Optional: `BBR_CRAWL_BUDGET=500` to cap scrape count; `BBR_USE_LEGACY_SEEDS=1` to add old scattered seeds (default off).
-- Map scratchpad: `.firecrawl/scratchpad/map-*` (gitignored). Discovered URLs during crawl append to `.firecrawl/bbr-map-discovered.txt` for the next `bbr:map` run.
-- **`src/tests/bbrIntegration.test.ts`** expects optional local `.firecrawl/*.md` fixtures; failures there are OK in CI without a full crawl mirror.
 
 ## CI/CD Infrastructure & API
 
 ### Overview
 
-To run integration tests in CI without the 21.7 GB database, BBallGenius uses a **CI DuckDB fixture** plus static guards and peer dependency overrides.
+CI uses the **CI DuckDB fixture** (`data/fixtures/nba.ci.duckdb`) plus static guards.
 
 Key terms:
 
-- **CI Fixture:** Pruned committed DB (`data/fixtures/nba.ci.duckdb`, ~2.8 MB) with representative games, players (LeBron, Bob Cousy), shots, awards.
-- **Flat Peer Overrides:** Third-party peers (e.g. `bun-ffi-structs`) compile against root TypeScript 6.0.3.
-- **Pre-commit Guards:** `scripts/ci/ci-guards.sh` — no `.only`/`.skip` in `src/tests/` or `src/tabs/chatbot/__tests__/`, no sibling tab imports in `src/tabs/`, no `UPDATE_SNAPSHOTS` in Actions, zero Biome warnings.
-- **Lint policy:** Biome runs with `--error-on-warnings`. Unused variables/imports, explicit `any`, untyped `let`, type-only imports/exports, `const` preference, enum initializers, template consistency, and double-equals are enforced.
-- **Pre-commit hooks:** Lefthook runs `bunx biome check --write` on staged TypeScript/JSON files (parallel), plus a full-suite `.only`/`.skip` guard before commit. Pre-push runs full typecheck + unit tests.
+- **CI Fixture:** Pruned committed DB (~2.8 MB) with representative games, players, shots, awards.
+- **Pre-commit Guards:** `scripts/ci/ci-guards.sh` — no `.only`/`.skip` under `packages/`, no `UPDATE_SNAPSHOTS` in Actions, zero Biome warnings.
+- **Lint policy:** Biome runs with `--error-on-warnings` on `packages/` and `scripts/`.
+- **Pre-commit hooks:** Lefthook runs `bunx biome check --write` on staged TypeScript/JSON files.
 
 ### API Reference
 
-#### `resolveDbPath(): string` (defined in `src/shared/dbPath.ts`)
-
-Dynamically determines the DuckDB file path. Used by both hub and chatbot.
+#### `resolveDbPath(): string` (defined in `packages/data/src/shared/dbPath.ts`)
 
 - **Parameters:** None.
 - **Returns:** `string` (resolved database path).
@@ -199,7 +177,7 @@ Dynamically determines the DuckDB file path. Used by both hub and chatbot.
   3. Else `data/nba.duckdb`.
 
 ```ts
-import { resolveDbPath } from '../shared/dbPath.js'; // from within src/tabs/chatbot/
+import { resolveDbPath } from 'data/dbPath';
 
 const activePath = resolveDbPath(); // e.g. 'data/fixtures/nba.ci.duckdb'
 ```
@@ -207,118 +185,70 @@ const activePath = resolveDbPath(); // e.g. 'data/fixtures/nba.ci.duckdb'
 ### Automation & Script Details
 
 - **`scripts/ci/build-ci-fixture.ts`** (`bun run fixture:build`): Subset from local `data/nba.duckdb`; `CHECKPOINT` to avoid WAL commits.
-- **`scripts/ci/ci-guards.sh`**: Hub/chatbot test focus guards, sibling-tab import ban, Biome zero-warning policy.
-- **`scripts/dev/sync-keyboard-map.ts`**: Writes `src/shared/utils/keyboard-map.json`.
-- **`scripts/dev/capture-spans-dump.ts`**: Span dump for hub shell debugging (imports `src/core/*`).
-- **`scripts/eval/chatbot-smoke.ts`**: Real API smoke test validating chatbot answers against expected keywords.
-- **`scripts/ci/agent-smoke.sh`**: Fast hub loop (formatters + TUI integration + golden) on CI fixture.
-- **`format:check`**: Biome write on `src/` + `scripts/`, then `git diff --exit-code`.
+- **`scripts/ci/ci-guards.sh`**: Focused-test guard under `packages/`, Biome zero-warning policy.
+- **`scripts/eval/chatbot-smoke.ts`**: Real API smoke test; imports from `packages/data/src/tabs/chatbot/`.
+- **`format:check`**: Biome write on `packages/` + `scripts/`, then `git diff --exit-code`.
 - **`audit`**: Fails on moderate+ advisories.
-- **Common pitfalls:**
-  - *Snapshots:* Regenerate with `NBA_DUCKDB_PATH=data/fixtures/nba.ci.duckdb`, not the full local DB.
-  - *WAL files:* Close DuckDB cleanly before committing `nba.ci.duckdb`.
 
 ## Data Warehouse, Schema & Data Quality
 
-`data/nba.duckdb` is a medallion-architecture DuckDB warehouse: **509 tables/views across 12 schemas, ~414M rows, ~21.7 GB**. Ingesting/building it is out of repo scope, but the curated tiers, canonical views, entity reconciliation, and data-quality checks are operated from `scripts/db/`. The generated full column reference is `NBA_DB_SCHEMA_REFERENCE.md`.
+`data/nba.duckdb` is a medallion-architecture DuckDB warehouse: **509 tables/views across 12 schemas, ~414M rows, ~21.7 GB**. Ingesting/building it is out of repo scope; curated tiers, canonical views, entity reconciliation, and data-quality checks are operated from `scripts/db/`. The generated full column reference is `NBA_DB_SCHEMA_REFERENCE.md`.
 
 ### Warehouse boundary (nbadb vs BBallGenius)
 
-The curated **`nbadb`** star tier matches the public contract at [nbadb.w4w.dev](https://nbadb.w4w.dev/docs/schema) (built by [wyattowalsh/nbadb](https://github.com/wyattowalsh/nbadb) from stats.nba.com / nba_api). BBallGenius **operates** on an existing `nba.duckdb` and adds cross-source layers this repo maintains:
+The curated **`nbadb`** star tier matches the public contract at [nbadb.w4w.dev](https://nbadb.w4w.dev/docs/schema) (built by [wyattowalsh/nbadb](https://github.com/wyattowalsh/nbadb)). BBallGenius **operates** on an existing `nba.duckdb` and adds cross-source layers this repo maintains:
 
 | Layer | Primary source | In nbadb.w4w.dev? | In BBallGenius |
 |-------|----------------|-------------------|----------------|
-| `nbadb` star tier | wyattowalsh/nbadb / NBA API | Yes (18 dim, 198 fact, …) | Yes — 1:1 public contract |
+| `nbadb` star tier | wyattowalsh/nbadb / NBA API | Yes | Yes — 1:1 public contract |
 | `raw_bref` / `stg_bref` | Basketball-Reference | No | BBallGenius extension |
 | `unified_star`, `api`, `xref` | Cross-source merge | No | `scripts/db/` |
-| `audit` | DQ + reconciliation | No | `scripts/db/verify-dq.ts`, merge pipeline |
+| `audit` | DQ + reconciliation | No | `scripts/db/verify-dq.ts` |
 | BBR mirror (Time Machine) | Firecrawl offline cache | No | `scripts/bbr/`, `bbr-screenshots/` |
-
-Fork used locally: [nickth3man/nbadb](https://github.com/nickth3man/nbadb). BBR ingestion, crosswalk, and accuracy reconciliation are **not** part of the upstream nbadb pipeline.
 
 ### Schemas (medallion tiers)
 
-- **`raw_*`** (`raw_bref`, `raw_csv`, `raw_sqlite`, `raw_parquet`, `raw_json`) — source ingestion (BBR + NBA-API).
-- **`stg_*`** (`stg_bref`, `stg_nba_api_sqlite`) — staging transforms.
-- **`nbadb`** — curated **star tier** (251 tables; the only schema matching the public docs 1:1).
+- **`raw_*`** — source ingestion (BBR + NBA-API).
+- **`stg_*`** — staging transforms.
+- **`nbadb`** — curated **star tier** (251 tables).
 - **`unified_star`**, **`api`** — cross-source unified star + convenience views.
-- **`meta`** — `stat_crosswalk` + semantic catalog (DB column → canonical BBR concept).
-- **`audit`** — data-quality + cross-source reconciliation results (see below).
-
-### `audit` schema (data quality)
-
-One-stop store for DQ + reconciliation. Key tables: **`dq_results`** (one row per check: `check_name, table_name, severity, row_count, details, checked_at`), `cross_table_discrepancy` (Phase 1 offending keys: `check_name, season_year, game_id, team_id, player_id, metric, expected, actual, delta, checked_at`), `advanced_stat_recompute` (Phase 2 per-row recompute mismatches: `game_id, person_id, team_id, metric, stored, computed, delta, season_year, checked_at`), `referential_integrity`, `metric_discrepancy` / `player_season_stat_discrepancy` (cross-source; built, populated by the reconciliation pipeline), `player_identity_bridge` (BBR ↔ NBA-API), `column_profile`, `duplicate_key_summary`, `xref_coverage`, `raw_to_curated_counts`.
+- **`meta`** — `stat_crosswalk` + semantic catalog.
+- **`audit`** — data-quality + cross-source reconciliation results.
 
 ### `scripts/db/verify-dq.ts` — internal-consistency DQ suite
 
-Declarative `CHECKS` registry across **uniqueness, referential integrity, consistency, validity, completeness** over the `nbadb` star tier. Writes one row per check to `audit.dq_results` and doubles as a CI gate (non-zero exit when any check at/above the gate severity has violations).
-
 ```bash
-bun run dq                                       # alias → verify-dq.ts: run all, persist, gate on CRITICAL
-bun run dq:gate                                  # alias → verify-dq.ts --gate=HIGH
-bun run scripts/db/verify-dq.ts --dry-run        # print only, do not persist
-bun run scripts/db/verify-dq.ts --filter=orphan  # subset by check-name substring
-bun run dq:fixture                               # internal-consistency checks against the CI fixture
+bun run dq
+bun run dq:gate
+bun run scripts/db/verify-dq.ts --dry-run
+bun run scripts/db/verify-dq.ts --filter=orphan
+bun run dq:fixture
 ```
 
-The check primitives + runner (`CheckSpec`, `violations`/`duplicateGrain`/`orphans`/`requiredColumns`, `runCountChecks`, `persistResults`, `printReport`, `applyGate`) live in **`scripts/db/dq-core.ts`** and are shared by `verify-dq.ts` and the Phase 1/3 cross-table and historical suites below. All accept `--dry-run`, `--gate=`, `--filter=`.
-
-**Cross-table & recompute suites** (built on `dq-core`, write summaries to `audit.dq_results` + row-level detail tables):
+**Cross-table & recompute suites:**
 
 ```bash
-bun run dq:crosstable   # verify-cross-table.ts — box-score summation, game-log↔season continuity,
-                        #   W/L↔standings (+bref fallback); offending keys → audit.cross_table_discrepancy
-bun run dq:recompute    # verify-advanced-recompute.ts — recompute eFG%/TS% (exact) + USG% (possession
-                        #   formula, ≥5 MP) over main.fact_player_game_stats; mismatches → audit.advanced_stat_recompute
-                        #   (--tol/--tol-ts/--tol-efg/--tol-usg override; defaults 0.005/0.005/0.03)
-bun run dq:historical   # verify-historical.ts — 3PT pre-1979-80, blk/stl pre-1973-74, draft age,
-                        #   height/weight bounds, pathway completeness (main.dim_player)
+bun run dq:crosstable
+bun run dq:recompute
+bun run dq:historical
 ```
 
-These three are wired into `run-dq-pipeline.ts` as non-critical stages. They target `nbadb`/`main`/`unified_star` tables, so they ERROR-gracefully (exit 0) on the CI fixture and are not part of the default `bun run ci` gate.
-
-Cross-source **accuracy** reconciliation (separate from internal consistency) has its own aliases:
-`bun run dq:accuracy` (build canonical metric registry + merge + classify discrepancies),
-`bun run dq:oracle` (Firecrawl oracle resolution), and `bun run dq:full` (`dq:accuracy` then `dq:gate`).
-
-- Severity ladder **CRITICAL > HIGH > MEDIUM > LOW > INFO**; CRITICAL = physically impossible / breaks grain (must be zero).
-- History is **retained** for trend tracking (one shared `checked_at` per run) — query the latest run with `WHERE checked_at = (SELECT max(checked_at) FROM audit.dq_results)`.
-- Accuracy-vs-reality (cross-source agreement) is intentionally **out of scope** for this file; it lives in `scripts/db/build-canonical-merge.ts` + the `metric_discrepancy` / `player_identity_bridge` pipeline.
+Cross-source **accuracy** reconciliation: `bun run dq:accuracy`, `bun run dq:oracle`, `bun run dq:full`.
 
 ### Firecrawl-Backed Fact-Check Verification
 
-Separate from cross-source reconciliation, this layer uses Firecrawl to validate database values against external sources (e.g., Basketball-Reference player career totals).
-
-**Commands:**
 ```bash
-bun run accuracy:refresh    # Fetch BBR sources, generate accuracy-candidates.generated.json
-bun run accuracy:verify     # Run fact-checks from accuracy-checks.json, report pass/fail
-bun run accuracy:full       # Refresh then verify
+bun run accuracy:refresh
+bun run accuracy:verify
+bun run accuracy:full
 ```
-
-**Files:**
-- `scripts/db/fetch-accuracy-sources.ts` — Firecrawl CLI-backed BBR source fetcher
-- `scripts/db/verify-accuracy.ts` — Fact-check verification suite
-- `scripts/db/accuracy-checks.json` — Registry of accuracy test cases (expected values)
-- `scripts/db/accuracy-candidates.generated.json` — Generated candidates (pre-validation)
-
-**Workflow:**
-1. `accuracy:refresh` fetches BBR player pages, parses career totals, builds SQL queries, validates candidates
-2. Passing candidates written to `accuracy-candidates.generated.json`
-3. Use `--append` flag to merge passing candidates into `accuracy-checks.json`
-4. `accuracy:verify` executes all checks from `accuracy-checks.json` and reports outcomes
-
-**Relationship to dq:accuracy:**
-- `dq:accuracy` = Cross-source reconciliation (BBR vs NBA-API agreement)
-- `accuracy:refresh/verify` = External truth validation (DB vs BBR ground truth)
-- Both write to `audit` schema for visibility but serve different purposes
 
 ### DuckDB scripting conventions (`scripts/db/*`)
 
-- `const db = await DuckDBInstance.fromCache(DB_PATH); const conn = await db.connect();` — read with `(await conn.runAndReadAll(sql)).getRowObjectsJson()`, write with `await conn.run(sql)`.
-- **Always `await conn.run('CHECKPOINT')` after writes** to flush the WAL (avoids a cross-process replay bug).
+- `const db = await DuckDBInstance.fromCache(DB_PATH); const conn = await db.connect();`
+- **Always `await conn.run('CHECKPOINT')` after writes.**
 - DB path from `process.env['NBA_DUCKDB_PATH'] ?? './data/nba.duckdb'`.
-- **Verify real column names/types from `information_schema` before writing SQL.** Column-shape assumptions cause false positives — e.g. the OT-column asymmetry (`fact_team_game` has only `pts_qtr1–4`; `fact_game_result` adds `pts_ot1–2`), so assert "period components ≤ total", never strict equality.
+- **Verify real column names/types from `information_schema` before writing SQL.**
 
 ## Code Style & Conventions
 
@@ -327,39 +257,28 @@ bun run accuracy:full       # Refresh then verify
 - **Indentation:** 2 spaces (`biome.json`)
 - **Formatter:** Biome, single quotes, semicolons
 - **Line length:** 100 characters
-- **Imports:** Biome `organizeImports` is enabled and run by `biome check --write` / Lefthook.
+- **Imports:** Biome `organizeImports` enabled.
 
 ### Naming Conventions
 
-- **Variables & functions:** `camelCase` (e.g. `selectedGameIdx`, `getChatbotGraph`)
-- **Types & classes:** `PascalCase` (e.g. `ChatbotState`, `GameCenterTab`)
-- **Constants:** `SCREAMING_SNAKE_CASE` or theme `PascalCase` (e.g. `MAX_SQL_RETRIES`, `DEFAULT_DB_PATH`, `Theme`)
-- **DB tables/columns:** `snake_case` (e.g. `dim_game`, `player_id`)
+- **Variables & functions:** `camelCase`
+- **Types & classes:** `PascalCase`
+- **Constants:** `SCREAMING_SNAKE_CASE`
+- **DB tables/columns:** `snake_case`
 
 ### Import Organization
 
-- **Local imports:** Relative paths with `.js` extension in TypeScript (e.g. `import { initDb } from './db.js'`).
-- **Order:** Node built-ins (`node:`) → third-party → relative local.
-- **Scope:** Hub code stays under `src/`; chatbot under `src/tabs/chatbot/`; shared under `src/shared/`.
+- **Local imports:** Relative paths with `.js` extension in TypeScript.
+- **Order:** Node built-ins → third-party → relative local / workspace.
+- **Scope:** Web code under `packages/web/`; data/agent code under `packages/data/`.
 
 ## Architecture Notes
 
-### High-Level Overview (hub)
+### High-Level Overview
 
 ```text
-+----------------------+     +------------------------+     +------------------------+
-|   src/index.ts       | --> | src/core/appShell      | --> | src/tabs/registry      |
-|   (TUI entrypoint)   |     | (keys, tabs, help)     |     | + per-tab folders      |
-+----------------------+     +------------------------+     +------------------------+
-          |                            |                              |
-          v                            v                              v
-+----------------------+     +------------------------+     +------------------------+
-|  src/core/db.ts      |     | tabs/*/queries.ts      |     | src/shared/utils       |
-|  (DuckDB)            | <---| (production SQL)       |     | (formatters, theme)    |
-+----------------------+     +------------------------+     +------------------------+
-          |
-          v
-   data/nba.duckdb  |  data/fixtures/nba.ci.duckdb
+packages/web/src/routes/*  -->  data package exports  -->  DuckDB
+packages/web/src/routes/api/copilotkit  -->  LangGraph agent  -->  DuckDB + OpenRouter
 ```
 
 ### Chatbot Agent Graph
@@ -376,150 +295,112 @@ START → classify_intent → llm → [toolsCondition] → tools → sql_critic 
                                       END
 ```
 
-- **`classify_intent` node**: Deterministic keyword-based classification (no LLM call). Tags the question with a category like `career_leaders`, `awards`, `games`, etc.
-- **`llm` node**: Calls the model with bound tools (`query_nba_db`, `get_schema_info`, `list_nba_tables`, `check_nba_sql`). Returns tool calls or final answer.
-- **`tools` node** (`ToolNode`): Executes tool calls. Supports parallel execution when the LLM emits multiple tool calls in a single response.
-- **`sql_critic` node**: Examines tool output for SQL errors. Classifies errors (schema, syntax, transient) and routes back to LLM for correction up to `MAX_SQL_RETRIES=3`. Resets retry count on success. Routes to END when exhausted.
-- **State** (`ChatbotState`): `messages` (MessagesValue), `sqlRetryCount` (optional number), and `intentCategory` (optional string). Do not add state fields unless a graph node reads/writes them.
+- **`classify_intent` node**: Deterministic keyword-based classification (no LLM call).
+- **`llm` node**: Calls the model with bound tools (`query_nba_db`, `get_schema_info`, `list_nba_tables`, `check_nba_sql`).
+- **`tools` node** (`ToolNode`): Executes tool calls; supports parallel execution.
+- **`sql_critic` node**: Examines tool output for SQL errors; routes back to LLM up to `MAX_SQL_RETRIES=3`.
+- **State** (`ChatbotState`): `messages`, `sqlRetryCount`, `intentCategory`. Do not add state fields unless a graph node reads/writes them.
 
-### Key Components (hub)
+### Key Components
 
-- **TUI entry:** `src/index.ts` — `initDb()`, `CliRenderer` @ 30 FPS, `createAppShell()`.
-- **Tab registry:** `src/tabs/registry.ts` — `TAB_REGISTRY`; F-keys/digits routed dynamically.
-- **Key router:** `src/core/appShell.ts` — `keypress`, tab headers, `?` help overlay.
-- **SQL:** `src/tabs/<tabId>/queries.ts` per tab.
-- **Tabs:** `src/tabs/<tabId>/` — `tab.ts`, optional `queries.ts`, `index.ts` export; focus via `Tab` / `Shift+Tab`.
+- **Web routes:** `packages/web/src/routes/` — Game Center, Time Machine, SQL Sandbox, Chat.
+- **CopilotKit API:** `packages/web/src/routes/api/copilotkit.ts` — server-side chat endpoint.
+- **Graph:** `packages/data/src/tabs/chatbot/agent/graph.ts` — `getChatbotGraph()`, `resetGraph()`.
+- **Streaming:** `packages/data/src/tabs/chatbot/agent/streaming.ts` — `streamQuery()` yields `StreamEvent`.
+- **Tools:** `packages/data/src/tabs/chatbot/agent/tools.ts` — `query_nba_db`, `get_schema_info`.
+- **SQL utilities:** `packages/data/src/tabs/chatbot/utils/sql.ts` — validation, extraction, execution.
 
-### Key Components (chatbot)
+### Adding Web Features
 
-- **Graph:** `src/tabs/chatbot/agent/graph.ts` — `buildGraph()` creates the StateGraph with llm/tools/sql_critic nodes, `getChatbotGraph()` returns cached singleton, `resetGraph()` invalidates cache for model changes.
-- **Streaming:** `src/tabs/chatbot/agent/streaming.ts` — `streamQuery()` yields `StreamEvent` (token, tool_start, tool_end, tool_error, usage, done, error) via LangGraph `streamEvents` v2.
-- **Model:** `src/tabs/chatbot/agent/model.ts` — `createModel()` returns `ChatOpenAI` pointed at OpenRouter with `temperature: 0.3`.
-- **Tools:** `src/tabs/chatbot/agent/tools.ts` — `query_nba_db` (read-only SQL execution with schema pre-validation) and `get_schema_info` (on-demand table/column discovery).
-- **Error classification:** `src/tabs/chatbot/utils/retry.ts` — `categorizeDbError()` (transient/schema/syntax/permanent), `formatErrorForLLM()` (structured error messages for LLM consumption).
-- **SQL utilities:** `src/tabs/chatbot/utils/sql.ts` — `validateReadOnlySql()`, `validateSchemaReferences()` (pre-execution table existence check), `extractSql()`, `executeSql()`.
-- **Metrics:** `src/tabs/chatbot/utils/metrics.ts` — Structured NDJSON logger for duration, tokens, SQL queries, error rates.
-
-### Coupling & Dependencies
-
-- `src/core/db.ts` — single DuckDB connection for all hub views.
-- `src/tabs/chatbot/db.ts` — separate DuckDB connection (richer introspection: `getTableRefs()`, `getColumns()`, `getTables()`).
-- `src/shared/dbPath.ts` — shared path resolution used by both.
-- Tabs: `src/core/*`, `src/shared/*`, own tab folder only — **never sibling tabs**.
-- Tests: `getTab(shell, 'game-center')` via `src/tests/helpers/tabs.ts` (stable ids, not numeric tab index).
-- Chatbot: tab under `src/tabs/chatbot/`; shares `src/shared/dbPath.ts` with hub.
-
-### Adding a New Hub Tab
-
-1. Create `src/tabs/<tabId>/` (`tab.ts`, `queries.ts` if needed, `index.ts`).
-2. Register in `TAB_REGISTRY` (`src/tabs/registry.ts`).
-3. Add shortcuts to `KEYBOARD_MAP.tabs` in `src/shared/utils/keyboardHelp.ts`; run `bun run keyboard-map:sync`.
-4. Tests with `getTab(shell, '<tab-id>')` — no F-key changes in `appShell.ts`.
+1. Add or extend queries in `packages/data/src/tabs/<area>/queries.ts`.
+2. Export from `packages/data/package.json` if needed.
+3. Wire a TanStack Start route under `packages/web/src/routes/`.
 
 ### Adding Chatbot Features
 
-1. **New tool**: Add to `src/tabs/chatbot/agent/tools.ts` → bind in `graph.ts` `bindTools([...])` + `ToolNode([...])`.
-2. **Graph node**: Add to `buildGraph()` in `graph.ts` → wire edges.
+1. **New tool**: Add to `packages/data/src/tabs/chatbot/agent/tools.ts` → bind in `graph.ts`.
+2. **Graph node**: Add to `buildGraph()` → wire edges.
 3. **State field**: Add to `ChatbotState` in `state.ts` only if a graph node reads/writes it.
-4. **Stream event**: Add to `StreamEvent` union in `streaming.ts` → handle in `chatApp.ts`.
-5. **Tests**: Add to `src/tabs/chatbot/__tests__/`; use `mock.module()` for `@langchain/openai` and `../db.js`.
+4. **Stream event**: Add to `StreamEvent` union in `streaming.ts` → handle in web chat route.
+5. **Tests**: Add to `packages/data/src/tabs/chatbot/__tests__/`; use `mock.module()` for `@langchain/openai` and `../db.js`.
 
 ## Dos and Don'ts
 
 ### Do
 
-- Use `resolveDbPath()` for CI-safe DB paths (`src/shared/dbPath.ts`).
-- Use `bun run test:changed` for fast TDD feedback (runs only tests affected by uncommitted changes, Bun 1.3.13+).
-- Pass `--concurrency=1` to `bun test` for full test suite runs (DuckDB + snapshot stability).
-- Convert ANSI text with `ansiToStyledText` before `TextRenderable` writes.
-- Put new terminal features in `src/`; new conversational features in `src/tabs/chatbot/`.
+- Use `resolveDbPath()` for CI-safe DB paths.
+- Use `bun run test:changed` for fast TDD feedback.
+- Pass `--concurrency=1` to `bun test` for full data package runs (DuckDB singleton).
 - Use `mock.module()` in chatbot tests to mock `@langchain/openai` and `../db.js`.
 - Use `zod/v4` for tool schemas and state validation.
 - Read `.agent/subtask-template.md` before writing every subtask delegation prompt.
-- Gate internal data quality with `bun run scripts/db/verify-dq.ts` (results land in `audit.dq_results`); query the latest run via `max(checked_at)`.
-- Call `CHECKPOINT` after writes in `scripts/db/*` to flush the WAL, and verify column shapes against `information_schema` before writing warehouse SQL.
+- Gate internal data quality with `bun run scripts/db/verify-dq.ts`.
+- Call `CHECKPOINT` after writes in `scripts/db/*`.
 
 ### Don't
 
 - Commit `data/nba.duckdb` (~21.7 GB).
 - Use `.only(` / `.skip(` in test files (CI blocked).
 - Commit `any` or untyped `let` (Biome errors).
-- Merge with Biome warnings or unformatted `src/` / `scripts/`.
-- Leak raw ANSI into snapshot assertions.
+- Merge with Biome warnings or unformatted `packages/` / `scripts/`.
 - Commit `bbr-screenshots/` or generated `.firecrawl/bbr-map-full.txt`.
-- Import `src/tabs/chatbot/*` from sibling tabs (or vice versa) beyond `src/shared/` and `src/core/`.
+- Import sibling tab modules from `packages/data/src/tabs/` across tab boundaries.
 - Wrap `interrupt()` calls in try/catch blocks (interrupts throw to signal the runtime).
 
 ## Testing Strategy
 
 | Layer | Location | Notes |
 |-------|----------|-------|
-| Hub unit | `src/tests/formatters.test.ts` | No database |
-| Hub integration | `src/tests/tui_integration.test.ts` | OpenTUI `createTestRenderer` |
-| Hub spans | `src/tests/spans_frame.test.ts` | Structured focus/tab colors |
-| Hub golden | `src/tests/golden_snapshot.test.ts` | `src/tests/snapshots/` |
-| Hub BBR | `src/tests/bbrIntegration.test.ts` | Optional `.firecrawl/` fixtures locally |
-| Chatbot graph | `src/tabs/chatbot/__tests__/processQuestion.test.ts` | Mocked LLM + DB, tests ReAct + critic loops |
-| Chatbot intent | `src/tabs/chatbot/__tests__/intentClassification.test.ts` | Deterministic keyword classification |
-| Chatbot SQL | `src/tabs/chatbot/__tests__/executeSql.test.ts` | Real DuckDB, tests validation + execution |
-| Chatbot extraction | `src/tabs/chatbot/__tests__/sqlExtraction.test.ts` | SQL parsing from LLM output |
-| Chatbot formatting | `src/tabs/chatbot/__tests__/formatResults.test.ts` | Pretty-print formatting |
-| Chatbot system | `src/tabs/chatbot/__tests__/systemPrompt.test.ts` | Dynamic prompt building |
-| Chatbot ANSI | `src/tabs/chatbot/__tests__/ansi.test.ts` | ANSI-to-StyledText conversion |
-| Chatbot retry | `src/tabs/chatbot/__tests__/retry.test.ts` | Error classification, retry behavior, LLM error prefixes |
-| Chatbot streaming | `src/tabs/chatbot/__tests__/streaming.test.ts` | `streamQuery()` token/tool/usage/done/error events |
-| Smoke | `scripts/eval/chatbot-smoke.ts` | Real API, fact-checked NBA questions |
+| Shared unit | `packages/data/src/shared/__tests__/formatters.test.ts` | No database |
+| Chatbot graph | `packages/data/src/tabs/chatbot/__tests__/processQuestion.test.ts` | Mocked LLM + DB |
+| Chatbot intent | `packages/data/src/tabs/chatbot/__tests__/intentClassification.test.ts` | Keyword classification |
+| Chatbot SQL | `packages/data/src/tabs/chatbot/__tests__/executeSql.test.ts` | Real DuckDB |
+| Chatbot streaming | `packages/data/src/tabs/chatbot/__tests__/streaming.test.ts` | `streamQuery()` events |
+| Full data suite | `bun --filter data test` | CI fixture in Actions |
+| Smoke | `scripts/eval/chatbot-smoke.ts` | Real API, fact-checked |
 
 ### Fast-Feedback Workflows
 
 | Goal | Command | Notes |
 |------|---------|-------|
-| Changed-only tests (TDD) | `bun run test:changed` | Only tests touching uncommitted changes |
-| Watch mode | `bun run test:changed:watch` | Re-runs on every save |
-| Quick pre-commit | `bun run test:quick` | `--changed` + `--bail`, stops at first failure |
-| Pre-push sanity | `bun run typecheck && bun run test:quick` | 30-60s typical |
-| Snapshot update | `bun run snapshots:update` | CI fixture path pre-set |
-| Full hub suite | `bun test src/tests --concurrency=1` or `bun run ci:integration` | CI fixture |
-| Full chatbot suite | `bun test src/tabs/chatbot/__tests__ --concurrency=1` | Mocked LLM |
-| Chatbot smoke | `OPENROUTER_API_KEY=... bun run chatbot:smoke` | Real API, fact-checked |
-| Chatbot smoke (free tier) | `CHATBOT_SMOKE_TIER=free bun run chatbot:smoke:free` | Multi-model free matrix |
-| Chatbot smoke (baseline) | `CHATBOT_SMOKE_TIER=baseline bun run chatbot:smoke:baseline` | Paid accuracy baseline |
-
-- **Agent smoke:** `NBA_DUCKDB_PATH=data/fixtures/nba.ci.duckdb bash scripts/ci/agent-smoke.sh` (~30s).
-- **Keyboard map:** `src/shared/utils/keyboard-map.json` ← `keyboardHelp.ts`; see `docs/agent-tui.md`.
-- **Honors overlay:** `NBA_HONORS_DUCKDB_PATH` for `v_player_honors_full` while game data stays on `NBA_DUCKDB_PATH`.
+| Changed-only tests | `bun run test:changed` | Uncommitted diff only |
+| Watch mode | `bun run test:changed:watch` | Re-runs on save |
+| Quick pre-commit | `bun run test:quick` | Stops at first failure |
+| Pre-push sanity | `bun run typecheck && bun run test:quick` | ~30-60s typical |
+| Full data suite | `NBA_DUCKDB_PATH=data/fixtures/nba.ci.duckdb bun --filter data test` | CI fixture |
+| Chatbot smoke | `OPENROUTER_API_KEY=... bun run chatbot:smoke` | Real API |
 
 ### Caveats
 
-- `--changed` requires Bun 1.3.13+. It infers affected tests from git diff; freshly created files may not be detected until staged.
-- `--concurrency=1` is still needed for full suite runs due to DuckDB singleton and snapshot ordering.
-- Hub and chatbot both open DuckDB **read-only** at runtime (`src/core/db.ts`, `src/tabs/chatbot/db.ts`). Read-only allows multiple processes to read the same file; parallel hub tests on the CI fixture remain future work (snapshot ordering still requires `--concurrency=1` today).
+- `--changed` requires Bun 1.3.13+.
+- `--concurrency=1` is needed for full data package runs due to DuckDB singleton.
+- DuckDB connections are **read-only** at runtime (`packages/data/src/core/db.ts`, `packages/data/src/tabs/chatbot/db.ts`).
 
 ## Chatbot Environment Variables
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `OPENROUTER_API_KEY` | OpenRouter API key (required) | — |
-| `MODEL` | Model name (e.g. `openai/gpt-oss-120b`) | `openai/gpt-oss-120b` |
+| `OPENROUTER_API_KEY` | OpenRouter API key (required for live chat) | — |
+| `MODEL` | Model name | `openai/gpt-oss-120b` |
 | `NBA_DUCKDB_PATH` | DuckDB path | `data/nba.duckdb` |
 | `NBA_HONORS_DUCKDB_PATH` | Optional honors DB | — |
 | `CHATBOT_DEBUG` | Enable debug logging to stderr | `false` |
-| `CHATBOT_PERSIST_DIR` | Directory for persistent checkpoints (`SqliteSaver`) | — (uses `MemorySaver`) |
+| `CHATBOT_PERSIST_DIR` | Persistent checkpoints (`SqliteSaver`) | — (uses `MemorySaver`) |
 | `CHATBOT_METRICS_DIR` | Metrics output directory | `data/` |
 | `LANGSMITH_TRACING` | Enable LangSmith tracing | — |
 | `LANGSMITH_API_KEY` | LangSmith API key | — |
 
 ## Security & Compliance
 
-- **Secrets:** Hub/chatbot DB work is local DuckDB; BBR crawl needs `FIRECRAWL_API_KEY`; chatbot needs `OPENROUTER_API_KEY`.
-- **License:** No LICENSE file; source-available — do not redistribute without permission.
+- **Secrets:** DB work is local DuckDB; BBR crawl needs `FIRECRAWL_API_KEY`; chatbot needs `OPENROUTER_API_KEY`.
+- **License:** MIT — see `docs/LICENSE`.
 
 ## Agent Guardrails
 
 ### Allowed Without Asking
 
 - Read/search any file; file-scoped lint, format, `tsc`.
-- Run hub or chatbot tests with `concurrency=1`.
+- Run data package tests with `concurrency=1`.
 
 ### Ask Before Doing
 
@@ -527,13 +408,23 @@ START → classify_intent → llm → [toolsCondition] → tools → sql_critic 
 - Change `package.json` dependencies.
 - Edit `.github/workflows/ci.yml`.
 - Git commit or push.
-- Modify `src/shared/` (shared by both packages).
+- Modify `packages/data/src/shared/` (shared by web and agent).
 
 ## Unknowns & TODOs
 
-- [ ] **Chatbot persistence:** `SqliteSaver` available via `CHATBOT_PERSIST_DIR`; not yet surfaced in TUI as save/load feature.
-- [ ] **Hub-chatbot bridge:** Embed chatbot in hub TUI as a new tab or overlay.
-- [ ] **nbadb pipeline:** Ingesting/building `data/nba.duckdb` is out of repo scope; curated views, entity xref, crosswalk, and data-quality checks live in `scripts/db/`.
-- [ ] **DQ rollout:** `verify-dq.ts` covers internal consistency (Phase 2); cross-source accuracy reconciliation (`metric_discrepancy` population, 3-way classification, Firecrawl oracle resolution) is built but not yet run at scale.
-- [ ] **License:** Add LICENSE (open-source vs source-available).
-- [ ] **Chatbot HITL:** Interrupt-based SQL approval pattern documented but not wired due to complexity; available as future feature.
+- [ ] **Chatbot persistence:** `SqliteSaver` available via `CHATBOT_PERSIST_DIR`; not yet surfaced in web UI.
+- [ ] **CopilotKit integration:** Wire full LangGraph streaming through CopilotKit runtime (partial stub in `api/copilotkit.ts`).
+- [ ] **nbadb pipeline:** Ingesting/building `data/nba.duckdb` is out of repo scope.
+- [ ] **DQ rollout:** Cross-source accuracy reconciliation built but not yet run at scale.
+- [ ] **Chatbot HITL:** Interrupt-based SQL approval pattern available as future feature.
+
+## Repository Map
+
+A full codemap is available at `codemap.md` in the project root.
+
+Before working on any task, read `codemap.md` to understand:
+- Project architecture and entry points
+- Directory responsibilities and design patterns
+- Data flow and integration points between modules
+
+For deep work on a specific folder, also read that folder's `codemap.md`.

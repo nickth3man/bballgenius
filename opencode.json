@@ -1,0 +1,27 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+
+  "mcp": {
+    "nba-duckdb": {
+      "type": "local",
+      "command": [
+        "uvx",
+        "mcp-server-motherduck",
+        "--db-path",
+        "C:/Users/nicolas/Documents/GitHub/bballgenius/data/nba.duckdb",
+        "--max-rows",
+        "500",
+        "--query-timeout",
+        "30"
+      ],
+      "enabled": true,
+      "timeout": 60000
+    }
+  },
+
+  "permission": {
+    "mcp": {
+      "nba-duckdb": "allow"
+    }
+  }
+}

@@ -38,17 +38,20 @@ import {
 } from 'node:fs';
 import { basename, extname, join, relative } from 'node:path';
 import { HumanMessage, SystemMessage } from '@langchain/core/messages';
-import { resetGraph } from '../../src/tabs/chatbot/agent/graph.js';
-import { type StreamEvent, streamQuery } from '../../src/tabs/chatbot/agent/streaming.js';
-import { closeDb, initDb } from '../../src/tabs/chatbot/db.js';
+import { resetGraph } from '../../packages/data/src/tabs/chatbot/agent/graph.js';
+import {
+  type StreamEvent,
+  streamQuery,
+} from '../../packages/data/src/tabs/chatbot/agent/streaming.js';
+import { closeDb, initDb } from '../../packages/data/src/tabs/chatbot/db.js';
 import {
   type ExpectedAnswer,
   type ExpectedKind,
   QUESTIONS,
   type Question,
-} from '../../src/tabs/chatbot/eval/iterate-questions.js';
-import { getModel } from '../../src/tabs/chatbot/openrouter.js';
-import { buildSystemPrompt } from '../../src/tabs/chatbot/systemPrompt.js';
+} from '../../packages/data/src/tabs/chatbot/eval/iterate-questions.js';
+import { getModel } from '../../packages/data/src/tabs/chatbot/openrouter.js';
+import { buildSystemPrompt } from '../../packages/data/src/tabs/chatbot/systemPrompt.js';
 import {
   countOccurrences,
   detectDuplicateFinalAnswer,

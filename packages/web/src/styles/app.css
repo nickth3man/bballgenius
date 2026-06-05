@@ -1,0 +1,36 @@
+@import 'tailwindcss';
+
+@theme {
+  /* TokyoNight palette from packages/data/src/shared/theme.ts */
+  --color-bg: #1a1b26;
+  --color-bg-alt: #16161e;
+  --color-surface: #1f2335;
+  --color-surface-alt: #1e2030;
+  --color-surface-elevated: #24283b;
+  --color-fg: #c0caf5;
+  --color-fg-muted: #9aa5ce;
+  --color-fg-dim: #565f89;
+  --color-border: #2f3549;
+  --color-border-normal: #3b4261;
+  --color-primary: #7aa2f7;
+  --color-secondary: #bb9af7;
+  --color-accent: #7dcfff;
+  --color-success: #9ece6a;
+  --color-warning: #e0af68;
+  --color-danger: #f7768e;
+  --color-info: #7dcfff;
+}
+
+html,
+body {
+  background-color: var(--color-bg);
+  color: var(--color-fg);
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
+  height: 100%;
+  margin: 0;
+}
+
+#root {
+  height: 100%;
+}
