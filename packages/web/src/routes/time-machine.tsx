@@ -1,8 +1,10 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { createServerFn } from '@tanstack/react-start';
 import { groupAwardsByCategory } from 'data/tabs/time-machine/group-awards';
 import type { PlayerDossier } from 'data/tabs/time-machine/queries';
 import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
+import { z } from 'zod';
+
 import {
   AwardsGrouped,
   AwardVotesStrip,
@@ -50,11 +52,58 @@ const loadPlayerDossierFn = createServerFn({ method: 'POST', strict: { output: f
     return loadPlayerDossier(data.playerId);
   });
 
+const loadDefaultPlayerFn = createServerFn({ method: 'GET', strict: { output: false } }).handler(
+  async (): Promise<PlayerResult | null> => {
+    const { loadDefaultPlayer } = await import('data/tabs/time-machine/queries');
+    const row = await loadDefaultPlayer();
+    if (!row) return null;
+    return {
+      player_id: String(row.player_id),
+      full_name: String(row.full_name),
+      from_year: String(row.from_year ?? ''),
+      to_year: String(row.to_year ?? ''),
+      is_active: Boolean(row.is_active),
+    };
+  },
+);
+
+const loadPlayerByIdFn = createServerFn({ method: 'POST', strict: { output: false } })
+  .inputValidator((data: { playerId: string }) => data)
+  .handler(async ({ data }): Promise<PlayerResult | null> => {
+    const { query } = await import('data');
+    const rows = await query<Record<string, unknown>>(
+      `SELECT DISTINCT p.player_id, p.full_name, p.from_year::VARCHAR, p.to_year::VARCHAR, p.is_active
+       FROM dim_player p
+       WHERE p.player_id = CAST($1 AS INTEGER)
+       LIMIT 1`,
+      [data.playerId],
+    );
+    const r = rows[0];
+    if (!r) return null;
+    return {
+      player_id: String(r.player_id),
+      full_name: String(r.full_name),
+      from_year: String(r.from_year ?? ''),
+      to_year: String(r.to_year ?? ''),
+      is_active: Boolean(r.is_active),
+    };
+  });
+
+const timeMachineSearchSchema = z.object({
+  pid: z
+    .union([z.string(), z.number()])
+    .transform((v) => String(v))
+    .optional(),
+});
+
 export const Route = createFileRoute('/time-machine')({
+  validateSearch: timeMachineSearchSchema,
   component: TimeMachinePage,
 });
 
 function TimeMachinePage(): ReactNode {
+  const navigate = useNavigate({ from: Route.fullPath });
+  const { pid: urlPid } = Route.useSearch();
   const [search, setSearch] = useState('');
   const [players, setPlayers] = useState<PlayerResult[]>([]);
   const [selectedPlayer, setSelectedPlayer] = useState<PlayerResult | null>(null);
@@ -63,7 +112,18 @@ function TimeMachinePage(): ReactNode {
   const [error, setError] = useState<string | null>(null);
   const [highlightIndex, setHighlightIndex] = useState(-1);
   const [showDropdown, setShowDropdown] = useState(false);
+  const initialLoadDoneRef = useRef(false);
   const searchRef = useRef<HTMLDivElement>(null);
+
+  const setSelectedPlayerId = useCallback(
+    (playerId: string | null) => {
+      navigate({
+        search: (prev) => ({ ...prev, pid: playerId ? Number(playerId) : undefined }),
+        replace: true,
+      });
+    },
+    [navigate],
+  );
 
   const searchPlayers = useCallback(async () => {
     if (!search.trim()) return;
@@ -79,20 +139,61 @@ function TimeMachinePage(): ReactNode {
     }
   }, [search]);
 
-  const loadPlayerData = useCallback(async (player: PlayerResult) => {
-    setSelectedPlayer(player);
-    setLoading(true);
-    setError(null);
-    try {
-      const result = await loadPlayerDossierFn({ data: { playerId: player.player_id } });
-      setDossier(result);
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : String(e));
-      setDossier(null);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const loadPlayerData = useCallback(
+    async (player: PlayerResult) => {
+      setSelectedPlayer(player);
+      setSelectedPlayerId(player.player_id);
+      setLoading(true);
+      setError(null);
+      try {
+        const result = await loadPlayerDossierFn({ data: { playerId: player.player_id } });
+        setDossier(result);
+      } catch (e: unknown) {
+        setError(e instanceof Error ? e.message : String(e));
+        setDossier(null);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [setSelectedPlayerId],
+  );
+
+  // Initial load: URL pid → that player; otherwise default to LeBron
+  useEffect(() => {
+    if (initialLoadDoneRef.current) return;
+    initialLoadDoneRef.current = true;
+    let cancelled = false;
+    const pid = urlPid;
+    const setUrlPid = setSelectedPlayerId;
+    (async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        let player: PlayerResult | null = null;
+        if (pid) {
+          player = await loadPlayerByIdFn({ data: { playerId: pid } });
+        }
+        if (!player && !pid) {
+          player = await loadDefaultPlayerFn();
+        }
+        if (cancelled) return;
+        if (player) {
+          setSelectedPlayer(player);
+          const result = await loadPlayerDossierFn({ data: { playerId: player.player_id } });
+          if (cancelled) return;
+          setDossier(result);
+          if (!pid) setUrlPid(player.player_id);
+        }
+      } catch (e: unknown) {
+        if (!cancelled) setError(e instanceof Error ? e.message : String(e));
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [urlPid, setSelectedPlayerId]);
 
   const awardsGrouped = dossier ? groupAwardsByCategory(dossier.awards) : [];
 
