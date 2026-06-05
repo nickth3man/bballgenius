@@ -30,7 +30,7 @@ jobs:
         with:
           bun-version-file: package.json
       - name: Cache Bun deps
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.bun/install/cache
           key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
@@ -50,7 +50,7 @@ jobs:
         with:
           bun-version-file: package.json
       - name: Cache Bun deps
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.bun/install/cache
           key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
@@ -70,7 +70,7 @@ jobs:
         with:
           bun-version-file: package.json
       - name: Cache Bun deps
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.bun/install/cache
           key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
@@ -90,7 +90,7 @@ jobs:
         with:
           bun-version-file: package.json
       - name: Cache Bun deps
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.bun/install/cache
           key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
@@ -110,7 +110,7 @@ jobs:
         with:
           bun-version-file: package.json
       - name: Cache Bun deps
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.bun/install/cache
           key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
@@ -130,7 +130,7 @@ jobs:
         with:
           bun-version-file: package.json
       - name: Cache Bun deps
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.bun/install/cache
           key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
@@ -155,7 +155,7 @@ jobs:
         with:
           bun-version-file: package.json
       - name: Cache Bun deps
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.bun/install/cache
           key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
@@ -177,7 +177,7 @@ jobs:
         with:
           bun-version-file: package.json
       - name: Cache Bun deps
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.bun/install/cache
           key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
@@ -197,7 +197,7 @@ jobs:
         with:
           bun-version-file: package.json
       - name: Cache Bun deps
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.bun/install/cache
           key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
