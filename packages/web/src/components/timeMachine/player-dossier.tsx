@@ -416,6 +416,19 @@ function averagePerGame(
   return safeRate(sumStat(rows, key), games);
 }
 
+function bestPerGameSeason(rows: CareerStatRow[], key: keyof CareerStatRow): CareerStatRow | null {
+  let best: CareerStatRow | null = null;
+  let bestValue = -Infinity;
+  for (const row of rows) {
+    const value = safeRate(Number(row[key]), Number(row.gp));
+    if (value != null && Number.isFinite(value) && value > bestValue) {
+      best = row;
+      bestValue = value;
+    }
+  }
+  return best;
+}
+
 export function PlayoffStatsCard({ rows }: { rows: CareerStatRow[] }): ReactNode {
   const [showAllRows, setShowAllRows] = useState(false);
   const playoffRows = rows.filter((row) => row.is_playoffs);
@@ -426,6 +439,8 @@ export function PlayoffStatsCard({ rows }: { rows: CareerStatRow[] }): ReactNode
 
   const games = sumStat(playoffRows, 'gp');
   const points = sumStat(playoffRows, 'pts');
+  const bestScoringRun = bestPerGameSeason(playoffRows, 'pts');
+  const bestPlaymakingRun = bestPerGameSeason(playoffRows, 'ast');
 
   return (
     <section>
@@ -442,6 +457,37 @@ export function PlayoffStatsCard({ rows }: { rows: CareerStatRow[] }): ReactNode
           <StatCard label="APG" value={formatNumber(averagePerGame(playoffRows, 'ast', games))} />
           <StatCard label="SPG" value={formatNumber(averagePerGame(playoffRows, 'stl', games))} />
           <StatCard label="BPG" value={formatNumber(averagePerGame(playoffRows, 'blk', games))} />
+        </div>
+        <div className="mb-3 grid gap-2 text-[10px] sm:grid-cols-2">
+          {bestScoringRun ? (
+            <div className="rounded-md border border-accent/25 bg-accent/10 px-3 py-2 text-fg-muted">
+              <span className="font-semibold uppercase tracking-widest text-accent">
+                Peak scoring
+              </span>
+              <span className="ml-2 text-fg">
+                {formatNumber(safeRate(Number(bestScoringRun.pts), Number(bestScoringRun.gp)))} PPG
+              </span>
+              <span className="ml-1 text-fg-dim">
+                · {formatSeasonLabel(bestScoringRun.season_year)}
+              </span>
+            </div>
+          ) : null}
+          {bestPlaymakingRun ? (
+            <div className="rounded-md border border-secondary/25 bg-secondary/10 px-3 py-2 text-fg-muted">
+              <span className="font-semibold uppercase tracking-widest text-secondary">
+                Peak playmaking
+              </span>
+              <span className="ml-2 text-fg">
+                {formatNumber(
+                  safeRate(Number(bestPlaymakingRun.ast), Number(bestPlaymakingRun.gp)),
+                )}{' '}
+                APG
+              </span>
+              <span className="ml-1 text-fg-dim">
+                · {formatSeasonLabel(bestPlaymakingRun.season_year)}
+              </span>
+            </div>
+          ) : null}
         </div>
         <div className="overflow-x-auto rounded border border-border bg-surface focus:outline-none focus:ring-2 focus:ring-primary/50">
           <DataTable
