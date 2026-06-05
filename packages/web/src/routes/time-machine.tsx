@@ -630,7 +630,18 @@ function TimeMachinePage(): ReactNode {
               />
             </SectionErrorBoundary>
             <SectionErrorBoundary sectionName="Career trajectory">
-              <CareerTrajectory perGame={dossier.perGame} />
+              <CareerTrajectory
+                perGame={dossier.perGame}
+                allStarSeasons={
+                  dossier.allStar
+                    ? new Set(
+                        dossier.allStar
+                          .map((s) => s.season_end_year)
+                          .filter((y): y is number => y != null),
+                      )
+                    : undefined
+                }
+              />
             </SectionErrorBoundary>
             <SectionErrorBoundary sectionName="Awards">
               <AwardsGrouped groups={awardsGrouped} />

@@ -377,10 +377,12 @@ function CareerLineChart({
   rows,
   valueKey,
   color,
+  honorSeasons,
 }: {
   rows: PlayerPerGameRow[];
   valueKey: string;
   color: string;
+  honorSeasons?: Set<number>;
 }): ReactNode {
   if (rows.length === 0) return null;
 
@@ -412,6 +414,21 @@ function CareerLineChart({
         <span className="text-fg-dim/50">{formatNumber(min, 1)}</span>
       </div>
       <svg viewBox={`0 0 ${W} ${H}`} className="h-16 w-full overflow-visible" aria-hidden="true">
+        {/* Honor season star markers */}
+        {values.map((v, i) =>
+          honorSeasons?.has(Number(rows[i].season_end_year)) ? (
+            <text
+              key={`star-${rows[i].season_end_year}`}
+              x={values.length > 1 ? (i / (values.length - 1)) * W : W / 2}
+              y={H - ((v - min) / range) * H - 8}
+              textAnchor="middle"
+              fontSize={10}
+              fill="#f59e0b"
+            >
+              ★
+            </text>
+          ) : null,
+        )}
         {/* Area fill */}
         <polygon fill={color} fillOpacity={0.1} points={areaPath} />
         {/* Line */}
@@ -447,9 +464,11 @@ function CareerLineChart({
 function CareerSparkline({
   rows,
   valueKey,
+  honorSeasons,
 }: {
   rows: PlayerPerGameRow[];
   valueKey: string;
+  honorSeasons?: Set<number>;
 }): ReactNode {
   if (rows.length === 0) return null;
 
@@ -483,6 +502,13 @@ function CareerSparkline({
             const isPeak = v === max;
             return (
               <div key={season} className="group relative flex flex-col items-center">
+                {honorSeasons?.has(Number(season)) ? (
+                  <span className="mb-0.5 text-[8px] text-warning" title="All-Star">
+                    ★
+                  </span>
+                ) : (
+                  <div className="h-3" />
+                )}
                 <div
                   className={`w-full rounded-t transition-all duration-150 hover:opacity-100 ${
                     isPeak ? 'bg-accent' : 'bg-primary/50 hover:bg-primary'
@@ -507,7 +533,13 @@ function CareerSparkline({
   );
 }
 
-export function CareerTrajectory({ perGame }: { perGame: PlayerPerGameRow[] }): ReactNode {
+export function CareerTrajectory({
+  perGame,
+  allStarSeasons,
+}: {
+  perGame: PlayerPerGameRow[];
+  allStarSeasons?: Set<number>;
+}): ReactNode {
   const regularSeasonRows = perGame.filter((row) => !('is_playoffs' in row) || !row.is_playoffs);
   if (regularSeasonRows.length === 0) return null;
 
@@ -522,6 +554,9 @@ export function CareerTrajectory({ perGame }: { perGame: PlayerPerGameRow[] }): 
     { label: 'FT%', key: 'ft_percent', variant: 'bar' as const },
   ];
 
+  // Build honor seasons: seasons where the player was an All-Star
+  const honorSeasons = allStarSeasons ?? new Set<number>();
+
   return (
     <section>
       <SectionHeader>Career Trajectory</SectionHeader>
@@ -533,9 +568,18 @@ export function CareerTrajectory({ perGame }: { perGame: PlayerPerGameRow[] }): 
                 {m.label}
               </div>
               {m.variant === 'line' ? (
-                <CareerLineChart rows={regularSeasonRows} valueKey={m.key} color={m.color} />
+                <CareerLineChart
+                  rows={regularSeasonRows}
+                  valueKey={m.key}
+                  color={m.color}
+                  honorSeasons={honorSeasons}
+                />
               ) : (
-                <CareerSparkline rows={regularSeasonRows} valueKey={m.key} />
+                <CareerSparkline
+                  rows={regularSeasonRows}
+                  valueKey={m.key}
+                  honorSeasons={honorSeasons}
+                />
               )}
             </div>
           ))}
