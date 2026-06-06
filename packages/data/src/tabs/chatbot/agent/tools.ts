@@ -232,7 +232,7 @@ export const findStatColumns = tool(
       const fallbackRows = await query<Record<string, string | null>>(fallbackSql, [upper]);
       if (fallbackRows.length > 0) {
         const lines = fallbackRows.map(
-          (r) => `  ${r.schema}.${r.table}.${r.column} (${r.data_type})`,
+          (r) => `  ${r['schema']}.${r['table']}.${r['column']} (${r['data_type']})`,
         );
         return (
           `No canonical stat matching "${canonicalName}" found in the crosswalk.\n` +
@@ -247,15 +247,15 @@ export const findStatColumns = tool(
     }
 
     const lines = rows.map((r) => {
-      const def = r.definition ? ` — ${r.definition}` : '';
-      return `  ${r.schema}.${r.table}.${r.column} (${r.data_type}) [${r.family}]${def}`;
+      const def = r['definition'] ? ` — ${r['definition']}` : '';
+      return `  ${r['schema']}.${r['table']}.${r['column']} (${r['data_type']}) [${r['family']}]${def}`;
     });
 
     const header =
       `Found ${rows.length} column(s) for canonical stat "${canonicalName}"` +
       (family ? ` in family "${family}"` : '') +
       ':';
-    const hint = `Use these fully-qualified column names in your SQL (e.g., ${rows[0]!.schema}.${rows[0]!.table}.${rows[0]!.column}).`;
+    const hint = `Use these fully-qualified column names in your SQL (e.g., ${rows[0]!['schema']}.${rows[0]!['table']}.${rows[0]!['column']}).`;
 
     return `${header}\n${lines.join('\n')}\n${hint}`;
   },

@@ -3,7 +3,7 @@ export interface ModelInfo {
   name: string;
 }
 
-let currentModel = process.env['MODEL'] || 'openai/gpt-oss-120b';
+let currentModel = process.env['MODEL'] || 'deepseek/deepseek-r1';
 
 export function getModel(): string {
   return currentModel;

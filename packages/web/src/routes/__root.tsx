@@ -27,7 +27,20 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
       { title: 'BBallGenius' },
     ],
-    links: [{ rel: 'stylesheet', href: appCss }],
+    links: [
+      { rel: 'stylesheet', href: appCss },
+      { rel: 'icon', href: '/mark.svg', type: 'image/svg+xml' },
+      { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+      {
+        rel: 'preconnect',
+        href: 'https://fonts.gstatic.com',
+        crossOrigin: 'anonymous',
+      },
+      {
+        rel: 'stylesheet',
+        href: 'https://fonts.googleapis.com/css2?family=Saira:wght@400;500;600;700;800&family=Archivo:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap',
+      },
+    ],
   }),
   shellComponent: RootDocument,
   component: RootLayout,
@@ -51,7 +64,15 @@ function RootLayout(): ReactNode {
   return (
     <div className="flex h-full flex-col bg-bg text-fg">
       <header className="flex items-center border-b border-border bg-surface px-4 py-2">
-        <div className="font-bold text-primary">BBallGenius</div>
+        <Link to="/game-center" className="flex items-center gap-2" aria-label="BBallGenius home">
+          <img src="/mark.svg" alt="" width={28} height={28} className="rounded" />
+          <span
+            className="font-display text-base font-bold tracking-tight"
+            style={{ color: 'var(--text-primary)' }}
+          >
+            BBall<span style={{ color: 'var(--accent)' }}>Genius</span>
+          </span>
+        </Link>
         <nav className="ml-8 flex gap-1">
           {TABS.map((tab) => (
             <Link

@@ -12,7 +12,6 @@ import {
   useState,
 } from 'react';
 import { z } from 'zod';
-
 import {
   AwardsGrouped,
   AwardVotesStrip,
@@ -27,6 +26,7 @@ import {
   STATS_TAB_IDS,
   type StatsTabId,
 } from '../components/timeMachine/player-dossier';
+import { Badge, Card, Skeleton as UISkeleton } from '../components/ui';
 
 /* -------------------------------------------------------------------------- */
 /*  Section-level error boundary                                              */
@@ -63,31 +63,34 @@ class SectionErrorBoundary extends Component<
 /* -------------------------------------------------------------------------- */
 
 function Skeleton({ className }: { className?: string }): ReactNode {
-  return <div className={`animate-pulse rounded bg-surface-alt/60 ${className ?? 'h-3 w-full'}`} />;
+  // Map Tailwind h-/w- class sizes to pixel values for the local shimmer skeleton.
+  const cls = className ?? 'h-3 w-full';
+  const hMatch = cls.match(/\bh-(\d+)\b/);
+  const wMatch = cls.match(/\bw-(\d+)\b/);
+  const height = hMatch ? Number(hMatch[1]) * 4 : 12;
+  const width = wMatch ? `${Number(wMatch[1]) * 4}px` : '100%';
+  return <UISkeleton width={width} height={height} style={{ borderRadius: 4, opacity: 0.7 }} />;
 }
 
 function HeaderSkeleton(): ReactNode {
   const hdrCells = Array.from({ length: 6 });
   const statCells = Array.from({ length: 9 });
   return (
-    <section className="overflow-hidden rounded-lg border border-border bg-surface shadow-sm">
-      <div className="h-0.5 w-full bg-gradient-to-r from-primary/60 to-transparent" />
-      <div className="space-y-3 p-3">
-        <Skeleton className="h-7 w-48" />
-        <div className="grid grid-cols-2 gap-x-6 gap-y-1 md:grid-cols-3">
-          {hdrCells.map((_, i) => (
-            // biome-ignore lint/suspicious/noArrayIndexKey: static decorative skeleton
-            <Skeleton key={i} className="h-3 w-32" />
-          ))}
-        </div>
-        <div className="grid grid-cols-3 gap-2 pt-3 sm:grid-cols-5 md:grid-cols-9">
-          {statCells.map((_, i) => (
-            // biome-ignore lint/suspicious/noArrayIndexKey: static decorative skeleton
-            <Skeleton key={i} className="h-14 w-full" />
-          ))}
-        </div>
+    <Card accent="primary" pad="md">
+      <Skeleton className="h-7 w-48" />
+      <div className="mt-3 grid grid-cols-2 gap-x-6 gap-y-1 md:grid-cols-3">
+        {hdrCells.map((_, i) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: static decorative skeleton
+          <Skeleton key={i} className="h-3 w-32" />
+        ))}
       </div>
-    </section>
+      <div className="mt-3 grid grid-cols-3 gap-2 pt-3 sm:grid-cols-5 md:grid-cols-9">
+        {statCells.map((_, i) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: static decorative skeleton
+          <Skeleton key={i} className="h-14 w-full" />
+        ))}
+      </div>
+    </Card>
   );
 }
 
@@ -96,14 +99,14 @@ function CardSkeleton({ rows = 4 }: { rows?: number }): ReactNode {
   return (
     <section>
       <Skeleton className="mb-3 h-3 w-32" />
-      <div className="rounded-lg border border-border bg-surface p-3">
+      <Card pad="md">
         <div className="space-y-2">
           {cells.map((_, i) => (
             // biome-ignore lint/suspicious/noArrayIndexKey: static decorative skeleton
             <Skeleton key={i} className="h-3 w-full" />
           ))}
         </div>
-      </div>
+      </Card>
     </section>
   );
 }
@@ -193,7 +196,7 @@ function FeaturedPlayersEmptyState({
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {Array.from({ length: 8 }, (_, i) => (
               // biome-ignore lint/suspicious/noArrayIndexKey: static decorative skeleton
-              <div key={i} className="h-12 animate-pulse rounded border border-border bg-surface" />
+              <Skeleton key={i} className="h-12 w-full" />
             ))}
           </div>
         ) : players.length > 0 ? (
@@ -263,12 +266,12 @@ const searchPlayersFn = createServerFn({ method: 'POST', strict: { output: false
       [`%${data.search.trim()}%`],
     );
     return rows.map((r) => ({
-      player_id: String(r.player_id),
-      full_name: String(r.full_name),
-      from_year: String(r.from_year ?? ''),
-      to_year: String(r.to_year ?? ''),
-      is_active: Boolean(r.is_active),
-      position: r.primary_position ? String(r.primary_position) : null,
+      player_id: String(r['player_id']),
+      full_name: String(r['full_name']),
+      from_year: String(r['from_year'] ?? ''),
+      to_year: String(r['to_year'] ?? ''),
+      is_active: Boolean(r['is_active']),
+      position: r['primary_position'] ? String(r['primary_position']) : null,
     }));
   });
 
@@ -328,11 +331,11 @@ const loadPlayerByIdFn = createServerFn({ method: 'POST', strict: { output: fals
     const r = rows[0];
     if (!r) return null;
     return {
-      player_id: String(r.player_id),
-      full_name: String(r.full_name),
-      from_year: String(r.from_year ?? ''),
-      to_year: String(r.to_year ?? ''),
-      is_active: Boolean(r.is_active),
+      player_id: String(r['player_id']),
+      full_name: String(r['full_name']),
+      from_year: String(r['from_year'] ?? ''),
+      to_year: String(r['to_year'] ?? ''),
+      is_active: Boolean(r['is_active']),
     };
   });
 
@@ -375,7 +378,7 @@ function TimeMachinePage(): ReactNode {
 
   const setSelectedPlayerId = useCallback(
     (playerId: string | null) => {
-      navigate({
+      void navigate({
         search: (prev) => ({ ...prev, pid: playerId ? Number(playerId) : undefined }),
         replace: true,
       });
@@ -385,7 +388,7 @@ function TimeMachinePage(): ReactNode {
 
   const setSeasonStatsTab = useCallback(
     (tab: StatsTabId) => {
-      navigate({
+      void navigate({
         search: (prev) => ({ ...prev, tab }),
         replace: true,
       });
@@ -395,7 +398,7 @@ function TimeMachinePage(): ReactNode {
 
   const setSeasonPhase = useCallback(
     (phase: PhaseId) => {
-      navigate({
+      void navigate({
         search: (prev) => ({ ...prev, phase }),
         replace: true,
       });
@@ -405,7 +408,7 @@ function TimeMachinePage(): ReactNode {
 
   const setSortParams = useCallback(
     (col: string | null, dir: 'asc' | 'desc' | null) => {
-      navigate({
+      void navigate({
         search: (prev) => ({
           ...prev,
           sort: col ?? undefined,
@@ -458,7 +461,7 @@ function TimeMachinePage(): ReactNode {
     let cancelled = false;
     const pid = urlPid;
     const setUrlPid = setSelectedPlayerId;
-    (async () => {
+    void (async () => {
       setDossierLoading(true);
       setError(null);
       try {
@@ -538,6 +541,8 @@ function TimeMachinePage(): ReactNode {
         <p className="mb-2 text-[10px] text-fg-dim">Start typing to find any NBA player</p>
         <div ref={searchRef} className="relative mb-2">
           <input
+            id="time-machine-player-search"
+            name="time-machine-player-search"
             type="text"
             role="combobox"
             aria-autocomplete="list"
@@ -564,7 +569,7 @@ function TimeMachinePage(): ReactNode {
                 setHighlightIndex((i) => Math.max(i - 1, 0));
               } else if (e.key === 'Enter' && highlightIndex >= 0) {
                 e.preventDefault();
-                void loadPlayerData(players[highlightIndex]);
+                void loadPlayerData(players[highlightIndex]!);
                 setShowDropdown(false);
               } else if (e.key === 'Escape') {
                 setShowDropdown(false);
@@ -621,7 +626,13 @@ function TimeMachinePage(): ReactNode {
                   </div>
                   <div className="text-fg-dim">
                     {p.from_year}–{p.is_active ? 'Present' : p.to_year}
-                    {p.is_active && <span className="ml-1 text-success">●</span>}
+                    {p.is_active && (
+                      <span className="ml-1 inline-flex items-center">
+                        <Badge tone="success" dot size="sm">
+                          Active
+                        </Badge>
+                      </span>
+                    )}
                   </div>
                 </div>
               ))}
@@ -630,6 +641,9 @@ function TimeMachinePage(): ReactNode {
 
           {!searchLoading && search.trim() && players.length === 0 && (
             <div className="mt-2 rounded border border-warning/20 bg-warning/5 p-2 text-xs text-warning/90">
+              <Badge tone="warning" size="sm">
+                No match
+              </Badge>{' '}
               No players found for &ldquo;{search.trim()}&rdquo;
             </div>
           )}
@@ -648,18 +662,23 @@ function TimeMachinePage(): ReactNode {
               />
             </SectionErrorBoundary>
             <SectionErrorBoundary sectionName="Career trajectory">
-              <CareerTrajectory
-                perGame={dossier.perGame}
-                allStarSeasons={
-                  dossier.allStar
-                    ? new Set(
-                        dossier.allStar
-                          .map((s) => s.season_end_year)
-                          .filter((y): y is number => y != null),
-                      )
-                    : undefined
-                }
-              />
+              {(() => {
+                const allStarSet = dossier.allStar
+                  ? new Set(
+                      dossier.allStar
+                        .map((s) => s.season_end_year)
+                        .filter((y): y is number => y != null),
+                    )
+                  : undefined;
+                const playerKey = dossier.meta?.person_id ?? undefined;
+                return (
+                  <CareerTrajectory
+                    perGame={dossier.perGame}
+                    {...(playerKey !== undefined ? { playerKey } : {})}
+                    {...(allStarSet !== undefined ? { allStarSeasons: allStarSet } : {})}
+                  />
+                );
+              })()}
             </SectionErrorBoundary>
             <SectionErrorBoundary sectionName="Awards">
               <AwardsGrouped groups={awardsGrouped} />
@@ -679,11 +698,11 @@ function TimeMachinePage(): ReactNode {
                 awards={dossier.awards}
                 activePhase={seasonPhase}
                 activeTab={seasonStatsTab}
-                activeSort={urlSort}
-                activeSortDir={urlDir}
                 onSortChange={setSortParams}
                 onPhaseChange={setSeasonPhase}
                 onTabChange={setSeasonStatsTab}
+                {...(urlSort !== undefined ? { activeSort: urlSort } : {})}
+                {...(urlDir !== undefined ? { activeSortDir: urlDir } : {})}
               />
             </SectionErrorBoundary>
             <SectionErrorBoundary sectionName="Shot zones">

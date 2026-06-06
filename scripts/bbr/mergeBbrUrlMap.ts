@@ -9,6 +9,7 @@ import { createRequire } from 'node:module';
 import { basename, join } from 'node:path';
 
 const require = createRequire(import.meta.url);
+const bbrUtils = require('./bbrUrlUtils.cjs');
 const {
   BBR_SECTIONS,
   getMirroredRelativePath,
@@ -17,7 +18,7 @@ const {
   isUrlInScope,
   normalizeBbrUrl,
   sectionRootUrl,
-} = require('./bbrUrlUtils.cjs') as typeof import('./bbrUrlUtils.cjs');
+} = bbrUtils;
 
 const ROOT = join(import.meta.dirname, '..');
 const FIRECRAWL_DIR = join(ROOT, '.firecrawl');
@@ -251,7 +252,7 @@ function runFullMerge(): void {
     console.warn(`[merge] WARN: only ${sorted.length} URLs — skipping strict per-depth 4/5 checks`);
   }
 
-  const shallowSections = BBR_SECTIONS.filter((section) => {
+  const shallowSections = BBR_SECTIONS.filter((section: string) => {
     const count = entries.filter((e) => e.section === section && e.depth >= 4).length;
     return count === 0;
   });

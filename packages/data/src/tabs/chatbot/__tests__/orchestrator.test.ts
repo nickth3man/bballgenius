@@ -1,5 +1,6 @@
 import { afterEach, test as baseTest, beforeEach, describe, expect, mock } from 'bun:test';
 import { AIMessage, HumanMessage } from '@langchain/core/messages';
+import { fakeModel } from 'langchain';
 
 const test = baseTest.serial;
 
@@ -76,24 +77,30 @@ describe.serial('orchestrator', () => {
         invalidateSchemaCache: () => {},
       }));
 
-      // The model is constructed per node via createModel(); this mock makes
-      // each role (planner / worker / synthesizer) deterministic.
-      mock.module('@langchain/openai', () => ({
-        ChatOpenAI: class {
-          bindTools() {
-            return this;
+      // The model is constructed per node via createModel(); each gets its own
+      // FakeBuiltModel instance with a factory that checks system role.
+      mock.module('@langchain/openrouter', () => ({
+        ChatOpenRouter: class {
+          private model: ReturnType<typeof fakeModel>;
+          constructor() {
+            this.model = fakeModel().respond((messages) => {
+              const system = String(messages[0]?.content ?? '');
+              if (system.includes('PLANNER')) {
+                return new AIMessage(planJson);
+              }
+              if (system.includes('SQL WORKER')) {
+                // No tool_calls -> worker returns its finding immediately.
+                return new AIMessage('Joel Embiid scored the most, with 2183 points.');
+              }
+              // Synthesizer.
+              return new AIMessage('Joel Embiid scored the most points, with 2,183.');
+            });
           }
-          async invoke(messages: { content?: unknown }[]) {
-            const system = String(messages[0]?.content ?? '');
-            if (system.includes('PLANNER')) {
-              return new AIMessage(planJson);
-            }
-            if (system.includes('SQL WORKER')) {
-              // No tool_calls -> worker returns its finding immediately.
-              return new AIMessage('Joel Embiid scored the most, with 2183 points.');
-            }
-            // Synthesizer.
-            return new AIMessage('Joel Embiid scored the most points, with 2,183.');
+          bindTools() {
+            return this.model;
+          }
+          async invoke(messages: import('@langchain/core/messages').BaseMessage[]) {
+            return this.model.invoke(messages);
           }
         },
       }));
@@ -149,36 +156,43 @@ describe.serial('orchestrator', () => {
         invalidateSchemaCache: () => {},
       }));
 
-      mock.module('@langchain/openai', () => ({
-        ChatOpenAI: class {
-          bindTools() {
-            return this;
-          }
-          async invoke(messages: { content?: unknown }[]) {
-            const system = String(messages[0]?.content ?? '');
-            const human = String(
-              messages.find((m) => String(m?.content ?? '').includes('Worker findings'))?.content ??
-                messages.at(-1)?.content ??
-                '',
-            );
-            if (system.includes('PLANNER')) {
-              return new AIMessage(planJson);
-            }
-            if (system.includes('SQL WORKER')) {
-              if (human.includes('LeBron')) {
-                return new AIMessage('LeBron James has 4 MVP awards.');
-              }
-              if (human.includes('Kareem')) {
-                return new AIMessage('Kareem Abdul-Jabbar has 6 MVP awards.');
-              }
-              return new AIMessage('No finding produced.');
-            }
-            if (system.includes('SYNTHESIZER')) {
-              return new AIMessage(
-                'LeBron James has 4 MVP awards; Kareem Abdul-Jabbar has 6 MVP awards.',
+      mock.module('@langchain/openrouter', () => ({
+        ChatOpenRouter: class {
+          private model: ReturnType<typeof fakeModel>;
+          constructor() {
+            this.model = fakeModel().respond((messages) => {
+              const system = String(messages[0]?.content ?? '');
+              const human = String(
+                messages.find((m) => String(m?.content ?? '').includes('Worker findings'))
+                  ?.content ??
+                  messages.at(-1)?.content ??
+                  '',
               );
-            }
-            return new AIMessage('Unexpected mock path.');
+              if (system.includes('PLANNER')) {
+                return new AIMessage(planJson);
+              }
+              if (system.includes('SQL WORKER')) {
+                if (human.includes('LeBron')) {
+                  return new AIMessage('LeBron James has 4 MVP awards.');
+                }
+                if (human.includes('Kareem')) {
+                  return new AIMessage('Kareem Abdul-Jabbar has 6 MVP awards.');
+                }
+                return new AIMessage('No finding produced.');
+              }
+              if (system.includes('SYNTHESIZER')) {
+                return new AIMessage(
+                  'LeBron James has 4 MVP awards; Kareem Abdul-Jabbar has 6 MVP awards.',
+                );
+              }
+              return new AIMessage('Unexpected mock path.');
+            });
+          }
+          bindTools() {
+            return this.model;
+          }
+          async invoke(messages: import('@langchain/core/messages').BaseMessage[]) {
+            return this.model.invoke(messages);
           }
         },
       }));

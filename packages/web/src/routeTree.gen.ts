@@ -15,6 +15,7 @@ import { Route as GameCenterRouteImport } from './routes/game-center'
 import { Route as ChatRouteImport } from './routes/chat'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiCopilotkitRouteImport } from './routes/api/copilotkit'
+import { Route as ApiChatStreamRouteImport } from './routes/api/chat-stream'
 
 const TimeMachineRoute = TimeMachineRouteImport.update({
   id: '/time-machine',
@@ -46,6 +47,11 @@ const ApiCopilotkitRoute = ApiCopilotkitRouteImport.update({
   path: '/api/copilotkit',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiChatStreamRoute = ApiChatStreamRouteImport.update({
+  id: '/api/chat-stream',
+  path: '/api/chat-stream',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -53,6 +59,7 @@ export interface FileRoutesByFullPath {
   '/game-center': typeof GameCenterRoute
   '/sql-sandbox': typeof SqlSandboxRoute
   '/time-machine': typeof TimeMachineRoute
+  '/api/chat-stream': typeof ApiChatStreamRoute
   '/api/copilotkit': typeof ApiCopilotkitRoute
 }
 export interface FileRoutesByTo {
@@ -61,6 +68,7 @@ export interface FileRoutesByTo {
   '/game-center': typeof GameCenterRoute
   '/sql-sandbox': typeof SqlSandboxRoute
   '/time-machine': typeof TimeMachineRoute
+  '/api/chat-stream': typeof ApiChatStreamRoute
   '/api/copilotkit': typeof ApiCopilotkitRoute
 }
 export interface FileRoutesById {
@@ -70,6 +78,7 @@ export interface FileRoutesById {
   '/game-center': typeof GameCenterRoute
   '/sql-sandbox': typeof SqlSandboxRoute
   '/time-machine': typeof TimeMachineRoute
+  '/api/chat-stream': typeof ApiChatStreamRoute
   '/api/copilotkit': typeof ApiCopilotkitRoute
 }
 export interface FileRouteTypes {
@@ -80,6 +89,7 @@ export interface FileRouteTypes {
     | '/game-center'
     | '/sql-sandbox'
     | '/time-machine'
+    | '/api/chat-stream'
     | '/api/copilotkit'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -88,6 +98,7 @@ export interface FileRouteTypes {
     | '/game-center'
     | '/sql-sandbox'
     | '/time-machine'
+    | '/api/chat-stream'
     | '/api/copilotkit'
   id:
     | '__root__'
@@ -96,6 +107,7 @@ export interface FileRouteTypes {
     | '/game-center'
     | '/sql-sandbox'
     | '/time-machine'
+    | '/api/chat-stream'
     | '/api/copilotkit'
   fileRoutesById: FileRoutesById
 }
@@ -105,6 +117,7 @@ export interface RootRouteChildren {
   GameCenterRoute: typeof GameCenterRoute
   SqlSandboxRoute: typeof SqlSandboxRoute
   TimeMachineRoute: typeof TimeMachineRoute
+  ApiChatStreamRoute: typeof ApiChatStreamRoute
   ApiCopilotkitRoute: typeof ApiCopilotkitRoute
 }
 
@@ -152,6 +165,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCopilotkitRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/chat-stream': {
+      id: '/api/chat-stream'
+      path: '/api/chat-stream'
+      fullPath: '/api/chat-stream'
+      preLoaderRoute: typeof ApiChatStreamRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -161,6 +181,7 @@ const rootRouteChildren: RootRouteChildren = {
   GameCenterRoute: GameCenterRoute,
   SqlSandboxRoute: SqlSandboxRoute,
   TimeMachineRoute: TimeMachineRoute,
+  ApiChatStreamRoute: ApiChatStreamRoute,
   ApiCopilotkitRoute: ApiCopilotkitRoute,
 }
 export const routeTree = rootRouteImport

@@ -471,33 +471,33 @@ describe('loadPlayerDossier', () => {
 
     // Awards
     expect(dossier.awards.length).toBeGreaterThan(0);
-    expect(dossier.awards[0].award).toBe('All-NBA 1st');
+    expect(dossier.awards[0]!.award).toBe('All-NBA 1st');
 
     // All-Star
     expect(dossier.allStar.length).toBe(5);
-    expect(dossier.allStar[0].season_end_year).toBe(1973);
-    expect(dossier.allStar[3].replaced).toBe(true);
+    expect(dossier.allStar[0]!.season_end_year).toBe(1973);
+    expect(dossier.allStar[3]!.replaced).toBe(true);
 
     // Votes
     expect(dossier.votes.length).toBe(2);
-    expect(dossier.votes[0].award).toBe('nba mvp');
+    expect(dossier.votes[0]!.award).toBe('nba mvp');
 
     // Per-game
     expect(dossier.perGame.length).toBe(1);
-    expect(dossier.perGame[0].pts_per_game).toBeCloseTo(23.2, 1);
+    expect(dossier.perGame[0]!.pts_per_game).toBeCloseTo(23.2, 1);
 
     // Season totals
     expect(dossier.totalsSeason.length).toBe(1);
-    expect(dossier.totalsSeason[0].pts).toBe(1881);
+    expect(dossier.totalsSeason[0]!.pts).toBe(1881);
 
     // Per36
     expect(dossier.per36.length).toBe(1);
-    expect(dossier.per36[0].pts_per_36_min).toBeCloseTo(23.2, 1);
+    expect(dossier.per36[0]!.pts_per_36_min).toBeCloseTo(23.2, 1);
 
     // Advanced
     expect(dossier.advanced.length).toBe(1);
-    expect(dossier.advanced[0].per).toBeCloseTo(17.8, 1);
-    expect(dossier.advanced[0].ws).toBeCloseTo(6.2, 1);
+    expect(dossier.advanced[0]!.per).toBeCloseTo(17.8, 1);
+    expect(dossier.advanced[0]!.ws).toBeCloseTo(6.2, 1);
 
     // Shooting / play-by-play (empty for old-era player)
     expect(dossier.shooting).toEqual([]);
@@ -505,8 +505,8 @@ describe('loadPlayerDossier', () => {
 
     // Game log
     expect(dossier.gameLog.length).toBe(1);
-    expect(dossier.gameLog[0].game_date).toBe('1977-04-10');
-    expect(dossier.gameLog[0].pts).toBe(35);
+    expect(dossier.gameLog[0]!.game_date).toBe('1977-04-10');
+    expect(dossier.gameLog[0]!.pts).toBe(35);
 
     // Franchise standing
     expect(dossier.franchise.length).toBe(3);
@@ -514,8 +514,8 @@ describe('loadPlayerDossier', () => {
 
     // Shot zones
     expect(dossier.shotZones.length).toBe(2);
-    expect(dossier.shotZones[0].zone).toBe('Mid-Range');
-    expect(dossier.shotZones[0].fg_pct).toBeCloseTo(0.45, 2);
+    expect(dossier.shotZones[0]!.zone).toBe('Mid-Range');
+    expect(dossier.shotZones[0]!.fg_pct).toBeCloseTo(0.45, 2);
 
     // Career stats — regular season + playoffs
     expect(dossier.careerStats).toBeDefined();
@@ -531,8 +531,8 @@ describe('loadPlayerDossier', () => {
 
     // Playoff per-game
     expect(dossier.playoffPerGame.length).toBe(1);
-    expect(dossier.playoffPerGame[0].pts_per_game).toBeCloseTo(22.0, 1);
-    expect(dossier.playoffPerGame[0].fg_per_game).toBeCloseTo(9.4, 1);
+    expect(dossier.playoffPerGame[0]!.pts_per_game).toBeCloseTo(22.0, 1);
+    expect(dossier.playoffPerGame[0]!.fg_per_game).toBeCloseTo(9.4, 1);
   });
 });
 
@@ -585,8 +585,8 @@ describe('groupAwardsByCategory', () => {
     expect(allNba).toBeDefined();
     expect(allNba!.awards.length).toBe(2);
     // All-NBA groups sort by team number: 1st before 2nd
-    expect(allNba!.awards[0].label).toBe('All-NBA 1st');
-    expect(allNba!.awards[1].label).toBe('All-NBA 2nd');
+    expect(allNba!.awards[0]!.label).toBe('All-NBA 1st');
+    expect(allNba!.awards[1]!.label).toBe('All-NBA 2nd');
 
     const allRookie = grouped.find((g) => g.category === 'All-Rookie');
     expect(allRookie).toBeDefined();

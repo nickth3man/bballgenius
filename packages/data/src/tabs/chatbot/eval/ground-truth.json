@@ -1,135 +1,165 @@
 {
   "career_points_leaders": [
-    {"rank": 1, "player": "LeBron James", "value": 43440},
-    {"rank": 2, "player": "Kareem Abdul-Jabbar", "value": 38387},
-    {"rank": 3, "player": "Karl Malone", "value": 36928},
-    {"rank": 4, "player": "Kobe Bryant", "value": 33643},
-    {"rank": 5, "player": "Kevin Durant", "value": 32597},
-    {"rank": 6, "player": "Michael Jordan", "value": 32292},
-    {"rank": 7, "player": "Dirk Nowitzki", "value": 31560},
-    {"rank": 8, "player": "Wilt Chamberlain", "value": 31419},
-    {"rank": 9, "player": "James Harden", "value": 29339},
-    {"rank": 10, "player": "Shaquille O'Neal", "value": 28596}
+    { "rank": 1, "player": "LeBron James", "value": 43440 },
+    { "rank": 2, "player": "Kareem Abdul-Jabbar", "value": 38387 },
+    { "rank": 3, "player": "Karl Malone", "value": 36928 },
+    { "rank": 4, "player": "Kobe Bryant", "value": 33643 },
+    { "rank": 5, "player": "Kevin Durant", "value": 32597 },
+    { "rank": 6, "player": "Michael Jordan", "value": 32292 },
+    { "rank": 7, "player": "Dirk Nowitzki", "value": 31560 },
+    { "rank": 8, "player": "Wilt Chamberlain", "value": 31419 },
+    { "rank": 9, "player": "James Harden", "value": 29339 },
+    { "rank": 10, "player": "Shaquille O'Neal", "value": 28596 }
   ],
   "career_assists_leaders": [
-    {"rank": 1, "player": "John Stockton", "value": 15806},
-    {"rank": 2, "player": "Chris Paul", "value": 12552},
-    {"rank": 3, "player": "Jason Kidd", "value": 12091},
-    {"rank": 4, "player": "LeBron James", "value": 12016},
-    {"rank": 5, "player": "Russell Westbrook", "value": 10351},
-    {"rank": 6, "player": "Steve Nash", "value": 10335},
-    {"rank": 7, "player": "Mark Jackson", "value": 10334},
-    {"rank": 8, "player": "Magic Johnson", "value": 10141},
-    {"rank": 9, "player": "Oscar Robertson", "value": 9887},
-    {"rank": 10, "player": "Isiah Thomas", "value": 9061}
+    { "rank": 1, "player": "John Stockton", "value": 15806 },
+    { "rank": 2, "player": "Chris Paul", "value": 12552 },
+    { "rank": 3, "player": "Jason Kidd", "value": 12091 },
+    { "rank": 4, "player": "LeBron James", "value": 12016 },
+    { "rank": 5, "player": "Russell Westbrook", "value": 10351 },
+    { "rank": 6, "player": "Steve Nash", "value": 10335 },
+    { "rank": 7, "player": "Mark Jackson", "value": 10334 },
+    { "rank": 8, "player": "Magic Johnson", "value": 10141 },
+    { "rank": 9, "player": "Oscar Robertson", "value": 9887 },
+    { "rank": 10, "player": "Isiah Thomas", "value": 9061 }
   ],
   "career_rebounds_leaders": [
-    {"rank": 1, "player": "Wilt Chamberlain", "value": 23924},
-    {"rank": 2, "player": "Bill Russell", "value": 21620},
-    {"rank": 3, "player": "Kareem Abdul-Jabbar", "value": 17440},
-    {"rank": 4, "player": "Elvin Hayes", "value": 16279},
-    {"rank": 5, "player": "Moses Malone", "value": 16212},
-    {"rank": 6, "player": "Tim Duncan", "value": 15091},
-    {"rank": 7, "player": "Karl Malone", "value": 14968},
-    {"rank": 8, "player": "Robert Parish", "value": 14715},
-    {"rank": 9, "player": "Kevin Garnett", "value": 14662},
-    {"rank": 10, "player": "Dwight Howard", "value": 14627}
+    { "rank": 1, "player": "Wilt Chamberlain", "value": 23924 },
+    { "rank": 2, "player": "Bill Russell", "value": 21620 },
+    { "rank": 3, "player": "Kareem Abdul-Jabbar", "value": 17440 },
+    { "rank": 4, "player": "Elvin Hayes", "value": 16279 },
+    { "rank": 5, "player": "Moses Malone", "value": 16212 },
+    { "rank": 6, "player": "Tim Duncan", "value": 15091 },
+    { "rank": 7, "player": "Karl Malone", "value": 14968 },
+    { "rank": 8, "player": "Robert Parish", "value": 14715 },
+    { "rank": 9, "player": "Kevin Garnett", "value": 14662 },
+    { "rank": 10, "player": "Dwight Howard", "value": 14627 }
   ],
   "career_steals_leaders": [
-    {"rank": 1, "player": "John Stockton", "value": 3265},
-    {"rank": 2, "player": "Chris Paul", "value": 2728},
-    {"rank": 3, "player": "Jason Kidd", "value": 2684},
-    {"rank": 4, "player": "Michael Jordan", "value": 2514},
-    {"rank": 5, "player": "Gary Payton", "value": 2445},
-    {"rank": 6, "player": "LeBron James", "value": 2417},
-    {"rank": 7, "player": "Maurice Cheeks", "value": 2310},
-    {"rank": 8, "player": "Scottie Pippen", "value": 2307},
-    {"rank": 9, "player": "Clyde Drexler", "value": 2207},
-    {"rank": 10, "player": "Hakeem Olajuwon", "value": 2162}
+    { "rank": 1, "player": "John Stockton", "value": 3265 },
+    { "rank": 2, "player": "Chris Paul", "value": 2728 },
+    { "rank": 3, "player": "Jason Kidd", "value": 2684 },
+    { "rank": 4, "player": "Michael Jordan", "value": 2514 },
+    { "rank": 5, "player": "Gary Payton", "value": 2445 },
+    { "rank": 6, "player": "LeBron James", "value": 2417 },
+    { "rank": 7, "player": "Maurice Cheeks", "value": 2310 },
+    { "rank": 8, "player": "Scottie Pippen", "value": 2307 },
+    { "rank": 9, "player": "Clyde Drexler", "value": 2207 },
+    { "rank": 10, "player": "Hakeem Olajuwon", "value": 2162 }
   ],
   "career_blocks_leaders": [
-    {"rank": 1, "player": "Hakeem Olajuwon", "value": 3830},
-    {"rank": 2, "player": "Dikembe Mutombo", "value": 3289},
-    {"rank": 3, "player": "Kareem Abdul-Jabbar", "value": 3189},
-    {"rank": 4, "player": "Mark Eaton", "value": 3064},
-    {"rank": 5, "player": "Tim Duncan", "value": 3020},
-    {"rank": 6, "player": "David Robinson", "value": 2954},
-    {"rank": 7, "player": "Patrick Ewing", "value": 2894},
-    {"rank": 8, "player": "Shaquille O'Neal", "value": 2732},
-    {"rank": 9, "player": "Tree Rollins", "value": 2542},
-    {"rank": 10, "player": "Robert Parish", "value": 2361}
+    { "rank": 1, "player": "Hakeem Olajuwon", "value": 3830 },
+    { "rank": 2, "player": "Dikembe Mutombo", "value": 3289 },
+    { "rank": 3, "player": "Kareem Abdul-Jabbar", "value": 3189 },
+    { "rank": 4, "player": "Mark Eaton", "value": 3064 },
+    { "rank": 5, "player": "Tim Duncan", "value": 3020 },
+    { "rank": 6, "player": "David Robinson", "value": 2954 },
+    { "rank": 7, "player": "Patrick Ewing", "value": 2894 },
+    { "rank": 8, "player": "Shaquille O'Neal", "value": 2732 },
+    { "rank": 9, "player": "Tree Rollins", "value": 2542 },
+    { "rank": 10, "player": "Robert Parish", "value": 2361 }
   ],
   "career_three_pointers_leaders": [
-    {"rank": 1, "player": "Stephen Curry", "value": 4248},
-    {"rank": 2, "player": "James Harden", "value": 3390},
-    {"rank": 3, "player": "Ray Allen", "value": 2973},
-    {"rank": 4, "player": "Klay Thompson", "value": 2899},
-    {"rank": 5, "player": "Damian Lillard", "value": 2804},
-    {"rank": 6, "player": "LeBron James", "value": 2636},
-    {"rank": 7, "player": "Reggie Miller", "value": 2560},
-    {"rank": 8, "player": "Kyle Korver", "value": 2450},
-    {"rank": 9, "player": "Paul George", "value": 2449},
-    {"rank": 10, "player": "Kevin Durant", "value": 2377}
+    { "rank": 1, "player": "Stephen Curry", "value": 4248 },
+    { "rank": 2, "player": "James Harden", "value": 3390 },
+    { "rank": 3, "player": "Ray Allen", "value": 2973 },
+    { "rank": 4, "player": "Klay Thompson", "value": 2899 },
+    { "rank": 5, "player": "Damian Lillard", "value": 2804 },
+    { "rank": 6, "player": "LeBron James", "value": 2636 },
+    { "rank": 7, "player": "Reggie Miller", "value": 2560 },
+    { "rank": 8, "player": "Kyle Korver", "value": 2450 },
+    { "rank": 9, "player": "Paul George", "value": 2449 },
+    { "rank": 10, "player": "Kevin Durant", "value": 2377 }
   ],
   "mvp_winners": [
-    {"season": "2023-24", "player": "Nikola Jokić"},
-    {"season": "2022-23", "player": "Joel Embiid"},
-    {"season": "2021-22", "player": "Nikola Jokić"},
-    {"season": "2020-21", "player": "Nikola Jokić"},
-    {"season": "2019-20", "player": "Giannis Antetokounmpo"},
-    {"season": "2018-19", "player": "Giannis Antetokounmpo"},
-    {"season": "2017-18", "player": "James Harden"},
-    {"season": "2016-17", "player": "Russell Westbrook"},
-    {"season": "2015-16", "player": "Stephen Curry"},
-    {"season": "2014-15", "player": "Stephen Curry"}
+    { "season": "2023-24", "player": "Nikola Jokić" },
+    { "season": "2022-23", "player": "Joel Embiid" },
+    { "season": "2021-22", "player": "Nikola Jokić" },
+    { "season": "2020-21", "player": "Nikola Jokić" },
+    { "season": "2019-20", "player": "Giannis Antetokounmpo" },
+    { "season": "2018-19", "player": "Giannis Antetokounmpo" },
+    { "season": "2017-18", "player": "James Harden" },
+    { "season": "2016-17", "player": "Russell Westbrook" },
+    { "season": "2015-16", "player": "Stephen Curry" },
+    { "season": "2014-15", "player": "Stephen Curry" }
   ],
   "season_leaders_2024": {
     "points_per_game": [
-      {"player": "Joel Embiid", "value": 34.7},
-      {"player": "Luka Dončić", "value": 33.9},
-      {"player": "Giannis Antetokounmpo", "value": 30.4},
-      {"player": "Shai Gilgeous-Alexander", "value": 30.1},
-      {"player": "Jalen Brunson", "value": 28.7}
+      { "player": "Joel Embiid", "value": 34.7 },
+      { "player": "Luka Dončić", "value": 33.9 },
+      { "player": "Giannis Antetokounmpo", "value": 30.4 },
+      { "player": "Shai Gilgeous-Alexander", "value": 30.1 },
+      { "player": "Jalen Brunson", "value": 28.7 }
     ],
     "assists_per_game": [
-      {"player": "Tyrese Haliburton", "value": 10.9},
-      {"player": "Trae Young", "value": 10.8},
-      {"player": "Luka Dončić", "value": 9.8},
-      {"player": "Nikola Jokić", "value": 9.0},
-      {"player": "James Harden", "value": 8.5}
+      { "player": "Tyrese Haliburton", "value": 10.9 },
+      { "player": "Trae Young", "value": 10.8 },
+      { "player": "Luka Dončić", "value": 9.8 },
+      { "player": "Nikola Jokić", "value": 9.0 },
+      { "player": "James Harden", "value": 8.5 }
     ],
     "rebounds_per_game": [
-      {"player": "Domantas Sabonis", "value": 13.7},
-      {"player": "Rudy Gobert", "value": 12.9},
-      {"player": "Anthony Davis", "value": 12.6},
-      {"player": "Nikola Jokić", "value": 12.4},
-      {"player": "Jalen Duren", "value": 11.6}
+      { "player": "Domantas Sabonis", "value": 13.7 },
+      { "player": "Rudy Gobert", "value": 12.9 },
+      { "player": "Anthony Davis", "value": 12.6 },
+      { "player": "Nikola Jokić", "value": 12.4 },
+      { "player": "Jalen Duren", "value": 11.6 }
     ]
   },
   "player_career_totals": {
-    "LeBron_James": {"points": 43440, "assists": 12016, "rebounds": 12095, "steals": 2417, "blocks": 1185, "games": 1622},
-    "Michael_Jordan": {"points": 32292, "assists": 5633, "rebounds": 6672, "steals": 2514, "blocks": 893, "games": 1072}
+    "LeBron_James": {
+      "points": 43440,
+      "assists": 12016,
+      "rebounds": 12095,
+      "steals": 2417,
+      "blocks": 1185,
+      "games": 1622
+    },
+    "Michael_Jordan": {
+      "points": 32292,
+      "assists": 5633,
+      "rebounds": 6672,
+      "steals": 2514,
+      "blocks": 893,
+      "games": 1072
+    }
   },
   "team_records": {
-    "Boston_Celtics_2024": {"wins": 64, "losses": 18, "srs": 10.74, "pace": 97.2, "offensive_rating": 123.2, "defensive_rating": 111.6},
-    "Golden_State_Warriors_2016": {"wins": 73, "losses": 9, "srs": 10.38, "pace": 99.3, "offensive_rating": 114.5, "defensive_rating": 103.8}
+    "Boston_Celtics_2024": {
+      "wins": 64,
+      "losses": 18,
+      "srs": 10.74,
+      "pace": 97.2,
+      "offensive_rating": 123.2,
+      "defensive_rating": 111.6
+    },
+    "Golden_State_Warriors_2016": {
+      "wins": 73,
+      "losses": 9,
+      "srs": 10.38,
+      "pace": 99.3,
+      "offensive_rating": 114.5,
+      "defensive_rating": 103.8
+    }
   },
   "single_games": {
     "2016_finals_game7": {
-      "away_team": "Cleveland Cavaliers", "away_score": 93,
-      "home_team": "Golden State Warriors", "home_score": 89,
+      "away_team": "Cleveland Cavaliers",
+      "away_score": 93,
+      "home_team": "Golden State Warriors",
+      "home_score": 89,
       "total_score": 182,
       "leading_scorers": [
-        {"player": "LeBron James", "points": 27, "team": "Cleveland Cavaliers"},
-        {"player": "Draymond Green", "points": 32, "team": "Golden State Warriors"}
+        { "player": "LeBron James", "points": 27, "team": "Cleveland Cavaliers" },
+        { "player": "Draymond Green", "points": 32, "team": "Golden State Warriors" }
       ]
     }
   },
   "highest_scoring_games": [
-    {"rank": 1, "player": "Wilt Chamberlain", "points": 100},
-    {"rank": 2, "player": "Bam Adebayo", "points": 83},
-    {"rank": 3, "player": "Kobe Bryant", "points": 81},
-    {"rank": 4, "player": "Wilt Chamberlain", "points": 78},
-    {"rank": 5, "player": "Luka Dončić", "points": 73}
+    { "rank": 1, "player": "Wilt Chamberlain", "points": 100 },
+    { "rank": 2, "player": "Bam Adebayo", "points": 83 },
+    { "rank": 3, "player": "Kobe Bryant", "points": 81 },
+    { "rank": 4, "player": "Wilt Chamberlain", "points": 78 },
+    { "rank": 5, "player": "Luka Dončić", "points": 73 }
   ]
 }

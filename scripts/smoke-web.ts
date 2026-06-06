@@ -19,7 +19,7 @@ const proc = Bun.spawn(['bun', 'run', 'web'], {
 
 let stderr = '';
 const decoder = new TextDecoder();
-(async () => {
+void (async () => {
   for await (const chunk of proc.stderr) stderr += decoder.decode(chunk);
 })();
 

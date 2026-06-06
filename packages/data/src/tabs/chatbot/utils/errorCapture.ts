@@ -24,16 +24,16 @@ export function captureError(err: unknown, ctx?: ErrorContext): Error {
   };
 
   if (err instanceof Error) {
-    record.errName = err.name;
-    record.errMessage = err.message;
-    record.stack = err.stack;
+    record['errName'] = err.name;
+    record['errMessage'] = err.message;
+    record['stack'] = err.stack;
   } else {
-    record.errName = 'Unknown';
-    record.errMessage = String(err);
+    record['errName'] = 'Unknown';
+    record['errMessage'] = String(err);
   }
 
   if (ctx?.sql) {
-    record.sqlPreview = ctx.sql.slice(0, 500);
+    record['sqlPreview'] = ctx.sql.slice(0, 500);
   }
 
   logMetric(record as { level?: string; [k: string]: unknown });

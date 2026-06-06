@@ -44,8 +44,8 @@ describe('NBA shot chart court geometry', () => {
     );
 
     expect(firstSegment).not.toBeNull();
-    expect(Number(firstSegment?.groups?.backboardY)).toBeGreaterThan(
-      Number(firstSegment?.groups?.basketY),
+    expect(Number(firstSegment?.groups?.['backboardY'])).toBeGreaterThan(
+      Number(firstSegment?.groups?.['basketY']),
     );
     expect(path).toContain('A 40 40 0 0 0');
   });

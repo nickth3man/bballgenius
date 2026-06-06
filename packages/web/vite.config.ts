@@ -1,7 +1,19 @@
-import { defineConfig } from 'vite';
+import { fileURLToPath } from 'node:url';
+import tailwindcss from '@tailwindcss/vite';
 import { tanstackStart } from '@tanstack/react-start/plugin/vite';
 import react from '@vitejs/plugin-react';
-import tailwindcss from '@tailwindcss/vite';
+import { defineConfig, loadEnv } from 'vite';
+
+// Running `bun --filter web dev` sets cwd to packages/web, so Bun's automatic
+// .env loading misses the repo-root .env (where OPENROUTER_API_KEY etc. live).
+// Load it explicitly and merge into process.env so server route handlers
+// (e.g. /api/chat-stream) can read it. These stay server-side — they are not
+// injected into the client bundle unless referenced via import.meta.env.
+const repoRoot = fileURLToPath(new URL('../../', import.meta.url));
+const rootEnv = loadEnv(process.env['NODE_ENV'] || 'development', repoRoot, '');
+for (const [key, value] of Object.entries(rootEnv)) {
+  if (process.env[key] === undefined) process.env[key] = value;
+}
 
 export default defineConfig({
   server: {

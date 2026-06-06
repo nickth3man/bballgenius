@@ -2,12 +2,14 @@
 
 ## Responsibility
 
-Three reusable UI components that collectively power the **SQL Sandbox** route (`/sql-sandbox`):
-a live-editing SQL editor, a read-only schema browser tree, and a query-results data table.
-All are inert presentational components — they hold no DB connection, no server state,
-and delegate all I/O to their parent route via callback props.
+Reusable UI components for `packages/web`: SQL Sandbox controls, shot charts, Time Machine dossier sections, and local BBallGenius UI primitives. All are inert presentational components — they hold no DB connection, no server state, and delegate all I/O to route-level server functions.
 
 ## Components
+
+### `ui/`
+- **Role**: Web-owned BBallGenius primitives that replaced the temporary root design artifact imports.
+- **Exports**: `Button`, `Badge`, `Card`, `Tabs`, `StatTile`, `TeamCrest`, `Skeleton`.
+- **Styling contract**: Components use local CSS variables from `styles/app.css` (`--primary`, `--accent`, `--surface`, `--made`, `--missed`, etc.) and are imported from `../components/ui`.
 
 ### `CodeEditor` (`code-editor.tsx`)
 - **Role**: CodeMirror 6 wrapper providing a SQL text editor with PostgreSQL dialect, line numbers, active-line highlight, and One Dark theme.
@@ -99,7 +101,7 @@ and delegate all I/O to their parent route via callback props.
 
 ### Package boundary
 
-These three components are the **only** UI components imported from `packages/web/src/routes/`. They sit inside `packages/web` and do **not** import from `packages/data` directly — all DB calls are handled by server functions in the route. This keeps the component layer cleanly separated from the data-access layer.
+These components sit inside `packages/web` and do **not** import from `packages/data` directly — all DB calls are handled by server functions in the route. This keeps the component layer cleanly separated from the data-access layer.
 
 ### Styling contract
 

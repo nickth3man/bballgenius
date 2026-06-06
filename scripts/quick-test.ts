@@ -69,4 +69,4 @@ async function main() {
   await closeDb();
 }
 
-main();
+void main();

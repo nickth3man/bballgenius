@@ -6,13 +6,8 @@
     "useIgnoreFile": true
   },
   "files": {
-    "ignoreUnknown": true,
-    "includes": [
-      "scripts/**/*.ts",
-      "packages/*/src/**/*.ts",
-      "packages/*/src/**/*.tsx",
-      "!packages/web/src/routeTree.gen.ts"
-    ]
+    "includes": ["**/*.{ts,tsx,js,jsx,json,jsonc}", "!packages/web/src/routeTree.gen.ts"],
+    "ignoreUnknown": true
   },
   "formatter": {
     "enabled": true,
@@ -30,7 +25,11 @@
       },
       "correctness": {
         "noUnusedImports": "error",
-        "noUnusedVariables": "error"
+        "noUnusedVariables": "error",
+        "useHookAtTopLevel": "error"
+      },
+      "nursery": {
+        "noFloatingPromises": "error"
       },
       "performance": {
         "noBarrelFile": "off"

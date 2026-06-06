@@ -25,7 +25,7 @@ import type { StructuredTool } from '@langchain/core/tools';
 import { END, MemorySaver, Overwrite, Send, START, StateGraph } from '@langchain/langgraph';
 import { buildSystemPrompt } from '../systemPrompt.js';
 import { captureError } from '../utils/errorCapture.js';
-import { getAbortSignal } from './abort.js';
+import { abortOptions, getAbortSignal } from './abort.js';
 import { createModel } from './model.js';
 import { buildSchemaCatalog } from './schemaCatalog.js';
 import {
@@ -131,19 +131,20 @@ function parsePlan(raw: string, question: string): ParsedPlan {
 
   if (!parsed || typeof parsed !== 'object') return fallback;
   const obj = parsed as Record<string, unknown>;
-  const mode = obj.mode === 'multi' || obj.mode === 'clarify' ? obj.mode : 'single';
+  const mode = obj['mode'] === 'multi' || obj['mode'] === 'clarify' ? obj['mode'] : 'single';
 
   if (mode === 'clarify') return { mode, subtasks: [] };
 
-  const rawSubtasks = Array.isArray(obj.subtasks) ? obj.subtasks : [];
+  const rawSubtasks = Array.isArray(obj['subtasks']) ? obj['subtasks'] : [];
   const subtasks: Subtask[] = rawSubtasks
     .slice(0, MAX_SUBTASKS)
     .map((entry, index) => {
       const e = (entry ?? {}) as Record<string, unknown>;
-      const q = typeof e.question === 'string' && e.question.trim() ? e.question.trim() : question;
+      const q =
+        typeof e['question'] === 'string' && e['question'].trim() ? e['question'].trim() : question;
       return {
-        id: typeof e.id === 'string' && e.id.trim() ? e.id.trim() : `t${index + 1}`,
-        focus: typeof e.focus === 'string' && e.focus.trim() ? e.focus.trim() : 'lookup',
+        id: typeof e['id'] === 'string' && e['id'].trim() ? e['id'].trim() : `t${index + 1}`,
+        focus: typeof e['focus'] === 'string' && e['focus'].trim() ? e['focus'].trim() : 'lookup',
         question: q,
       };
     })
@@ -160,9 +161,10 @@ async function planNode(state: ChatbotStateType): Promise<ChatbotUpdateType> {
 
   let plan: ParsedPlan;
   try {
+    const abortSignal = getAbortSignal();
     const response = await createModel().invoke(
       [new SystemMessage(plannerPrompt(catalog)), new HumanMessage(question)],
-      getAbortSignal() ? { signal: getAbortSignal() } : {},
+      abortSignal ? { signal: abortSignal } : {},
     );
     plan = parsePlan(messageContentToString(response.content), question);
   } catch (err) {
@@ -217,10 +219,7 @@ async function runWorker(subtask: Subtask, basePrompt: string): Promise<WorkerFi
   let toolCalls = 0;
 
   for (let round = 0; round < MAX_WORKER_TOOL_ROUNDS; round++) {
-    const response = (await model.invoke(
-      messages,
-      getAbortSignal() ? { signal: getAbortSignal() } : {},
-    )) as AIMessage;
+    const response = (await model.invoke(messages, abortOptions())) as AIMessage;
     messages.push(response);
 
     const calls = response.tool_calls ?? [];
@@ -262,7 +261,7 @@ async function runWorker(subtask: Subtask, basePrompt: string): Promise<WorkerFi
           'retrieved above. Do not request more tools.',
       ),
     ],
-    getAbortSignal() ? { signal: getAbortSignal() } : {},
+    abortOptions(),
   );
 
   return {
@@ -331,7 +330,7 @@ function buildSynthInput(state: ChatbotStateType): string {
 async function synthesizeNode(state: ChatbotStateType): Promise<ChatbotUpdateType> {
   const response = await createModel().invoke(
     [new SystemMessage(SYNTH_PROMPT), new HumanMessage(buildSynthInput(state))],
-    getAbortSignal() ? { signal: getAbortSignal() } : {},
+    abortOptions(),
   );
   const text = messageContentToString(response.content).trim();
   return { messages: [new AIMessage(text)] };

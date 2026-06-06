@@ -58,8 +58,8 @@ describe.serial('streamQuery', () => {
 
     const tokens = events.filter((e) => e.type === 'token');
     expect(tokens.length).toBe(2);
-    expect(tokens[0].content).toBe('LeBron');
-    expect(tokens[1].content).toBe(' James');
+    expect(tokens[0]!.content).toBe('LeBron');
+    expect(tokens[1]!.content).toBe(' James');
     expect(events.some((e) => e.type === 'done')).toBe(true);
   });
 
@@ -441,7 +441,7 @@ describe.serial('streamQuery', () => {
         (args[0] as Record<string, unknown>).event === 'span',
     );
     expect(spanCalls.length).toBe(1);
-    const spanEvent = spanCalls[0][0] as Record<string, unknown>;
+    const spanEvent = spanCalls[0]![0]! as Record<string, unknown>;
     expect(spanEvent.status).toBe('ok');
     expect(spanEvent.tokenCount).toBe(1);
     expect(spanEvent.chainStages).toBeDefined();

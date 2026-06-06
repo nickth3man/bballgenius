@@ -19,7 +19,7 @@ export function ResultsTable({ data, loading, error, elapsedMs }: ResultsTablePr
 
   const columns = useMemo(() => {
     if (data.length === 0) return [];
-    const keys = Object.keys(data[0]);
+    const keys = Object.keys(data[0]!);
     const columnHelper = createColumnHelper<Record<string, unknown>>();
     return keys.map((col) =>
       columnHelper.accessor(col, {

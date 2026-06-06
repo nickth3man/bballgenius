@@ -6,6 +6,8 @@
     "module": "esnext",
     "moduleResolution": "bundler",
     "noEmit": true,
+    "allowJs": true,
+    "checkJs": false,
     "types": ["bun", "vite/client"],
     "paths": {
       "~/*": ["./src/*"],

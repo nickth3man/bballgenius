@@ -41,7 +41,7 @@ export function formatTable(
       if (Array.isArray(row)) {
         val = row[c] !== undefined && row[c] !== null ? String(row[c]) : '';
       } else if (row && typeof row === 'object') {
-        const key = keys[c];
+        const key = keys[c]!;
         const rawVal = row[key] !== undefined && row[key] !== null ? row[key] : '';
         val = typeof rawVal === 'object' ? JSON.stringify(rawVal) : String(rawVal);
       }
@@ -53,8 +53,8 @@ export function formatTable(
   const colWidths = headers.map((header, c) => {
     let maxLen = header.length;
     for (let r = 0; r < stringRows.length; r++) {
-      if (stringRows[r][c].length > maxLen) {
-        maxLen = stringRows[r][c].length;
+      if (stringRows[r]![c]!.length > maxLen) {
+        maxLen = stringRows[r]![c]!.length;
       }
     }
     return maxLen;
@@ -66,7 +66,7 @@ export function formatTable(
     }
     let numericCount = 0;
     for (let r = 0; r < stringRows.length; r++) {
-      const val = stringRows[r][c].trim();
+      const val = stringRows[r]![c]!.trim();
       if (val !== '' && !Number.isNaN(Number(val))) {
         numericCount++;
       }
@@ -86,8 +86,8 @@ export function formatTable(
 
   let headerLine = '│';
   headers.forEach((h, c) => {
-    const w = colWidths[c];
-    const padded = alignments[c] === 'right' ? h.padStart(w) : h.padEnd(w);
+    const w = colWidths[c]!;
+    const padded = alignments[c]! === 'right' ? h.padStart(w) : h.padEnd(w);
     headerLine += ` ${padded} │`;
   });
   lines.push(headerLine);
@@ -103,8 +103,8 @@ export function formatTable(
   stringRows.forEach((row) => {
     let rowLine = '│';
     row.forEach((val, c) => {
-      const w = colWidths[c];
-      const padded = alignments[c] === 'right' ? val.padStart(w) : val.padEnd(w);
+      const w = colWidths[c]!;
+      const padded = alignments[c]! === 'right' ? val.padStart(w) : val.padEnd(w);
       rowLine += ` ${padded} │`;
     });
     lines.push(rowLine);
@@ -140,17 +140,17 @@ export function drawHalfCourt(
     for (let c = 0; c < cols; c++) {
       // Baseline
       if (r === 0) {
-        grid[r][c] = '─';
+        grid[r]![c] = '─';
         continue;
       }
       // Sidelines
       if (c === 0 || c === cols - 1) {
-        grid[r][c] = '│';
+        grid[r]![c] = '│';
         continue;
       }
       // Half court line (midcourt is bottom line)
       if (r === rows - 1) {
-        grid[r][c] = '╌';
+        grid[r]![c] = '╌';
         continue;
       }
 
@@ -161,16 +161,16 @@ export function drawHalfCourt(
       // Length is 19 feet from baseline. 19/47 * 17 = 6.8 rows (idx 7)
       if (r >= 1 && r <= 7) {
         if (c === 13) {
-          grid[r][c] = '│';
+          grid[r]![c] = '│';
           continue;
         }
         if (c === 26) {
-          grid[r][c] = '│';
+          grid[r]![c] = '│';
           continue;
         }
       }
       if (r === 7 && c > 13 && c < 26) {
-        grid[r][c] = '─';
+        grid[r]![c] = '─';
         continue;
       }
 
@@ -178,15 +178,15 @@ export function drawHalfCourt(
       // Hoop is 4.75 ft from baseline (r = 2). Backboard is 4 ft (r = 1).
       // Backboard is 6 ft wide (col 18 to 22)
       if (r === 1 && c >= 18 && c <= 22) {
-        grid[r][c] = '═';
+        grid[r]![c] = '═';
         continue;
       }
       if (r === 2 && c === 20) {
-        grid[r][c] = '○'; // Hoop rim
+        grid[r]![c] = '○'; // Hoop rim
         continue;
       }
       if (r === 2 && (c === 19 || c === 21)) {
-        grid[r][c] = '─'; // Net attachment
+        grid[r]![c] = '─'; // Net attachment
         continue;
       }
 
@@ -195,7 +195,7 @@ export function drawHalfCourt(
       // 3 ft from sidelines (c = 2, c = 37). r = 1..5
       if (r >= 1 && r <= 5) {
         if (c === 2 || c === 37) {
-          grid[r][c] = '│';
+          grid[r]![c] = '│';
           continue;
         }
       }
@@ -208,14 +208,14 @@ export function drawHalfCourt(
 
       // Arc radius is 23.75 feet
       if (r >= 5 && Math.abs(dist - 23.75) < 0.95) {
-        grid[r][c] = '·';
+        grid[r]![c] = '·';
       }
     }
   }
 
   // Corner paint corners
-  if (grid[7][13] === '│') grid[7][13] = '└';
-  if (grid[7][26] === '│') grid[7][26] = '┘';
+  if (grid[7]![13] === '│') grid[7]![13] = '└';
+  if (grid[7]![26] === '│') grid[7]![26] = '┘';
 
   shots.forEach((shot) => {
     // Database coordinates: x=0..100 (left baseline to right baseline), y=0..100 (bottom sideline to top sideline)
@@ -242,7 +242,7 @@ export function drawHalfCourt(
         displaySymbol = isMade ? ansiGreen(symbol) : ansiRed(symbol);
       }
 
-      grid[grid_r][grid_c] = displaySymbol;
+      grid[grid_r]![grid_c] = displaySymbol;
     }
   });
 

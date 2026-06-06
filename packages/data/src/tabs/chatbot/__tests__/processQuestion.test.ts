@@ -1,133 +1,37 @@
 import { afterEach, test as baseTest, beforeEach, describe, expect, mock } from 'bun:test';
 import { AIMessage, HumanMessage, SystemMessage, ToolMessage } from '@langchain/core/messages';
+import { fakeModel } from 'langchain';
 
 const test = baseTest.serial;
 
+// Force MemorySaver even when CHATBOT_PERSIST_DIR is set in .env
+delete process.env['CHATBOT_PERSIST_DIR'];
+
+/**
+ * Module-scoped fake model reference.
+ * Tests reassign this before importing the graph to control the response sequence.
+ */
+let modelRef: ReturnType<typeof fakeModel>;
+
 describe.serial('chatbotGraph', () => {
-  let nextToolResponse: string;
-  let forceToolCalls: boolean;
-  let forceParallelCalls = false;
-  let forceMixedParallelError = false;
   let forceQueryError = false;
-  let forceNeedsSchemaTools = false;
-  let forceRepeatedSqlError = false;
 
   beforeEach(() => {
-    nextToolResponse = 'The database has LeBron James.';
-    forceToolCalls = false;
-    forceParallelCalls = false;
-    forceMixedParallelError = false;
     forceQueryError = false;
-    forceNeedsSchemaTools = false;
-    forceRepeatedSqlError = false;
+    modelRef = fakeModel().respond(new AIMessage('LeBron James scored 30 points last night.'));
   });
 
   afterEach(() => {
-    nextToolResponse = 'The database has LeBron James.';
-    forceToolCalls = false;
-    forceParallelCalls = false;
-    forceMixedParallelError = false;
     forceQueryError = false;
-    forceNeedsSchemaTools = false;
-    forceRepeatedSqlError = false;
   });
 
-  mock.module('@langchain/openai', () => ({
-    ChatOpenAI: class {
+  mock.module('@langchain/openrouter', () => ({
+    ChatOpenRouter: class {
       bindTools() {
-        return this;
+        return modelRef;
       }
-      async invoke(messages: Record<string, unknown>[]) {
-        const hasToolResult = messages.some((m) => m && 'tool_call_id' in m);
-        const hasSqlCorrectionRequest = messages.some(
-          (m) =>
-            m &&
-            'content' in m &&
-            typeof m.content === 'string' &&
-            m.content.includes('SQL validation failed'),
-        );
-        if (hasSqlCorrectionRequest) {
-          if (forceRepeatedSqlError) {
-            return new AIMessage({
-              content: '',
-              tool_calls: [
-                {
-                  id: `call_retry_${Date.now()}`,
-                  name: 'query_nba_db',
-                  args: { sql: 'SELECT * FROM missing_table' },
-                },
-              ],
-            });
-          }
-          return new AIMessage(nextToolResponse);
-        }
-        if (hasToolResult) {
-          return new AIMessage(nextToolResponse);
-        }
-        if (forceNeedsSchemaTools) {
-          return new AIMessage({
-            content: '',
-            tool_calls: [
-              {
-                id: 'call_list',
-                name: 'list_nba_tables',
-                args: { search: 'player' },
-              },
-              {
-                id: 'call_check',
-                name: 'check_nba_sql',
-                args: { sql: 'SELECT player_name FROM dim_player LIMIT 1' },
-              },
-            ],
-          });
-        }
-        if (forceMixedParallelError) {
-          return new AIMessage({
-            content: '',
-            tool_calls: [
-              {
-                id: 'call_1',
-                name: 'query_nba_db',
-                args: { sql: 'SELECT * FROM missing_table' },
-              },
-              {
-                id: 'call_2',
-                name: 'get_schema_info',
-                args: { tableName: 'dim_player' },
-              },
-            ],
-          });
-        }
-        if (forceParallelCalls) {
-          return new AIMessage({
-            content: '',
-            tool_calls: [
-              {
-                id: 'call_1',
-                name: 'query_nba_db',
-                args: { sql: "SELECT * FROM dim_player WHERE name LIKE '%LeBron%'" },
-              },
-              {
-                id: 'call_2',
-                name: 'query_nba_db',
-                args: { sql: "SELECT * FROM dim_player WHERE name LIKE '%Jordan%'" },
-              },
-            ],
-          });
-        }
-        if (forceToolCalls) {
-          return new AIMessage({
-            content: '',
-            tool_calls: [
-              {
-                id: 'call_1',
-                name: 'query_nba_db',
-                args: { sql: 'SELECT * FROM dim_player LIMIT 1' },
-              },
-            ],
-          });
-        }
-        return new AIMessage('LeBron James scored 30 points last night.');
+      async invoke(messages: import('@langchain/core/messages').BaseMessage[]) {
+        return modelRef.invoke(messages);
       }
     },
   }));
@@ -159,7 +63,6 @@ describe.serial('chatbotGraph', () => {
   }));
 
   test('processes a question without tool calls', async () => {
-    forceToolCalls = false;
     const { getWorkerGraph } = await import('../agent/graph.js');
     const chatbotGraph = getWorkerGraph();
 
@@ -168,13 +71,16 @@ describe.serial('chatbotGraph', () => {
       { configurable: { thread_id: 'no-tools' } },
     );
 
-    const lastMsg = result.messages[result.messages.length - 1];
+    const lastMsg = result.messages[result.messages.length - 1]!;
     expect(lastMsg.content).toContain('LeBron');
   });
 
   test('handles tool calls and returns final answer', async () => {
-    forceToolCalls = true;
-    nextToolResponse = 'The database has LeBron James.';
+    modelRef = fakeModel()
+      .respondWithTools([
+        { name: 'query_nba_db', args: { sql: 'SELECT * FROM dim_player LIMIT 1' }, id: 'call_1' },
+      ])
+      .respond(new AIMessage('The database has LeBron James.'));
     const { getWorkerGraph } = await import('../agent/graph.js');
     const chatbotGraph = getWorkerGraph();
 
@@ -185,13 +91,16 @@ describe.serial('chatbotGraph', () => {
 
     const hasToolMessage = result.messages.some((m) => ToolMessage.isInstance(m));
     expect(hasToolMessage).toBe(true);
-    const lastMsg = result.messages[result.messages.length - 1];
+    const lastMsg = result.messages[result.messages.length - 1]!;
     expect(lastMsg.content).toContain('LeBron');
   });
 
   test('handles SQL execution error gracefully', async () => {
-    forceToolCalls = true;
-    nextToolResponse = 'I could not find that table.';
+    modelRef = fakeModel()
+      .respondWithTools([
+        { name: 'query_nba_db', args: { sql: 'SELECT * FROM dim_player LIMIT 1' }, id: 'call_1' },
+      ])
+      .respond(new AIMessage('I could not find that table.'));
     const { getWorkerGraph } = await import('../agent/graph.js');
     const chatbotGraph = getWorkerGraph();
 
@@ -205,7 +114,9 @@ describe.serial('chatbotGraph', () => {
   });
 
   test('maintains conversation state across turns', async () => {
-    forceToolCalls = false;
+    modelRef = fakeModel()
+      .respond(new AIMessage('LeBron James scored 30 points last night.'))
+      .respond(new AIMessage('LeBron James scored 30 points last night.'));
     const { getWorkerGraph, resetGraph } = await import('../agent/graph.js');
     resetGraph();
     const chatbotGraph = getWorkerGraph();
@@ -226,9 +137,20 @@ describe.serial('chatbotGraph', () => {
   });
 
   test('handles parallel tool calls', async () => {
-    forceToolCalls = false;
-    forceParallelCalls = true;
-    nextToolResponse = 'Both players found in the database.';
+    modelRef = fakeModel()
+      .respondWithTools([
+        {
+          name: 'query_nba_db',
+          args: { sql: "SELECT * FROM dim_player WHERE name LIKE '%LeBron%'" },
+          id: 'call_1',
+        },
+        {
+          name: 'query_nba_db',
+          args: { sql: "SELECT * FROM dim_player WHERE name LIKE '%Jordan%'" },
+          id: 'call_2',
+        },
+      ])
+      .respond(new AIMessage('Both players found in the database.'));
     const { getWorkerGraph, resetGraph } = await import('../agent/graph.js');
     resetGraph();
     const chatbotGraph = getWorkerGraph();
@@ -240,15 +162,17 @@ describe.serial('chatbotGraph', () => {
 
     const toolMessages = result.messages.filter((m) => ToolMessage.isInstance(m));
     expect(toolMessages.length).toBe(2);
-    const lastMsg = result.messages[result.messages.length - 1];
-    expect(lastMsg.content).toContain('Both players found');
-    forceParallelCalls = false;
+    const lastMsg = result.messages[result.messages.length - 1]!;
+    expect(lastMsg!.content).toContain('Both players found');
   });
 
   test('routes any SQL error from parallel tool calls back to llm', async () => {
-    forceToolCalls = false;
-    forceMixedParallelError = true;
-    nextToolResponse = 'I corrected the failed query after reviewing schema.';
+    modelRef = fakeModel()
+      .respondWithTools([
+        { name: 'query_nba_db', args: { sql: 'SELECT * FROM missing_table' }, id: 'call_1' },
+        { name: 'get_schema_info', args: { tableName: 'dim_player' }, id: 'call_2' },
+      ])
+      .respond(new AIMessage('I corrected the failed query after reviewing schema.'));
     const { getWorkerGraph, resetGraph } = await import('../agent/graph.js');
     resetGraph();
     const chatbotGraph = getWorkerGraph();
@@ -260,17 +184,23 @@ describe.serial('chatbotGraph', () => {
 
     const systemMessages = result.messages.filter((m) => SystemMessage.isInstance(m));
     expect(systemMessages.length).toBeGreaterThan(0);
-    expect(systemMessages[0].content).toContain('SQL validation failed');
+    expect(systemMessages[0]!.content).toContain('SQL validation failed');
     expect(result.sqlRetryCount ?? 0).toBe(0);
-    const lastMsg = result.messages[result.messages.length - 1];
+    const lastMsg = result.messages[result.messages.length - 1]!;
     expect(lastMsg.content).toContain('corrected');
-    forceMixedParallelError = false;
   });
 
   test('binds table listing and SQL checking tools', async () => {
-    forceToolCalls = false;
-    forceNeedsSchemaTools = true;
-    nextToolResponse = 'The schema and query check succeeded.';
+    modelRef = fakeModel()
+      .respondWithTools([
+        { name: 'list_nba_tables', args: { search: 'player' }, id: 'call_list' },
+        {
+          name: 'check_nba_sql',
+          args: { sql: 'SELECT player_name FROM dim_player LIMIT 1' },
+          id: 'call_check',
+        },
+      ])
+      .respond(new AIMessage('The schema and query check succeeded.'));
     const { getWorkerGraph, resetGraph } = await import('../agent/graph.js');
     resetGraph();
     const chatbotGraph = getWorkerGraph();
@@ -283,15 +213,17 @@ describe.serial('chatbotGraph', () => {
     const toolMessages = result.messages.filter((m) => ToolMessage.isInstance(m));
     expect(toolMessages.length).toBe(2);
     expect(toolMessages.map((m) => m.name).sort()).toEqual(['check_nba_sql', 'list_nba_tables']);
-    const lastMsg = result.messages[result.messages.length - 1];
+    const lastMsg = result.messages[result.messages.length - 1]!;
     expect(lastMsg.content).toContain('schema and query check succeeded');
-    forceNeedsSchemaTools = false;
   });
 
   test('routes SQL errors back to llm for correction', async () => {
-    forceToolCalls = true;
     forceQueryError = true;
-    nextToolResponse = 'SQL Error: table not found';
+    modelRef = fakeModel()
+      .respondWithTools([
+        { name: 'query_nba_db', args: { sql: 'SELECT * FROM dim_player LIMIT 1' }, id: 'call_1' },
+      ])
+      .respond(new AIMessage('SQL Error: table not found'));
     const { getWorkerGraph, resetGraph } = await import('../agent/graph.js');
     resetGraph();
     const chatbotGraph = getWorkerGraph();
@@ -303,16 +235,19 @@ describe.serial('chatbotGraph', () => {
 
     const systemMessages = result.messages.filter((m) => SystemMessage.isInstance(m));
     expect(systemMessages.length).toBeGreaterThan(0);
-    expect(systemMessages[0].content).toContain('SQL validation failed');
+    expect(systemMessages[0]!.content).toContain('SQL validation failed');
     expect(result.sqlRetryCount ?? 0).toBe(0);
-    const lastMsg = result.messages[result.messages.length - 1];
+    const lastMsg = result.messages[result.messages.length - 1]!;
     expect(lastMsg).toBeInstanceOf(AIMessage);
   });
 
   test('resets retry count on clean tool result', async () => {
-    forceToolCalls = true;
     forceQueryError = false;
-    nextToolResponse = 'Query returned 5 rows.';
+    modelRef = fakeModel()
+      .respondWithTools([
+        { name: 'query_nba_db', args: { sql: 'SELECT * FROM dim_player LIMIT 1' }, id: 'call_1' },
+      ])
+      .respond(new AIMessage('Query returned 5 rows.'));
     const { getWorkerGraph, resetGraph } = await import('../agent/graph.js');
     resetGraph();
     const chatbotGraph = getWorkerGraph();
@@ -326,9 +261,12 @@ describe.serial('chatbotGraph', () => {
   });
 
   test('resets per-turn tool budget before handling a new tool call', async () => {
-    forceToolCalls = true;
     forceQueryError = false;
-    nextToolResponse = 'Query returned after a fresh turn budget.';
+    modelRef = fakeModel()
+      .respondWithTools([
+        { name: 'query_nba_db', args: { sql: 'SELECT * FROM dim_player LIMIT 1' }, id: 'call_1' },
+      ])
+      .respond(new AIMessage('Query returned after a fresh turn budget.'));
     const { getWorkerGraph, resetGraph } = await import('../agent/graph.js');
     resetGraph();
     const chatbotGraph = getWorkerGraph();
@@ -338,16 +276,21 @@ describe.serial('chatbotGraph', () => {
       { configurable: { thread_id: 'fresh-tool-budget-test' } },
     );
 
-    const lastMsg = result.messages[result.messages.length - 1];
+    const lastMsg = result.messages[result.messages.length - 1]!;
     expect(lastMsg).toBeInstanceOf(AIMessage);
     expect(lastMsg.content).toContain('fresh turn budget');
     expect(result.totalToolCalls ?? 0).toBe(0);
   });
 
   test('ends after max SQL retries exceeded', async () => {
-    forceToolCalls = true;
     forceQueryError = true;
-    forceRepeatedSqlError = true;
+    modelRef = fakeModel()
+      .respondWithTools([
+        { name: 'query_nba_db', args: { sql: 'SELECT * FROM dim_player LIMIT 1' }, id: 'call_1' },
+      ])
+      .respondWithTools([{ name: 'query_nba_db', args: { sql: 'SELECT * FROM missing_table' } }])
+      .respondWithTools([{ name: 'query_nba_db', args: { sql: 'SELECT * FROM missing_table' } }])
+      .respondWithTools([{ name: 'query_nba_db', args: { sql: 'SELECT * FROM missing_table' } }]);
     const { getWorkerGraph, resetGraph } = await import('../agent/graph.js');
     resetGraph();
     const chatbotGraph = getWorkerGraph();
@@ -363,7 +306,7 @@ describe.serial('chatbotGraph', () => {
         typeof message.content === 'string' && message.content.includes('failed after 3 retries'),
     );
     expect(maxRetryMessage).toBeDefined();
-    const lastMsg = result.messages[result.messages.length - 1];
+    const lastMsg = result.messages[result.messages.length - 1]!;
     expect(lastMsg).toBeInstanceOf(SystemMessage);
   });
 });

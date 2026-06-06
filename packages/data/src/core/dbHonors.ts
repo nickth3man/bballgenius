@@ -12,7 +12,7 @@ let honorsConnecting: Promise<DuckDBConnection> | null = null;
  * When set and the file exists, Time Machine accolades load from `v_player_honors_full`.
  */
 export function resolveHonorsDbPath(): string | null {
-  const path = process.env.NBA_HONORS_DUCKDB_PATH?.trim();
+  const path = process.env['NBA_HONORS_DUCKDB_PATH']?.trim();
   if (!path) return null;
   return existsSync(path) ? path : null;
 }

@@ -94,28 +94,28 @@ describe('Shot Court Plotter (drawHalfCourt)', () => {
   let savedNoColor: string | undefined;
 
   beforeEach(() => {
-    savedNoColor = process.env.NO_COLOR;
-    delete process.env.NO_COLOR;
+    savedNoColor = process.env['NO_COLOR'];
+    delete process.env['NO_COLOR'];
   });
 
   afterEach(() => {
     if (savedNoColor === undefined) {
-      delete process.env.NO_COLOR;
+      delete process.env['NO_COLOR'];
     } else {
-      process.env.NO_COLOR = savedNoColor;
+      process.env['NO_COLOR'] = savedNoColor;
     }
   });
 
   test('should draw a grid with baseline and sideline borders', () => {
     const lines = drawHalfCourt([]);
     expect(lines.length).toBe(18); // 18 rows
-    expect(lines[0].length).toBe(40); // 40 columns
+    expect(lines[0]!.length).toBe(40); // 40 columns
 
     // Check baseline is drawn with standard horizontal single-lines
-    expect(lines[0]).toContain('──');
+    expect(lines[0]!).toContain('──');
     // Check sidelines are vertical lines
-    expect(lines[5].startsWith('│')).toBe(true);
-    expect(lines[5].endsWith('│')).toBe(true);
+    expect(lines[5]!.startsWith('│')).toBe(true);
+    expect(lines[5]!.endsWith('│')).toBe(true);
   });
 
   test('should overlay shots correctly as colored symbols', () => {
@@ -147,7 +147,7 @@ describe('Shot Court Plotter (drawHalfCourt)', () => {
 
     const lines = drawHalfCourt(edgeShots);
     expect(lines.length).toBe(18);
-    expect(lines[0].length).toBeGreaterThan(39); // Layout dimensions remain intact
+    expect(lines[0]!.length).toBeGreaterThan(39); // Layout dimensions remain intact
   });
 
   test('should map coordinates to precise logical court grid locations', () => {
@@ -178,15 +178,15 @@ describe('NO_COLOR / monochrome (drawHalfCourt)', () => {
   let savedNoColor: string | undefined;
 
   beforeEach(() => {
-    savedNoColor = process.env.NO_COLOR;
-    process.env.NO_COLOR = '1';
+    savedNoColor = process.env['NO_COLOR'];
+    process.env['NO_COLOR'] = '1';
   });
 
   afterEach(() => {
     if (savedNoColor === undefined) {
-      delete process.env.NO_COLOR;
+      delete process.env['NO_COLOR'];
     } else {
-      process.env.NO_COLOR = savedNoColor;
+      process.env['NO_COLOR'] = savedNoColor;
     }
   });
 

@@ -4,7 +4,9 @@
   "description": "BBallGenius: NBA Analytics Suite (Bun workspace: data + web)",
   "packageManager": "bun@1.3.6",
   "type": "module",
-  "workspaces": ["packages/*"],
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "web": "bun --filter web dev",
     "build:web": "bun --filter web build",
@@ -40,7 +42,7 @@
     "accuracy:refresh": "bun run scripts/db/fetch-accuracy-sources.ts",
     "accuracy:verify": "bun run scripts/db/verify-accuracy.ts",
     "accuracy:full": "bun run accuracy:refresh && bun run accuracy:verify",
-    "ci": "bash scripts/ci/ci-guards.sh && bun run lint && bun run format:check && bun run typecheck && bun run test:unit && bun run audit",
+    "ci": "bash scripts/ci/ci-guards.sh && bun run lint && bun run format:check && bun run typecheck && bun run typecheck:scripts && bun --filter web typecheck && bun run build:web && bun run test:unit && NBA_DUCKDB_PATH=data/fixtures/nba.ci.duckdb bun --filter data test && bun test packages/data/src --concurrency=1 --coverage --coverage-reporter=lcov && bun --filter web test && bun run test:scripts && bun run dq:fixture && bun run docs:lint && bun run audit",
     "bbr:map": "BBR_MAP_DELAY_SEC=0 BBR_MAP_PARALLEL=2 bash scripts/bbr/buildBbrUrlMap.sh",
     "bbr:map:players": "BBR_SCOPE=players BBR_MAP_DELAY_SEC=0 BBR_MAP_PARALLEL=2 bash scripts/bbr/buildBbrUrlMap.sh",
     "bbr:map:merge": "bun run scripts/bbr/mergeBbrUrlMap.ts",
@@ -61,7 +63,7 @@
     "@duckdb/node-api": "^1.5.3-r.3",
     "@duckdb/node-bindings": "^1.5.3-r.3",
     "@langchain/core": "^1.1.48",
-    "@langchain/langgraph": "^1.3.5",
+    "@langchain/langgraph": "^1.3.6",
     "@langchain/openai": "^1.4.7",
     "@standard-schema/spec": "^1.1.0",
     "js-tiktoken": "^1.0.21",
@@ -76,7 +78,7 @@
   "devDependencies": {
     "@biomejs/biome": "^2.4.16",
     "@types/bun": "^1.3.14",
-    "@types/node": "^25.9.1",
+    "@types/node": "^25.9.2",
     "bun-types": "^1.3.14",
     "cheerio": "^1.2.0",
     "lefthook": "^2.1.9",

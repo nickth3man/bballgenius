@@ -17,7 +17,7 @@ TanStack Start (SSR) web application — the user-facing UI for BBallGenius. Ser
   | `/chat` | `chat.tsx` | NBA chatbot with message history input |
   | `/api/copilotkit` | `api/copilotkit.ts` | Server-side POST handler for LangGraph agent |
 - **Data fetching**: Routes use `createServerFn` (TanStack Start server functions) for GET/POST DB queries. The root shell provides a `QueryClient` (30s stale time) via `QueryClientProvider`. `useQuery` is used in `game-center.tsx` for client-side caching.
-- **Styling**: Tailwind CSS v4 with TokyoNight semantic color tokens defined in `styles/app.css` via `@theme`. Tokens (`bg`, `surface`, `fg`, `primary`, etc.) align with `packages/data/src/shared/theme.ts`.
+- **Styling**: Tailwind CSS v4 with a local BBallGenius broadcast theme defined in `styles/app.css` via CSS variables and `@theme`. The web package owns its jersey-blue/court-orange palette, type scale, motion, and reusable UI primitives.
 - **Chat client**: Simple fetch-based POST to `/api/copilotkit` (no CopilotKit React provider). The CopilotKit npm packages (`@copilotkit/react-core`, `@copilotkit/react-ui`, `@copilotkit/runtime`) are listed in `package.json` but the active chat route uses a custom minimal implementation.
 - **Vite/SSR configuration** (`vite.config.ts`):
   - LangChain/LangGraph stack (`@langchain/core`, `@langchain/openai`, `@langchain/langgraph`, `langchain`, `langsmith`) is bundled via `ssr.noExternal` so Vite resolves their subpath imports.

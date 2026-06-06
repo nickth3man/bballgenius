@@ -487,4 +487,4 @@ async function main(): Promise<void> {
   if (passed !== results.length && EXIT_NONZERO_ON_FAIL) process.exitCode = 1;
 }
 
-main();
+void main();

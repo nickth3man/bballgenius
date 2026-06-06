@@ -181,4 +181,4 @@ async function main() {
   process.exit(hasCriticalFailure ? 1 : 0);
 }
 
-main();
+void main();

@@ -68,11 +68,6 @@ bballgenius/
 - **Eval scripts** at repo root import chatbot internals via `packages/data/src/tabs/chatbot/...` (not via workspace alias).
 - **Repo-root assets** (`.firecrawl/`, `bbr-screenshots/`, `data/`) are resolved from code via relative paths up to the repository root.
 
-### Subagent delegation
-
-- **Always read `.agent/subtask-template.md` immediately before creating any subagent/task prompt.** Apply its critical rules to the delegated prompt: critical instructions in the first 15%, max nesting depth 4, 40-50% instruction ratio, single-source rule references, and token-efficient wording without losing precision.
-- Use the template for every `task` tool call, including scout/research agents, code review agents, and implementation subagents. Do not rely on memory of the template; reread the file each time delegation is needed.
-
 ## Tech Stack
 
 - **Language:** TypeScript 5.x / 6.x (Bun runtime)
@@ -333,7 +328,6 @@ START → classify_intent → llm → [toolsCondition] → tools → sql_critic 
 - Pass `--concurrency=1` to `bun test` for full data package runs (DuckDB singleton).
 - Use `mock.module()` in chatbot tests to mock `@langchain/openai` and `../db.js`.
 - Use `zod/v4` for tool schemas and state validation.
-- Read `.agent/subtask-template.md` before writing every subtask delegation prompt.
 - Gate internal data quality with `bun run scripts/db/verify-dq.ts`.
 - Call `CHECKPOINT` after writes in `scripts/db/*`.
 

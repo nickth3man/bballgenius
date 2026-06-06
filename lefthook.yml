@@ -16,7 +16,14 @@ pre-commit:
 
 pre-push:
   commands:
+    biome:
+      glob: '*.{ts,tsx,js,jsx,json,jsonc}'
+      run: bunx biome check --no-errors-on-unmatched --files-ignore-unknown=true {push_files}
     typecheck:
       run: bun run typecheck
+    typecheck-scripts:
+      run: bun run typecheck:scripts
+    typecheck-web:
+      run: bunx tsc --noEmit -p packages/web/tsconfig.json
     test-unit:
       run: bun run test:unit

@@ -212,7 +212,7 @@ function buildGraph() {
     if (erroredContent) {
       if (currentRetry >= MAX_SQL_RETRIES) {
         captureError(new Error('sql validation failed after max retries'), {
-          intent: state.intentCategory,
+          ...(state.intentCategory ? { intent: state.intentCategory } : {}),
           stage: 'sql_error_guard',
           retryCount: currentRetry,
           sql: erroredContent.slice(0, 500),
@@ -336,7 +336,10 @@ function buildGraph() {
 }
 
 let _graph: ReturnType<typeof buildGraph> | undefined;
-type ChatbotGraph = Pick<ReturnType<typeof getOrchestratorGraph>, 'getState' | 'streamEvents'>;
+type ChatbotGraph = Pick<
+  ReturnType<typeof getOrchestratorGraph>,
+  'getState' | 'streamEvents' | 'invoke'
+>;
 
 /**
  * The single-agent worker graph (LLM + tools with budget/loop/SQL/hallucination

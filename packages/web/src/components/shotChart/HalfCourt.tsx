@@ -21,8 +21,8 @@ interface HalfCourtProps {
 export function HalfCourt({
   shots,
   teamAbbrev,
-  madeColor = '#9ece6a',
-  missedColor = '#f7768e',
+  madeColor = 'var(--made)',
+  missedColor = 'var(--missed)',
 }: HalfCourtProps): ReactNode {
   const { width, height } = SVG;
 
@@ -67,8 +67,8 @@ export function HalfCourt({
           y={0}
           width={width}
           height={height}
-          fill="#1a1b26"
-          stroke="#3b4261"
+          fill="var(--surface-sunken)"
+          stroke="var(--border-strong)"
           strokeWidth={2}
         />
 
@@ -78,12 +78,17 @@ export function HalfCourt({
           y1={halfCourtY}
           x2={courtLeft + courtWidth}
           y2={halfCourtY}
-          stroke="#3b4261"
+          stroke="var(--border-strong)"
           strokeWidth={2}
         />
 
         {/* Half-court circle */}
-        <path d={halfCourtCirclePath()} fill="none" stroke="#3b4261" strokeWidth={1.5} />
+        <path
+          d={halfCourtCirclePath()}
+          fill="none"
+          stroke="var(--border-strong)"
+          strokeWidth={1.5}
+        />
 
         {/* Paint (key) */}
         <rect
@@ -92,16 +97,21 @@ export function HalfCourt({
           width={keyWidth}
           height={keyHeight}
           fill="none"
-          stroke="#3b4261"
+          stroke="var(--border-strong)"
           strokeWidth={1.5}
         />
 
         {/* Free throw circle: solid outside the lane, dashed inside the lane */}
-        <path d={freeThrowCirclePath('outer')} fill="none" stroke="#3b4261" strokeWidth={1.5} />
+        <path
+          d={freeThrowCirclePath('outer')}
+          fill="none"
+          stroke="var(--border-strong)"
+          strokeWidth={1.5}
+        />
         <path
           d={freeThrowCirclePath('lane')}
           fill="none"
-          stroke="#3b4261"
+          stroke="var(--border-strong)"
           strokeWidth={1.5}
           strokeDasharray="6 4"
         />
@@ -112,7 +122,7 @@ export function HalfCourt({
           y1={ftLineY}
           x2={keyLeft + keyWidth}
           y2={ftLineY}
-          stroke="#3b4261"
+          stroke="var(--border-strong)"
           strokeWidth={1.5}
         />
 
@@ -127,7 +137,7 @@ export function HalfCourt({
                 y1={markY}
                 x2={keyLeft + markWidth}
                 y2={markY}
-                stroke="#3b4261"
+                stroke="var(--border-strong)"
                 strokeWidth={1}
               />
               <line
@@ -135,7 +145,7 @@ export function HalfCourt({
                 y1={markY}
                 x2={keyLeft + keyWidth}
                 y2={markY}
-                stroke="#3b4261"
+                stroke="var(--border-strong)"
                 strokeWidth={1}
               />
             </g>
@@ -143,10 +153,20 @@ export function HalfCourt({
         })}
 
         {/* Three-point line */}
-        <path d={threePointLinePath()} fill="none" stroke="#3b4261" strokeWidth={1.5} />
+        <path
+          d={threePointLinePath()}
+          fill="none"
+          stroke="var(--border-strong)"
+          strokeWidth={1.5}
+        />
 
         {/* Restricted area */}
-        <path d={restrictedAreaPath()} fill="none" stroke="#3b4261" strokeWidth={1.5} />
+        <path
+          d={restrictedAreaPath()}
+          fill="none"
+          stroke="var(--border-strong)"
+          strokeWidth={1.5}
+        />
 
         {/* Backboard */}
         <line
@@ -154,7 +174,7 @@ export function HalfCourt({
           y1={backboardY}
           x2={backboardLeft + backboardWidth}
           y2={backboardY}
-          stroke="#7aa2f7"
+          stroke="var(--primary)"
           strokeWidth={2}
         />
 
@@ -164,7 +184,7 @@ export function HalfCourt({
           cy={basketY}
           r={rimRadius}
           fill="none"
-          stroke="#7aa2f7"
+          stroke="var(--primary)"
           strokeWidth={2}
         />
 

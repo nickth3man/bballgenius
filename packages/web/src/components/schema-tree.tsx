@@ -55,15 +55,18 @@ function TreeNode({
         {node.name}
       </button>
       {expanded &&
-        node.children?.map((child) => (
-          <TreeNode
-            key={`${node.name}.${child.name}`}
-            node={child}
-            onSelectTable={onSelectTable}
-            onSelectColumn={onSelectColumn}
-            parentTable={node.type === 'table' ? node.name : parentTable}
-          />
-        ))}
+        node.children?.map((child) => {
+          const nextParentTable = node.type === 'table' ? node.name : parentTable;
+          return (
+            <TreeNode
+              key={`${node.name}.${child.name}`}
+              node={child}
+              onSelectTable={onSelectTable}
+              onSelectColumn={onSelectColumn}
+              {...(nextParentTable !== undefined ? { parentTable: nextParentTable } : {})}
+            />
+          );
+        })}
     </div>
   );
 }

@@ -30,7 +30,7 @@ export const Theme = {
 
 /** True when `NO_COLOR` is set to any non-empty value (https://no-color.org/). */
 export function isNoColor(): boolean {
-  const value = process.env.NO_COLOR;
+  const value = process.env['NO_COLOR'];
   return value !== undefined && value !== '';
 }
 

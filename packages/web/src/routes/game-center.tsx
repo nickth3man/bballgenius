@@ -5,6 +5,8 @@ import type { BoxScoreRow, GameShotRow, RecentGameRow } from 'data/tabs/game-cen
 import type { ReactNode } from 'react';
 import { useMemo, useState } from 'react';
 import { DualShotChart } from '../components/shotChart/index.js';
+import { Card, StatTile, Tabs, TeamCrest } from '../components/ui';
+import { teamColor } from '../lib/teamColors';
 
 const loadRecentGames = createServerFn({ method: 'GET' }).handler(async () => {
   const { loadRecentGames } = await import('data/tabs/game-center/queries');
@@ -113,21 +115,17 @@ function GameCenterPage(): ReactNode {
                 seasonYear={selectedGameMeta.season_year}
               />
             )}
-            <div className="mb-4 flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setView('boxscore')}
-                className={`rounded px-3 py-1 text-sm ${view === 'boxscore' ? 'bg-primary text-bg' : 'bg-surface text-fg-muted'}`}
-              >
-                Box Score
-              </button>
-              <button
-                type="button"
-                onClick={() => setView('shotchart')}
-                className={`rounded px-3 py-1 text-sm ${view === 'shotchart' ? 'bg-primary text-bg' : 'bg-surface text-fg-muted'}`}
-              >
-                Shot Chart
-              </button>
+            <div className="mb-4">
+              <Tabs
+                tabs={[
+                  { id: 'boxscore', label: 'Box Score' },
+                  { id: 'shotchart', label: 'Shot Chart' },
+                ]}
+                value={view === 'shotchart' ? 'shotchart' : 'boxscore'}
+                onChange={(id) => setView(id as 'boxscore' | 'shotchart')}
+                variant="segmented"
+                size="sm"
+              />
             </div>
             {view === 'boxscore' && <SplitBoxScore rows={boxScore} />}
             {view === 'shotchart' && (
@@ -170,28 +168,28 @@ function ScoreBanner(props: {
   const { awayAbbrev, homeAbbrev, awayName, homeName, awayScore, homeScore, gameDate, seasonYear } =
     props;
   return (
-    <div className="mb-3 rounded border border-border bg-surface p-3">
+    <Card accent="primary" pad="md" style={{ marginBottom: 12 }}>
       <div className="flex items-center justify-between gap-6">
-        <div className="flex-1">
-          <div className="text-xs text-fg-dim">{awayName}</div>
-          <div className="flex items-baseline gap-2">
-            <span className="text-lg font-bold text-primary">{awayAbbrev}</span>
-            <span className="text-2xl font-bold text-fg">{awayScore}</span>
+        <div className="flex flex-1 items-center gap-3">
+          <TeamCrest abbrev={awayAbbrev} color={teamColor(awayAbbrev)} size={48} shape="square" />
+          <div>
+            <div className="text-xs text-fg-dim">{awayName}</div>
+            <StatTile label="Away" value={awayScore} size="lg" />
           </div>
         </div>
-        <div className="text-fg-dim text-xs">FINAL</div>
-        <div className="flex-1 text-right">
-          <div className="text-xs text-fg-dim">{homeName}</div>
-          <div className="flex items-baseline justify-end gap-2">
-            <span className="text-2xl font-bold text-fg">{homeScore}</span>
-            <span className="text-lg font-bold text-primary">{homeAbbrev}</span>
+        <div className="text-xs font-bold uppercase tracking-widest text-accent">Final</div>
+        <div className="flex flex-1 items-center justify-end gap-3">
+          <div className="text-right">
+            <div className="text-xs text-fg-dim">{homeName}</div>
+            <StatTile label="Home" value={homeScore} size="lg" style={{ alignItems: 'flex-end' }} />
           </div>
+          <TeamCrest abbrev={homeAbbrev} color={teamColor(homeAbbrev)} size={48} shape="square" />
         </div>
       </div>
-      <div className="mt-2 text-fg-dim text-xs">
+      <div className="mt-3 text-xs text-fg-dim">
         {gameDate} &middot; {seasonYear}
       </div>
-    </div>
+    </Card>
   );
 }
 

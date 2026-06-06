@@ -54,18 +54,19 @@ Six routes total (see child `routes/codemap.md`):
 
 ### Shared components (`components/`)
 
-Three components used exclusively by `/sql-sandbox` (see child `components/codemap.md`):
-- `CodeEditor` — CodeMirror 6 wrapper (PostgreSQL dialect, One Dark theme, Ctrl+Enter binding)
-- `SchemaTree` — Recursive accordion tree (Schema → Table → Column)
-- `ResultsTable` — TanStack React Table v8 (auto-generated columns from first row keys)
+Shared web-owned UI lives under `components/` (see child `components/codemap.md`):
+- `CodeEditor`, `SchemaTree`, `ResultsTable` — SQL Sandbox primitives.
+- `shotChart/` — half-court SVG geometry and dual shot chart.
+- `timeMachine/player-dossier.tsx` — Career Time-Machine dossier sections.
+- `ui/` — local BBallGenius primitives (`Button`, `Badge`, `Card`, `Tabs`, `StatTile`, `TeamCrest`, `Skeleton`).
 
 All are inert presentational components with no server/DB access.
 
 ### Global styles (`styles/app.css`)
 
-- Tailwind v4 (`@import 'tailwindcss'` + `@theme` block)
-- TokyoNight color palette (synced with `packages/data/src/shared/theme.ts`): 22 CSS custom properties (`--color-bg`, `--color-primary`, `--color-danger`, etc.)
-- HTML/body reset: full-height, dark background (`#1a1b26`), light text (`#c0caf5`), system font stack
+- Tailwind v4 (`@import 'tailwindcss'` + `@theme` block).
+- Local BBallGenius broadcast theme variables: ink/paper surfaces, jersey blue, court orange, hardwood gold, semantic made/missed/status colors, type scale, spacing, radii, shadows, and motion.
+- HTML/body reset: full-height dark canvas, Archivo body font, Saira display numerals, JetBrains Mono tables/SQL.
 
 ## Flow
 

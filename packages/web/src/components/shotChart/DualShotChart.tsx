@@ -49,13 +49,13 @@ export function DualShotChart({
     <div className="w-full">
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div className="min-w-0">
-          <HalfCourt shots={awayShots} teamAbbrev={awayAbbrev} missedColor="#f7768e" />
+          <HalfCourt shots={awayShots} teamAbbrev={awayAbbrev} />
           <div className="mt-1 text-center text-xs text-fg-dim">
             {awayMade}/{awayShots.length} FG ({awayPct}%)
           </div>
         </div>
         <div className="min-w-0">
-          <HalfCourt shots={homeShots} teamAbbrev={homeAbbrev} missedColor="#ff9e64" />
+          <HalfCourt shots={homeShots} teamAbbrev={homeAbbrev} />
           <div className="mt-1 text-center text-xs text-fg-dim">
             {homeMade}/{homeShots.length} FG ({homePct}%)
           </div>
@@ -67,14 +67,14 @@ export function DualShotChart({
         <span className="flex items-center gap-1.5">
           <span
             className="inline-block h-2.5 w-2.5 rounded-full"
-            style={{ backgroundColor: '#9ece6a' }}
+            style={{ backgroundColor: 'var(--made)' }}
           />
           Made
         </span>
         <span className="flex items-center gap-1.5">
           <span
             className="inline-block h-2.5 w-2.5 rounded-full border-2"
-            style={{ borderColor: '#f7768e', backgroundColor: 'transparent' }}
+            style={{ borderColor: 'var(--missed)', backgroundColor: 'transparent' }}
           />
           Missed
         </span>

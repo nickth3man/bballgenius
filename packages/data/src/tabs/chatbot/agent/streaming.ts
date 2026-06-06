@@ -30,6 +30,7 @@ export type ChainStageName =
 
 export type StreamEvent =
   | { type: 'token'; content: string }
+  | { type: 'reasoning'; content: string }
   | { type: 'tool_start'; name: string; input: Record<string, unknown>; runId: string }
   | {
       type: 'tool_end';
@@ -87,6 +88,58 @@ interface SpanState {
 const SQL_TOOL_NAMES = new Set<string>(['query_nba_db', 'check_nba_sql']);
 
 /**
+ * LangGraph streamEvents v2 wraps tool arguments as { input: JSON.stringify(args) }
+ * inside on_tool_start. Unwrap to the actual args object so downstream consumers
+ * see { sql: "..." } instead of { input: '{"sql":"..."}' }.
+ */
+function normalizeToolInput(raw: Record<string, unknown>): Record<string, unknown> {
+  if (Object.keys(raw).length === 1 && typeof raw['input'] === 'string') {
+    try {
+      const parsed = JSON.parse(raw['input']);
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        return parsed as Record<string, unknown>;
+      }
+    } catch {
+      // Fall through to return raw
+    }
+  }
+  return raw;
+}
+
+/**
+ * Extracts model reasoning/thinking text from a streamed chat-model chunk.
+ *
+ * Providers expose reasoning under different keys: OpenRouter normalizes it to
+ * `reasoning`, DeepSeek-style deltas use `reasoning_content`, and some return a
+ * structured `reasoning_details` array. We check each so the "thinking" view
+ * works across models without provider-specific branching downstream.
+ */
+function extractReasoningChunk(chunk: unknown): string {
+  if (!chunk || typeof chunk !== 'object') return '';
+  const kwargs = (chunk as { additional_kwargs?: Record<string, unknown> }).additional_kwargs;
+  if (!kwargs) return '';
+
+  const direct = kwargs['reasoning'] ?? kwargs['reasoning_content'];
+  if (typeof direct === 'string') return direct;
+
+  const details = kwargs['reasoning_details'];
+  if (Array.isArray(details)) {
+    return details
+      .map((d) => {
+        if (typeof d === 'string') return d;
+        if (d && typeof d === 'object') {
+          const obj = d as { text?: unknown; summary?: unknown };
+          if (typeof obj.text === 'string') return obj.text;
+          if (typeof obj.summary === 'string') return obj.summary;
+        }
+        return '';
+      })
+      .join('');
+  }
+  return '';
+}
+
+/**
  * Streams LangGraph execution events from the chatbot graph.
  *
  * The 4th parameter `opts.runId` lets callers inject an explicit run
@@ -137,6 +190,10 @@ export async function* streamQuery(
 
       if (event.event === 'on_chat_model_stream') {
         const chunk = event.data?.chunk;
+        const reasoning = extractReasoningChunk(chunk);
+        if (reasoning) {
+          yield { type: 'reasoning', content: reasoning };
+        }
         if (chunk?.content) {
           const content =
             typeof chunk.content === 'string'
@@ -153,7 +210,7 @@ export async function* streamQuery(
 
       if (event.event === 'on_tool_start') {
         const toolName = event.name || 'unknown';
-        const input = (event.data?.input || {}) as Record<string, unknown>;
+        const input = normalizeToolInput((event.data?.input || {}) as Record<string, unknown>);
         span.toolStarts.push(toolName);
         activeTools.set(event.run_id, { name: toolName, input, startedAt: Date.now() });
         yield {
@@ -175,10 +232,10 @@ export async function* streamQuery(
         yield {
           type: 'tool_end',
           name: toolName,
-          input: activeTool?.input,
+          ...(activeTool?.input !== undefined ? { input: activeTool.input } : {}),
+          ...(activeTool ? { durationMs: Date.now() - activeTool.startedAt } : {}),
           output,
           runId: event.run_id,
-          durationMs: activeTool ? Date.now() - activeTool.startedAt : undefined,
         };
       }
 
@@ -241,12 +298,13 @@ export async function* streamQuery(
       errMessage: err instanceof Error ? err.message : String(err),
     });
 
+    const lastToolError =
+      span.toolErrors.length > 0 ? span.toolErrors[span.toolErrors.length - 1]! : undefined;
     yield {
       type: 'error',
       message: formatErrorForUser(err),
       runId,
-      toolName:
-        span.toolErrors.length > 0 ? span.toolErrors[span.toolErrors.length - 1].name : undefined,
+      ...(lastToolError ? { toolName: lastToolError.name } : {}),
       stage: 'stream',
     };
   }

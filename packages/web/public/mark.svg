@@ -1,0 +1,6 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="BBallGenius mark">
+  <rect x="0.75" y="0.75" width="62.5" height="62.5" rx="14" fill="#0E131D" stroke="#283449" stroke-width="1.5"></rect>
+  <line x1="32" y1="9" x2="32" y2="55" stroke="#2F7BF6" stroke-width="2.5"></line>
+  <circle cx="32" cy="32" r="11" stroke="#FF6B2C" stroke-width="3"></circle>
+  <circle cx="32" cy="32" r="2.6" fill="#FF6B2C"></circle>
+</svg>

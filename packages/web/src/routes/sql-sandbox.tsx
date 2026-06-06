@@ -4,6 +4,7 @@ import { type ReactNode, useCallback, useRef, useState } from 'react';
 import { CodeEditor } from '../components/code-editor';
 import { ResultsTable } from '../components/results-table';
 import { SchemaTree } from '../components/schema-tree';
+import { Button } from '../components/ui';
 
 interface QueryResult {
   rows: Record<string, unknown>[];
@@ -87,22 +88,13 @@ function SqlSandboxPage(): ReactNode {
       <div className="flex items-center justify-between border-b border-border px-4 py-2">
         <h2 className="text-sm font-bold text-primary">SQL Sandbox</h2>
         <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={runQuery}
-            disabled={loading}
-            className="rounded bg-primary px-4 py-1 text-sm font-medium text-bg hover:bg-primary/90 disabled:opacity-50"
-          >
+          <Button variant="primary" size="sm" onClick={runQuery} disabled={loading}>
             {loading ? 'Running...' : 'Run (Ctrl+Enter)'}
-          </button>
+          </Button>
           {loading && (
-            <button
-              type="button"
-              onClick={cancelQuery}
-              className="rounded bg-danger/20 px-3 py-1 text-sm text-danger hover:bg-danger/30"
-            >
+            <Button variant="danger" size="sm" onClick={cancelQuery}>
               Cancel
-            </button>
+            </Button>
           )}
         </div>
       </div>
@@ -123,7 +115,7 @@ function SqlSandboxPage(): ReactNode {
               data={results?.rows ?? []}
               loading={loading}
               error={error}
-              elapsedMs={results?.elapsedMs}
+              {...(results?.elapsedMs !== undefined ? { elapsedMs: results.elapsedMs } : {})}
             />
           </div>
         </div>
