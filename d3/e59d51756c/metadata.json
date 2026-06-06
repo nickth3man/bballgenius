@@ -3,7 +3,7 @@
   "checkpoint_id": "d3e59d51756c",
   "strategy": "manual-commit",
   "branch": "dev",
-  "checkpoints_count": 1,
+  "checkpoints_count": 2,
   "files_touched": [
     ".agent/subtask-template.md",
     ".agent/tm-screenshot-initial.png",
@@ -25,6 +25,7 @@
     "packages/data/src/tabs/chatbot/__tests__/processQuestion.test.ts",
     "packages/data/src/tabs/chatbot/__tests__/streaming.test.ts",
     "packages/data/src/tabs/chatbot/agent/graph.ts",
+    "packages/data/src/tabs/chatbot/agent/model.ts",
     "packages/data/src/tabs/chatbot/agent/orchestrator.ts",
     "packages/data/src/tabs/chatbot/agent/streaming.ts",
     "packages/data/src/tabs/chatbot/agent/tools.ts",
@@ -45,6 +46,7 @@
     "packages/web/src/components/shotChart/HalfCourt.tsx",
     "packages/web/src/components/shotChart/courtGeometry.test.ts",
     "packages/web/src/components/timeMachine/player-dossier.tsx",
+    "packages/web/src/routeTree.gen.ts",
     "packages/web/src/routes/__root.tsx",
     "packages/web/src/routes/chat.tsx",
     "packages/web/src/routes/game-center.tsx",
@@ -67,13 +69,19 @@
       "transcript": "/d3/e59d51756c/0/full.jsonl",
       "content_hash": "/d3/e59d51756c/0/content_hash.txt",
       "prompt": "/d3/e59d51756c/0/prompt.txt"
+    },
+    {
+      "metadata": "/d3/e59d51756c/1/metadata.json",
+      "transcript": "/d3/e59d51756c/1/full.jsonl",
+      "content_hash": "/d3/e59d51756c/1/content_hash.txt",
+      "prompt": "/d3/e59d51756c/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 12811,
-    "cache_creation_tokens": 86073,
-    "cache_read_tokens": 271949,
-    "output_tokens": 1598,
-    "api_call_count": 9
+    "input_tokens": 35086,
+    "cache_creation_tokens": 321753,
+    "cache_read_tokens": 4824909,
+    "output_tokens": 47160,
+    "api_call_count": 70
   }
 }

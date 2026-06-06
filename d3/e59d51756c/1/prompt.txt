@@ -1,0 +1,9 @@
+i want to add streaming and thinking content as well as showing sql to http://localhost:3001/chat
+
+---
+
+the dev server should have a key. its in .env. you have permission to read it to verify this. also add all values from @.env.example that arent in .env to .env
+
+---
+
+write a handoff prompt with our current task and problems i can give to a new agent. *include enough context and list files to read before it continues*
