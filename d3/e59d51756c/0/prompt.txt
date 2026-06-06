@@ -1,0 +1,17 @@
+Detect my project's dev servers and save all their configurations to .claude/launch.json, then ask which ones to start.
+
+```json
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "<server-name>",
+      "runtimeExecutable": "<command>",
+      "runtimeArgs": ["<args>"],
+      "port": <port>
+    }
+  ]
+}
+```
+
+Use runtimeExecutable for the command (e.g. "yarn", "npm", "node", "python") and runtimeArgs for its arguments. Call preview_start for each server the user wants to run.
