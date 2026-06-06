@@ -1,6 +1,8 @@
 export { Badge } from './badge.js';
 export { Button } from './button.js';
 export { Card } from './card.js';
+export { PctBar } from './pct-bar.js';
+export { SectionErrorBoundary } from './section-error-boundary.js';
 export { Skeleton } from './skeleton.js';
 export { StatTile } from './stat-tile.js';
 export { Tabs } from './tabs.js';
