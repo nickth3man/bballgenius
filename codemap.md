@@ -1,75 +1,242 @@
-# bballgenius/ — Repository Atlas
+# bballgenius/
 
-## Project Responsibility
+## Responsibility
 
-BBallGenius is a **Bun workspace monorepo** (`bun@1.3.6`, ESM, workspaces at `packages/*`) providing an NBA analytics suite. It combines a **local DuckDB warehouse** (~21.7 GB, 509+ tables across 12 medallion-tier schemas) with a **LangGraph chatbot agent** and a **TanStack Start/React web UI**. The system operates entirely offline against a local `.duckdb` file; no cloud database is involved.
+**BBallGenius** is a desktop NBA analytics suite built as a Bun workspace monorepo. It provides four core features through a local TanStack Start web UI:
 
-Two workspace packages deliver the architecture:
+1. **Game Center** — Browse recent games, box scores, and shot charts
+2. **Career Time-Machine** — Search any player's career stats, awards, and season-by-season progression
+3. **SQL Sandbox** — Run ad-hoc SQL against a 509-table, ~414M-row DuckDB warehouse with schema browsing and autocomplete
+4. **Chat** — Ask natural-language NBA questions answered by a LangGraph ReAct agent with SQL-critic error correction, multi-tool schema discovery, and streaming token output
 
-| Package | Role | Key Stack |
-|---------|------|-----------|
-| `packages/data` | Data & agent layer | DuckDB, LangGraph, LangChain, Zod v4, OpenRouter |
-| `packages/web` | Frontend UI | TanStack Start, React 19, Tailwind CSS v4, CopilotKit (chat) |
+The system operates entirely on a local DuckDB file (`data/nba.duckdb`, ~21.7 GB) with no external database dependencies. The chatbot calls OpenRouter for LLM inference. Basketball-Reference data is mirrored offline via Firecrawl for the Time Machine feature.
 
-All DuckDB access flows through `data`; `web` consumes it exclusively via workspace subpath exports. The chatbot agent (LangGraph ReAct) executes SQL tools, runs a sql-critic error-correction loop, and streams tokens to the chat UI via a custom server-side POST handler.
+## System Entry Points
 
-Supporting automation lives under `scripts/`: CI guards/fixture building, DuckDB data-quality verification/curation, BBR (Basketball-Reference) Firecrawl mirror pipeline, and chatbot evaluation harnesses.
+### Development commands
 
----
+| Command | Purpose |
+|---------|---------|
+| `bun run web` | TanStack Start dev server (`packages/web`) |
+| `bun run build:web` | Production build |
+| `bun run data:build` | Data package typecheck |
+| `bun run data:test` | All data package tests (DB + mocked LLM) |
+| `bun run typecheck` | TypeScript check for data package |
+| `bun run chatbot:smoke` | Real API smoke test with fact-checked NBA questions |
+| `bun run chatbot:smoke:100` | Full 100-query smoke suite |
+| `bun run ci` | Complete CI pipeline: guards → lint → format → typecheck → build → test → audit |
 
-## System Entry Points — Root Configuration
+### Fast-feedback TDD loop
 
-| File | Purpose |
-|------|---------|
-| `package.json` | Root workspace config: `"workspaces": ["packages/*"]`, shared deps (LangChain, DuckDB, Zod, OpenAI), dev scripts (web, build:web, typecheck, lint, smoke test, DQ, BBR crawl, CI orchestration), Biome/lefthook overrides. |
-| `tsconfig.base.json` | Base TS config: target `es2022`, module `esnext`, `bundler` resolution, strict mode, `bun` types. Extended by both packages and scripts. |
-| `tsconfig.scripts.json` | Extends `tsconfig.base.json`; scoped to `scripts/**/*.ts` with `rootDir: "."`. |
-| `biome.json` | Unified lint+format: 2-space indent, 100-char width, single quotes, semicolons. Rules: `noExplicitAny` error, `noUnusedImports` error, `organizeImports` on save. Scoped to `packages/*/src` and `scripts/`. |
-| `bunfig.toml` | Test defaults: `concurrentTestGlob` for `__tests__/*.test.ts`, 10s timeout. |
-| `lefthook.yml` | Pre-commit: Biome write + `.only`/`.skip` guard. Pre-push: typecheck + unit tests. |
-| `.env.example` | Template for `OPENROUTER_API_KEY`, `NBA_DUCKDB_PATH`, `MODEL`, `CHATBOT_*`, `LANGSMITH_*`, `FIRECRAWL_API_KEY`. |
-| `AGENTS.md` | Canonical project guide (rules, architecture, commands, conventions). Imported by `CLAUDE.md`. |
-| `CLAUDE.md` | Claude-code entry — delegates to `AGENTS.md`. |
-| `NBA_DB_SCHEMA_REFERENCE.md` | Auto-generated full column reference for the DuckDB warehouse (509+ tables). |
+| Command | Purpose |
+|---------|---------|
+| `bun run test:changed` | Only tests affected by uncommitted changes |
+| `bun run test:quick` | `--changed` + `--bail` (stops at first failure) |
+| `bun run lint:fix` | Biome write on `packages/` + `scripts/` |
 
----
+### Source entry points
+
+| Path | Role |
+|------|------|
+| `packages/web/src/router.tsx` | TanStack Router creation — the browser UI entry point |
+| `packages/data/src/index.ts` | Data package barrel — re-exports core DB + shared utilities |
+| `packages/data/package.json` `"exports"` | 15 subpath export aliases consumed by web and scripts |
+| `packages/data/src/tabs/chatbot/agent/graph.ts` | LangGraph chatbot graph — the agent entry point |
+
+## High-Level Architecture
+
+```
+User Browser
+     │
+     ▼
+┌──────────────────────────────────────────────────────────┐
+│  packages/web/ (TanStack Start + React 19)               │
+│                                                           │
+│  Routes (file-based):                                     │
+│    /game-center  ─┐                                       │
+│    /time-machine ─┤─ server functions ──┐                 │
+│    /sql-sandbox  ─┘   (createServerFn)  │                 │
+│                                         ▼                 │
+│    /chat ── POST /api/copilotkit ──────────────────┐      │
+│                                       │             │      │
+└───────────────────────────────────────│─────────────│──────┘
+                                        │             │
+                          import via     ▼             ▼
+                          workspace:*    │             │
+┌───────────────────────────────────────│─────────────│──────┐
+│  packages/data/ (framework-agnostic)  │             │      │
+│                                       │             │      │
+│  ┌─────────────────┐                  │             │      │
+│  │ core/db.ts      │◄─────────────────┘             │      │
+│  │ (DuckDB single) │  Tab query functions            │      │
+│  │  READ_ONLY      │  (gameCenter, timeMachine,      │      │
+│  │  search_path:   │   sqlSandbox)                   │      │
+│  │  unified_star   │                                  │      │
+│  └────────┬────────┘                                  │      │
+│           │                                           │      │
+│           ▼                                           │      │
+│  ┌─────────────────┐   ┌──────────────────────────┐  │      │
+│  │  DuckDB          │   │  chatbot/agent/          │◄─┘      │
+│  │  data/nba.duckdb │   │  LangGraph StateGraph    │         │
+│  │  (~21.7 GB)      │   │  ┌─ classify_intent      │         │
+│  │  509 tables      │   │  ├─ inject_schema        │         │
+│  │  12 schemas      │   │  ├─ llm (ChatOpenRouter) │         │
+│  │  ~414M rows      │   │  ├─ tools (ToolNode)     │─────────┘
+│  └──────────────────┘   │  ├─ sql_error_guard      │  streamQuery()
+│                          │  ├─ validate_answer      │  yields StreamEvent
+│                          │  └─ finalize_turn        │
+│                          └──────────┬───────────────┘
+│                                     │
+│                          ┌──────────▼───────────────┐
+│                          │  OpenRouter API           │
+│                          │  (LLM inference,          │
+│                          │   configurable MODEL)     │
+│                          └──────────────────────────┘
+└──────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────┐
+│  scripts/ (automation, not imported by packages)          │
+│                                                           │
+│  ci/   → CI guards, DuckDB fixture builder                │
+│  db/   → Warehouse curation: DQ, canonical views, xref   │
+│  eval/ → Chatbot smoke tests, multi-model matrix          │
+│  bbr/  → Firecrawl mirror of Basketball-Reference         │
+└──────────────────────────────────────────────────────────┘
+```
+
+### Two data-flow paths
+
+**Path 1 — Tab queries (Game Center, Time Machine, SQL Sandbox):**
+
+```
+Web route page component
+  → createServerFn handler
+    → dynamic import('data') or import('data/tabs/<tab>/queries')
+      → query<T>(sql, params?) from core/db.ts
+        → DuckDB (read-only singleton, search_path = unified_star,main)
+          → typed JSON row objects
+```
+
+**Path 2 — Chat agent:**
+
+```
+Chat page POST /api/copilotkit { messages }
+  → api/copilotkit.ts server handler
+    → streamQuery(baseMessages, threadId)
+      → LangGraph graph (orchestrator or single-agent)
+        → classify_intent (regex, no LLM)
+        → inject_schema (fetch relevant table schemas)
+        → llm (ChatOpenRouter via OpenRouter API)
+          → tool calls (query_nba_db, get_schema_info, list_nba_tables, check_nba_sql, find_stat_columns)
+            → DuckDB (chatbot's own singleton in chatbot/db.ts)
+            → sql_error_guard (retry ≤3 on error)
+          → validate_answer (hallucination check)
+        → yields StreamEvent (token, tool_start, tool_end, done, error)
+      → final assistant message → JSON response
+```
 
 ## Directory Map
 
-Every sub-directory with a `codemap.md` is listed below. Each entry links to its detailed sub-map and gives a one-line responsibility summary.
+| Directory | Responsibility | Codemap |
+|-----------|---------------|---------|
+| `packages/` | Workspace monorepo root — two private packages (`data`, `web`) with workspace protocol imports | [`packages/codemap.md`](packages/codemap.md) |
+| `packages/data/` | Data workspace package root — DuckDB access, LangGraph agent, tab queries, shared formatters | [`packages/data/src/codemap.md`](packages/data/src/codemap.md) |
+| `packages/data/src/` | Data package source root — barrel re-exports, core/, shared/, tabs/ | [`packages/data/src/codemap.md`](packages/data/src/codemap.md) |
+| `packages/data/src/core/` | DuckDB singleton connections, type aliases, error utilities | [`packages/data/src/core/codemap.md`](packages/data/src/core/codemap.md) |
+| `packages/data/src/shared/` | dbPath resolver, formatters, theme tokens, SQL validation, error helpers — no DuckDB imports | [`packages/data/src/shared/codemap.md`](packages/data/src/shared/codemap.md) |
+| `packages/data/src/tabs/` | Tab orchestration layer — four self-contained feature modules with query functions | [`packages/data/src/tabs/codemap.md`](packages/data/src/tabs/codemap.md) |
+| `packages/data/src/tabs/gameCenter/` | Game Center queries — recent games, box scores, shot-chart data | [`packages/data/src/tabs/gameCenter/codemap.md`](packages/data/src/tabs/gameCenter/codemap.md) |
+| `packages/data/src/tabs/timeMachine/` | Time Machine queries — player search, career stats, awards, team lookup | [`packages/data/src/tabs/timeMachine/codemap.md`](packages/data/src/tabs/timeMachine/codemap.md) |
+| `packages/data/src/tabs/timeMachine/utils/` | Time Machine utilities — career stats deduplication, season year helpers | [`packages/data/src/tabs/timeMachine/utils/codemap.md`](packages/data/src/tabs/timeMachine/utils/codemap.md) |
+| `packages/data/src/tabs/sqlSandbox/` | SQL Sandbox — ad-hoc SQL execution, schema tree model, autocomplete state machine | [`packages/data/src/tabs/sqlSandbox/codemap.md`](packages/data/src/tabs/sqlSandbox/codemap.md) |
+| `packages/data/src/tabs/chatbot/` | Chatbot tab root — DuckDB singleton, system prompt builder, OpenRouter model config | [`packages/data/src/tabs/chatbot/codemap.md`](packages/data/src/tabs/chatbot/codemap.md) |
+| `packages/data/src/tabs/chatbot/agent/` | LangGraph agent — state graph, tools, streaming, multi-agent orchestrator, intent classification | [`packages/data/src/tabs/chatbot/agent/codemap.md`](packages/data/src/tabs/chatbot/agent/codemap.md) |
+| `packages/data/src/tabs/chatbot/utils/` | SQL validation/extraction/execution, retry with backoff, metrics, correlation, formatting | [`packages/data/src/tabs/chatbot/utils/codemap.md`](packages/data/src/tabs/chatbot/utils/codemap.md) |
+| `packages/data/src/tabs/chatbot/eval/` | Eval suite — 100 categorized NBA test queries, ground-truth data, matrix/iterate harnesses | [`packages/data/src/tabs/chatbot/eval/codemap.md`](packages/data/src/tabs/chatbot/eval/codemap.md) |
+| `packages/web/` | Web workspace package root — TanStack Start config, Vite, Tailwind | — |
+| `packages/web/src/` | TanStack Start app entry — router, root shell, route tree | [`packages/web/src/codemap.md`](packages/web/src/codemap.md) |
+| `packages/web/src/components/` | Component library — CodeEditor, SchemaTree, ResultsTable, shot charts, Time Machine dossier | [`packages/web/src/components/codemap.md`](packages/web/src/components/codemap.md) |
+| `packages/web/src/components/ui/` | Reusable UI primitives — Button, Badge, Card, Tabs, StatTile, TeamCrest, Skeleton | [`packages/web/src/components/ui/codemap.md`](packages/web/src/components/ui/codemap.md) |
+| `packages/web/src/components/shotChart/` | Shot chart visualization — half-court SVG geometry, dual shot chart | [`packages/web/src/components/shotChart/codemap.md`](packages/web/src/components/shotChart/codemap.md) |
+| `packages/web/src/components/timeMachine/` | Time Machine components — search panel, dossier skeleton, dossier detail | [`packages/web/src/components/timeMachine/codemap.md`](packages/web/src/components/timeMachine/codemap.md) |
+| `packages/web/src/components/timeMachine/dossier/` | Player dossier detail — career sections, data tables, hooks, internal utilities | [`packages/web/src/components/timeMachine/dossier/codemap.md`](packages/web/src/components/timeMachine/dossier/codemap.md) |
+| `packages/web/src/components/timeMachine/dossier/tables/` | Dossier data tables — per-game, totals, advanced, shooting, per-36, play-by-play, season tabs | [`packages/web/src/components/timeMachine/dossier/tables/codemap.md`](packages/web/src/components/timeMachine/dossier/tables/codemap.md) |
+| `packages/web/src/components/timeMachine/dossier/sections/` | Dossier sections — header, career trajectory, awards, shot zones, game log, draft combine | [`packages/web/src/components/timeMachine/dossier/sections/codemap.md`](packages/web/src/components/timeMachine/dossier/sections/codemap.md) |
+| `packages/web/src/components/timeMachine/dossier/internal/` | Dossier internal utilities — data-table, section-card, highlight, types | [`packages/web/src/components/timeMachine/dossier/internal/codemap.md`](packages/web/src/components/timeMachine/dossier/internal/codemap.md) |
+| `packages/web/src/components/timeMachine/dossier/hooks/` | Dossier data hooks — career summary, season tabs, sortable table | [`packages/web/src/components/timeMachine/dossier/hooks/codemap.md`](packages/web/src/components/timeMachine/dossier/hooks/codemap.md) |
+| `packages/web/src/routes/` | Route definitions — six file-based TanStack Router routes (pages + API) | [`packages/web/src/routes/codemap.md`](packages/web/src/routes/codemap.md) |
+| `packages/web/src/routes/api/` | API endpoints — CopilotKit chat stream handler | [`packages/web/src/routes/api/codemap.md`](packages/web/src/routes/api/codemap.md) |
+| `packages/web/src/routes/time-machine/` | Time Machine route pages — server functions for player data | [`packages/web/src/routes/time-machine/codemap.md`](packages/web/src/routes/time-machine/codemap.md) |
+| `packages/web/src/lib/` | Library wrappers — team color mapping | [`packages/web/src/lib/codemap.md`](packages/web/src/lib/codemap.md) |
+| `packages/web/src/utils/` | Pure utility functions — formatters, theme re-exports | [`packages/web/src/utils/codemap.md`](packages/web/src/utils/codemap.md) |
+| `packages/web/src/styles/` | Global styles — Tailwind v4 + BBallGenius theme variables | [`packages/web/src/styles/codemap.md`](packages/web/src/styles/codemap.md) |
+| `scripts/` | Automation root — CI, DuckDB warehouse ops, chatbot eval, BBR mirroring | [`scripts/codemap.md`](scripts/codemap.md) |
+| `scripts/ci/` | CI guards (no `.only`/`.skip`, Biome zero-warning), DuckDB fixture builder | [`scripts/ci/codemap.md`](scripts/ci/codemap.md) |
+| `scripts/db/` | DuckDB warehouse tooling — DQ verification, canonical views, entity xref, accuracy reconciliation | [`scripts/db/codemap.md`](scripts/db/codemap.md) |
+| `scripts/db/sources/` | Source-specific DB scripts — BBR, ESPN, NBA API manifests | [`scripts/db/sources/codemap.md`](scripts/db/sources/codemap.md) |
+| `scripts/eval/` | Chatbot eval — smoke tests, multi-model matrix, iteration loop | [`scripts/eval/codemap.md`](scripts/eval/codemap.md) |
+| `scripts/eval/shared/` | Shared eval utilities — model definitions, types, helpers | [`scripts/eval/shared/codemap.md`](scripts/eval/shared/codemap.md) |
+| `scripts/bbr/` | BBR Firecrawl mirroring — map, crawl, screenshot, verify Basketball-Reference | [`scripts/bbr/codemap.md`](scripts/bbr/codemap.md) |
 
-### `packages/` — Workspace monorepo
+## Cross-Cutting Concerns
 
-| Directory | Codemap | Responsibility |
-|-----------|---------|---------------|
-| `packages/` | [`packages/codemap.md`](./packages/codemap.md) | Bun workspace root: two-package split (`data` + `web`), workspace protocol, export gating, typecheck isolation, Biome scope. |
-| `packages/data/` | [`packages/data/codemap.md`](./packages/data/codemap.md) | Framework-agnostic data & agent layer: DuckDB singleton, 15 subpath exports, LangGraph worker + orchestrator graphs, dynamic system prompt, OpenRouter model selection, 100-query eval suite. |
-| `packages/data/src/` | [`packages/data/src/codemap.md`](./packages/data/src/codemap.md) | Barrel entry (`index.ts`), subpath re-exports, tab isolation boundary rules (`core/`, `shared/`, `tabs/`). |
-| `packages/data/src/core/` | [`packages/data/src/core/codemap.md`](./packages/data/src/core/codemap.md) | DuckDB connection lifecycle: singleton `initDb()` with promise-dedup, read-only mode, `search_path='unified_star,main'`, schema introspection, optional honors-DB secondary connection, type aliases (`DbRow`, `SqlParam`). |
-| `packages/data/src/shared/` | [`packages/data/src/shared/codemap.md`](./packages/data/src/shared/codemap.md) | Cross-cutting stateless utilities: `resolveDbPath()` (CI-aware env→fixture→default), `formatTable()`/`drawHalfCourt()` (Unicode table + ASCII shot chart), TokyoNight `Theme` with `NO_COLOR` support, `getErrorMessage()`. |
-| `packages/data/src/tabs/` | [`packages/data/src/tabs/codemap.md`](./packages/data/src/tabs/codemap.md) | Feature-area orchestration: four tabs (gameCenter, timeMachine, sqlSandbox, chatbot). Boundary rule: no sibling-tab imports. Subpath export map aliases (kebab-case). |
-| `packages/data/src/tabs/gameCenter/` | [`packages/data/src/tabs/gameCenter/codemap.md`](./packages/data/src/tabs/gameCenter/codemap.md) | Game Center SQL queries: `loadRecentGames`, `loadBoxScoreWithTeamDedup` (DISTINCT ON CTE for franchise renames), `loadGameShots` (shot-chart x/y from `fact_pbp_events`). |
-| `packages/data/src/tabs/timeMachine/` | [`packages/data/src/tabs/timeMachine/codemap.md`](./packages/data/src/tabs/timeMachine/codemap.md) | Career Time-Machine queries: player search, career stats (with dedup via `dedupeCareerStats`), dual-source awards (honors DB fallback), team lookup, season stats, roster. |
-| `packages/data/src/tabs/timeMachine/utils/` | [`packages/data/src/tabs/timeMachine/utils/codemap.md`](./packages/data/src/tabs/timeMachine/utils/codemap.md) | Season-label normalization (`seasonEndYearToNbaLabel`) and nbadb career-stat deduplication (`canonicalSeasonKey`, `dedupeCareerStats`). Pure transformations, no DuckDB. |
-| `packages/data/src/tabs/sqlSandbox/` | [`packages/data/src/tabs/sqlSandbox/codemap.md`](./packages/data/src/tabs/sqlSandbox/codemap.md) | SQL Sandbox backend: `runSandboxQuery` execution, `loadSchemaCatalog` introspection, `SqlAutocomplete` class (provisioned, not wired), `SchemaBrowser` tree model (provisioned, not wired). |
-| `packages/data/src/tabs/chatbot/` | [`packages/data/src/tabs/chatbot/codemap.md`](./packages/data/src/tabs/chatbot/codemap.md) | Chatbot entry point: separate DuckDB singleton (`db.ts`, READ_ONLY), dynamic `buildSystemPrompt()`, model selection state (`openrouter.ts`), and three child subsystems. |
-| `packages/data/src/tabs/chatbot/agent/` | [`packages/data/src/tabs/chatbot/agent/codemap.md`](./packages/data/src/tabs/chatbot/agent/codemap.md) | LangGraph agent: dual architecture — single-agent worker graph (SQL error correction, tool budget, hallucination validation) + multi-agent orchestrator (planner/workers/synthesizer). 5 Zod-v4 tools, streaming layer, intent classification. |
-| `packages/data/src/tabs/chatbot/utils/` | [`packages/data/src/tabs/chatbot/utils/codemap.md`](./packages/data/src/tabs/chatbot/utils/codemap.md) | SQL safety pipeline (`validateReadOnlySql`, `extractSql`, `executeSql`), exponential-backoff retry with ERROR_PREFIX contract, NDJSON metrics/events session, async-local correlation IDs, error capture, ASCII table formatter, markdown→ANSI. |
-| `packages/data/src/tabs/chatbot/eval/` | [`packages/data/src/tabs/chatbot/eval/codemap.md`](./packages/data/src/tabs/chatbot/eval/codemap.md) | Offline eval suite: 3-way truth comparison (agent vs DuckDB vs bbr-truth.json). Matrix eval (30 questions, 4 tiers) with BBR truth anchors, DB truth resolvers (`dbTruth.ts`), BBR HTML parser (`bbrPlayerParser.ts`). |
-| `packages/web/` | [`packages/web/codemap.md`](./packages/web/codemap.md) | TanStack Start SSR app: Vite 8, React 19, Tailwind v4. 6 routes under a single root shell. Server functions (`createServerFn`) bridge UI→data package. Chat uses plain fetch POST to `/api/copilotkit`. |
-| `packages/web/src/` | [`packages/web/src/codemap.md`](./packages/web/src/codemap.md) | Router setup (`TanStackRouter` with `QueryClientProvider`), auto-generated `routeTree.gen.ts`, root layout shell (`__root.tsx`), 6 route pages, SQL Sandbox components, local BBallGenius broadcast theme + UI primitives. |
-| `packages/web/src/components/` | [`packages/web/src/components/codemap.md`](./packages/web/src/components/codemap.md) | Three reusable SQL Sandbox UI components: `CodeEditor` (CodeMirror 6), `SchemaTree` (recursive accordion), `ResultsTable` (TanStack Table v8). All inert presentational — no DB access. |
-| `packages/web/src/routes/` | [`packages/web/src/routes/codemap.md`](./packages/web/src/routes/codemap.md) | Six file-based routes: `/` (→game-center redirect), `/game-center`, `/time-machine`, `/sql-sandbox`, `/chat`, `/api/copilotkit`. Server functions dynamically import `data` package. |
-| `packages/web/src/routes/api/` | [`packages/web/src/routes/api/codemap.md`](./packages/web/src/routes/api/codemap.md) | Single API route: `POST /api/copilotkit`. Dynamic imports isolate CJS deps. Converts wire messages→LangChain `BaseMessage[]`, consumes `streamQuery()` generator, returns `{messages: [{role, content}]}`. |
+### Package boundaries
 
-### `scripts/` — Automation & tooling
+- **`packages/web`** imports from `data` workspace exports (`import { ... } from 'data'` or `import { ... } from 'data/tabs/...'`). It must never reach into `packages/data/src/` with relative paths.
+- **`packages/data`** tab modules under `tabs/<tabId>/` must not import sibling tabs — only `core/`, `shared/`, and their own folder.
+- **Eval scripts** at repo root import chatbot internals via deep relative paths (`packages/data/src/tabs/chatbot/...`), bypassing the workspace alias — a deliberate boundary exception for tooling.
+- **DuckDB connections are read-only at runtime** — both `core/db.ts` and `chatbot/db.ts` open with `access_mode: 'READ_ONLY'`. Only `scripts/db/` writes to the warehouse.
 
-| Directory | Codemap | Responsibility |
-|-----------|---------|---------------|
-| `scripts/` | [`scripts/codemap.md`](./scripts/codemap.md) | Automation root: CI guards/fixture building, DuckDB warehouse DQ+curation, chatbot eval harnesses, BBR Firecrawl mirror pipeline, ad-hoc dev debugging, nba_api validation. |
-| `scripts/bbr/` | [`scripts/bbr/codemap.md`](./scripts/bbr/codemap.md) | Firecrawl-backed offline mirror of Basketball-Reference.com. Two-phase pipeline (map→crawl) produces `bbr-screenshots/` (PNG+JSON) and `.firecrawl/` (markdown). Per-directory 2 PNG + 2 JSON artifact quota. |
-| `scripts/ci/` | [`scripts/ci/codemap.md`](./scripts/ci/codemap.md) | CI automation: `build-ci-fixture.ts` (prunes full DB→~2.8 MB committed fixture from `unified_star`, 7 tables), `ci-guards.sh` (rejects `.only`/`.skip`, `UPDATE_SNAPSHOTS`, Biome warnings), `apply-branch-protection.sh` (GitHub API). |
-| `scripts/db/` | [`scripts/db/codemap.md`](./scripts/db/codemap.md) | DuckDB warehouse DQ + curation: 60+ single-table checks, cross-table verification, advanced stat recompute, accuracy reconciliation (BBR vs DB), golden-record merge views, entity xref, source registry, metric catalog. |
-| `scripts/db/sources/` | [`scripts/db/sources/codemap.md`](./scripts/db/sources/codemap.md) | Config-only typed manifest registry for NBA data sources (bref, nba_api_sqlite, nba_stats, espn). Drives entity resolution, crosswalk derivation, and source onboarding via `SourceManifest` interface. |
-| `scripts/eval/` | [`scripts/eval/codemap.md`](./scripts/eval/codemap.md) | Offline chatbot eval harnesses: fact-checked smoke test (`chatbot-smoke.ts`), multi-model matrix eval (`chatbot-eval-multi-model.ts`), streaming iteration loop (`iterate_loop.ts`) with JSONL traces and CSV summaries. |
-| `scripts/eval/shared/` | [`scripts/eval/shared/codemap.md`](./scripts/eval/shared/codemap.md) | Shared eval utilities: model tier presets (`SMOKE_MODEL_TIERS`), type definitions (`TestResult`, `FailureType`), text/numeric normalizers, duplicate detection, timeout wrapper. Zero chatbot internals dependency. |
+### Database path resolution
+
+All DuckDB access resolves through `packages/data/src/shared/dbPath.ts` → `resolveDbPath()`:
+
+1. `NBA_DUCKDB_PATH` env var (highest priority)
+2. `data/fixtures/nba.ci.duckdb` when `CI=true` or `GITHUB_ACTIONS=true`
+3. `data/nba.duckdb` (default)
+
+### Testing strategy
+
+| Layer | Location | Notes |
+|-------|----------|-------|
+| Shared unit | `packages/data/src/shared/__tests__/` | No database required |
+| Chatbot graph | `packages/data/src/tabs/chatbot/__tests__/` | Mocked LLM + DB |
+| Chatbot intent | `packages/data/src/tabs/chatbot/__tests__/` | Keyword classification |
+| Chatbot SQL | `packages/data/src/tabs/chatbot/__tests__/` | Real DuckDB |
+| Chatbot streaming | `packages/data/src/tabs/chatbot/__tests__/` | `streamQuery()` events |
+| Full data suite | `bun --filter data test` | CI fixture in Actions |
+| Smoke tests | `scripts/eval/chatbot-smoke.ts` | Real API, fact-checked |
+
+All data package tests require `--concurrency=1` due to the DuckDB singleton. Use `bun run test:changed` for fast TDD feedback during development.
+
+### CI pipeline
+
+`bun run ci` runs: guards → lint → format:check → typecheck (data + scripts + web) → build → unit tests → data tests → web tests → script tests → DQ fixture check → docs lint → audit. The committed CI fixture (`data/fixtures/nba.ci.duckdb`, ~2.8 MB) provides a pruned representative dataset for deterministic CI.
+
+### Data quality
+
+The warehouse uses a medallion architecture across 12 schemas (`raw_*`, `stg_*`, `nbadb`, `unified_star`, `api`, `meta`, `audit`). Data quality is verified via `scripts/db/verify-dq.ts` with suites for cross-table consistency, advanced recomputation, historical checks, and cross-source accuracy reconciliation. Canonical views and entity cross-references are built and maintained by `scripts/db/`.
+
+### BBR mirroring
+
+Basketball-Reference data is mirrored offline via Firecrawl into `bbr-screenshots/` (PNG + JSON) and `.firecrawl/` (markdown). The map/crawl lifecycle is managed by `scripts/bbr/` with per-directory quotas (max 2 PNG, 2 JSON per folder). This data feeds the Time Machine feature's BBR views.
+
+### Lint and format
+
+Biome runs with `--error-on-warnings` on `packages/` and `scripts/`. Single quotes, semicolons, 100-char line width, 2-space indent. `organizeImports` is enabled. Pre-commit hooks (Lefthook) run `bunx biome check --write` on staged files.
+
+### Environment variables
+
+| Variable | Purpose | Default |
+|----------|---------|---------|
+| `OPENROUTER_API_KEY` | OpenRouter API key (required for live chat) | — |
+| `MODEL` | LLM model name | `openai/gpt-oss-120b` |
+| `NBA_DUCKDB_PATH` | Override DuckDB file path | `data/nba.duckdb` |
+| `NBA_HONORS_DUCKDB_PATH` | Optional secondary honors DB | — |
+| `CHATBOT_DEBUG` | Debug logging to stderr | `false` |
+| `CHATBOT_PERSIST_DIR` | Persistent checkpoints (SqliteSaver) | — (MemorySaver) |
+| `CHATBOT_METRICS_DIR` | Metrics output directory | `data/` |
+| `CHATBOT_ORCHESTRATION` | Disable multi-agent orchestrator | `1` (enabled) |
+| `FIRECRAWL_API_KEY` | Required for BBR crawl | — |
+| `LANGSMITH_TRACING` | Enable LangSmith tracing | — |
+| `LANGSMITH_API_KEY` | LangSmith API key | — |

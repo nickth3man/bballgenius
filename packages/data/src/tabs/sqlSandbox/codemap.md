@@ -1,96 +1,76 @@
-# packages/data/src/tabs/sqlSandbox/
+# `packages/data/src/tabs/sqlSandbox/`
 
 ## Responsibility
-
-Provides the DuckDB-powered SQL Sandbox backend: ad-hoc query execution, schema introspection for a tree browser, and a token-level autocomplete engine. These are consumed by the `packages/web/src/routes/sql-sandbox.tsx` route (TanStack Start server function).
+**SQL Sandbox Data Access** — Provides the ad-hoc query execution, table/column schema browsing, and SQL autocomplete support for the SQL Sandbox UI feature.
 
 ## Design
 
-Three modules, each exported as a separate `package.json` entry under `data/tabs/sql-sandbox/`:
+### Modules
 
-### queries.ts — Query execution + schema catalog
+| Module | Type | Purpose |
+|--------|------|---------|
+| `queries.ts` | Data Access | Ad-hoc SQL execution + schema catalog loading |
+| `autocomplete.ts` | Service | SQL keyword, table, and column autocomplete engine |
+| `schemaBrowser.ts` | Service | Interactive schema tree browser with expand/collapse + filtering |
 
-Thin re-export layer over `../../core/db.ts`:
+### Queries (`queries.ts`)
+- `runSandboxQuery(sql: string): Promise<DbRow[]>` — Executes an arbitrary read-only SQL statement via `query<T>()`
+- `loadSchemaCatalog()` — Loads ALL table names and their column metadata from the browsable schemas (`unified_star`, `main`) into a `Map<string, { name, type }[]>` for the schema browser
+- Re-exports `getColumns`, `getTables` from `../../core/db.js`
 
-- **`runSandboxQuery(sql)`** — passes raw SQL string to `db.query<T>()` (read-only DuckDB connection). Returns `DbRow[]`.
-- **`loadSchemaCatalog()`** — calls `db.getTables()` then iterates `db.getColumns(table)` for each table, building a `Map<table, {name, type}[]>`. Both `getTables` and `getColumns` are re-exported directly.
-- Exports: `getColumns`, `getTables`, `runSandboxQuery`, `loadSchemaCatalog`.
+### Autocomplete (`autocomplete.ts`)
 
-**Constraint:** `getTables()` introspects the schemas listed in `db.ts`'s `BROWSE_SCHEMAS` constant (`['unified_star', 'main']`), not the full DuckDB catalog.
+**`SqlAutocomplete` class** — Stateful autocomplete engine:
+- Maintains current suggestions list, selected index, loaded schema (tables + table columns)
+- `loadSchema(tables, tableColumns)` — seeds the engine with database schema
+- `update(query)` — computes suggestions based on the last word in the input:
+  1. Splits query by whitespace/punctuation
+  2. Takes the last word as the prefix
+  3. Filters SQL keywords (SELECT, FROM, WHERE, JOIN, etc. — 35 keywords)
+  4. Filters all loaded table names and column names
+  5. Sorts: starts-with matches first, contains matches second
+- `moveUp()` / `moveDown()` — navigate suggestions cyclically
+- `accept(currentValue)` — replaces the last word with the selected suggestion
+- `reset()` — clears state
+- Returns `AutocompleteState` with suggestions, selected index, and ANSI-formatted suggestion line
 
-### autocomplete.ts — SqlAutocomplete class
+### Schema Browser (`schemaBrowser.ts`)
 
-Pure client-side state machine for SQL autocomplete. **Not yet wired into the web UI** (available as a data-layer helper for future adoption).
-
-- **Keyword set:** 20+ SQL reserved words (`SELECT`, `FROM`, `WHERE`, `JOIN`, aggregate functions, etc.).
-- **Schema candidates:** After `loadSchema(tables, tableColumns)` is called, all table names and column names are merged into the candidate list.
-- **Matching:** Splits the current query buffer by whitespace/punctuation, takes the last word, and returns candidates that `startsWith` (prioritized) or `includes` the lowercased last word. Exact matches are excluded.
-- **State:** `AutocompleteState` exposes `suggestions[]`, `selectedIdx`, `hasSuggestions`, and `formatted` (ANSI-styled string for terminal rendering).
-- **Navigation:** `moveUp()`/`moveDown()` wrap cyclically. `accept()` replaces the trailing word in the editor buffer with the selected suggestion, preserving any preceding delimiter.
-- **Dependency:** Only imports `ansiDim` from `../../shared/theme.js` for formatting.
-
-### schemaBrowser.ts — SchemaBrowser class
-
-Pure tree model for browsing DuckDB schemas → tables → columns. **Also not yet wired into the web UI** (the route currently uses a hardcoded `buildSampleSchema()` instead).
-
-- **`loadData(tables, tableColumns)`** — seeds the table/column metadata.
-- **`rebuild()`** — applies the current `filterQuery` (set via `setFilter`). A table node is included if its name matches the filter; column children appear only if the table is expanded **or** at least one column name matches the filter (auto-expand on filter match).
-- **Tree structure:** Flat `SchemaNode[]` where each entry is either `{type: 'table', name}` or `{type: 'column', name, tableName, columnType}`. Columns always follow their parent table node in the array.
-- **Navigation:** `moveUp()/moveDown()` traverse the flat node list with bounds clamping. `toggleTable()` adds/removes from `expandedTables` set.
-- **Filter auto-expand:** When `filterQuery` is non-empty and a table has matching columns, the table automatically appears expanded (without modifying `expandedTables`). This ensures filtered results always show the matched columns.
+**`SchemaBrowser` class** — Interactive tree browser with state:
+- Maintains flat node list (`SchemaNode[]`), expanded table set, selected index, filter query
+- `loadData(tables, tableColumns)` — seeds the engine
+- `rebuild()` — rebuilds the node list applying the current filter:
+  - Without filter: shows all tables as collapsed nodes
+  - With filter: shows matching tables expanded with matching columns visible
+  - Tables matching filter string are shown; non-matching tables are hidden
+- `moveUp()` / `moveDown()` — navigate nodes cyclically
+- `toggleTable(table)` — expand/collapse a table node
+- `setFilter(query)` — sets text filter
+- Returns `SchemaNode[]` where each node is `{ type: 'table', name }` or `{ type: 'column', name, tableName, columnType }`
 
 ## Flow
 
 ```
-Web route (sql-sandbox.tsx)
-        |
-        | POST / (createServerFn)
-        | imports 'data' → db.query(sql)
-        v
-   queries.ts::runSandboxQuery(sql)
-        |
-        | calls core/db.ts::query(sql)
-        v
-   DuckDB (read-only connection)
-        |
-        | returns DbRow[]
-        v
-   Web route renders ResultsTable
-```
-
-**Schema catalog flow (provisioned, not yet wired):**
-
-```
-loadSchemaCatalog()
-        |
-        | getTables() → string[]
-        | for each: getColumns(table) → {name, type}[]
-        v
-   { tables: string[], tableColumns: Map }
-
-         ┌───────────────────┐
-         │  SqlAutocomplete  │  ← loadSchema(tables, tableColumns)
-         │                   │     then update(queryString) → AutocompleteState
-         └───────────────────┘
-
-         ┌───────────────────┐
-         │  SchemaBrowser    │  ← loadData(tables, tableColumns)
-         │                   │     setFilter(text) → rebuild() → SchemaNode[]
-         └───────────────────┘
+Web UI SQL Sandbox Page
+  → loadSchemaCatalog() → { tables, tableColumns }
+    ├── SqlAutocomplete.loadSchema(tables, tableColumns)
+    │   └── SqlAutocomplete.update(query) → AutocompleteState
+    └── SchemaBrowser.loadData(tables, tableColumns)
+        └── SchemaBrowser.rebuild() → SchemaNode[]
+            └── render in UI
 ```
 
 ## Integration
 
-| Entry point (package.json) | Source | Consumed by |
-|---|---|---|
-| `data/tabs/sql-sandbox/queries` | `queries.ts` | Web route (indirectly via `data` index or directly) |
-| `data/tabs/sql-sandbox/autocomplete` | `autocomplete.ts` | Provisioned for web; not yet wired |
-| `data/tabs/sql-sandbox/schema-browser` | `schemaBrowser.ts` | Provisioned for web; not yet wired |
+### Consumes
+- `../../core/db.js` — `query<T>()`, `getTables()`, `getColumns()` for schema data
+- `../../core/types.js` — `DbRow` type for query results
+- `../../shared/theme.js` — `ansiDim()` for suggestion formatting
 
-**Current web route behavior** (`sql-sandbox.tsx`):
-- Executes SQL via `createServerFn` → `import('data')` → `db.query(sql)` — bypasses `runSandboxQuery()`.
-- Schema tree is a hardcoded sample (`buildSampleSchema()`) with `dim_game`, `dim_player`, `dim_team`, `fact_player_game_stats`, `fact_team_game` under schemas `main` and `nbadb`.
-- No autocomplete component exists in the current UI.
-- AbortController-based query cancellation is supported client-side.
+### Exported via package.json subpath exports
+- `data/tabs/sql-sandbox/queries` → `./src/tabs/sqlSandbox/queries.ts`
+- `data/tabs/sql-sandbox/autocomplete` → `./src/tabs/sqlSandbox/autocomplete.ts`
+- `data/tabs/sql-sandbox/schema-browser` → `./src/tabs/sqlSandbox/schemaBrowser.ts`
 
-**Dependencies:** `../../core/db` (getTables, getColumns, query), `../../core/types` (DbRow), `../../shared/theme` (ansiDim). No imports from sibling tab modules.
+### Consumers
+- **`packages/web`** — SQL Sandbox route imports from these subpath exports

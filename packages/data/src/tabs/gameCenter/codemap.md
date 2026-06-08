@@ -1,59 +1,56 @@
-# packages/data/src/tabs/gameCenter/
+# `packages/data/src/tabs/gameCenter/`
 
 ## Responsibility
-
-Provides the DuckDB query layer for the **Game Center** tab — loading recent games, per-game box scores, and shot-location data. These functions are the **canonical data source** for the Game Center feature, consuming the warehouse's star schema (`dim_game`, `dim_team`, `dim_player`, `fact_player_game_boxscore`, `fact_pbp_events`).
+**Game Center Data Access** — Provides SQL query functions for the Game Center UI feature: recent games, box scores, shot charts, and team total aggregations. Each function is a single source of truth consumed by `GameCenterTab` in the web UI and test helpers.
 
 ## Design
 
-- **Single file, three exported async functions.** Each accepts a narrow set of parameters and returns a typed row array via the shared `query()` helper from `../../core/db.js`.
-- **Team deduplication via `DISTINCT ON` CTE.** All three queries join through a CTE that collapses historic franchise renames (e.g. Minneapolis → LA Lakers) by picking the most-recent `season_active_till` per `team_id`. This is repeated in `loadRecentGames` and `loadBoxScoreWithTeamDedup`.
-- **Parameterised queries** use `$1` positional placeholders (DuckDB style) passed as a second argument to `query()`.
-- **No ORM or query builder** — raw SQL strings composed directly.
-- **Exported types** (`RecentGameRow`, `BoxScoreRow`, `GameShotRow`) serve as the contract between this layer and consumers; they mirror the SELECT column aliases.
+### Data Access Object Pattern
+Each function encapsulates a specific SQL query with typed result interfaces. All queries use `core/db.ts`'s `query<T>()` function.
+
+### Key Types
+
+| Type | Fields | Source |
+|------|--------|--------|
+| `RecentGameRow` | game_id, game_date, season_year, home_team, away_team, home_name, away_name | `dim_game` + `dim_team` |
+| `BoxScoreRow` | 19 stat columns (points, rebounds, assists, etc.) | `fact_player_game_boxscore` + `dim_player` |
+| `GameShotRow` | player_id, team_id, action_type, shot_result, x, y | `fact_pbp_events` |
+| `TeamTotals` | 15 aggregated stat columns | computed from `BoxScoreRow[]` |
+
+### Team Deduplication
+Both `loadRecentGames()` and `loadBoxScoreWithTeamDedup()` use a **DISTINCT ON CTE** (`team_dedup`) to collapse historic franchise renames (e.g., Minneapolis Lakers → LA Lakers) to the most-recent name/abbreviation. This prevents duplicate player rows from multi-season team entries.
+
+### Query Functions
+
+| Function | SQL | Use |
+|----------|-----|-----|
+| `loadRecentGames(limit=40)` | `dim_game` JOIN `team_dedup` × 2, ordered by game_date DESC | Game Center home page |
+| `loadBoxScoreWithTeamDedup(gameId)` | `fact_player_game_boxscore` JOIN `dim_player` JOIN `team_dedup`, filtered by game_id | Game detail view |
+| `loadGameShots(gameId)` | `fact_pbp_events` WHERE `is_field_goal = true` AND `x IS NOT NULL` AND `y IS NOT NULL` | Shot chart overlay |
+| `computeTeamTotals(rows)` | Pure JS aggregation of `BoxScoreRow[]` into `TeamTotals` | Team box score table |
+
+### computeTeamTotals
+A pure function (no DB calls) that sums all numeric fields from an array of `BoxScoreRow` objects. Used by `TeamBoxScoreTable` in the web UI to compute team-level aggregates from player box scores.
 
 ## Flow
 
 ```
-Web route / API handler
-    ↓
-import { loadRecentGames, loadBoxScoreWithTeamDedup, loadGameShots } from 'data/tabs/game-center/queries'
-    ↓
-query(sql, params?)  →  initDb() → DuckDBInstance.fromCache(read-only) → connection.runAndReadAll()
-    ↓
-Typed row array (JSON-safe, bigints as strings)
-```
+Web UI GameCenterTab.init()
+  → loadRecentGames() → query() → RecentGameRow[]
 
-1. `loadRecentGames(limit?)` — `SELECT` from `dim_game` with team-dedup CTE, ordered by `game_date DESC`.
-2. `loadBoxScoreWithTeamDedup(gameId)` — `SELECT` from `fact_player_game_boxscore` joined to `dim_player` and team-dedup CTE, filtered by `game_id = $1`.
-3. `loadGameShots(gameId)` — `SELECT` from `fact_pbp_events` filtered to `is_field_goal = true` with non-null `x`/`y` coordinates, no dedup needed.
+Web UI GameCenterTab.loadGameDetails(gameId)
+  → loadBoxScoreWithTeamDedup() → query() → BoxScoreRow[]
+  → loadGameShots() → query() → GameShotRow[]
+  → computeTeamTotals(boxScoreRows) → TeamTotals
+```
 
 ## Integration
 
-### Workspace export
+### Consumes
+- `../../core/db.js` — `query<T>()` for all SQL execution
 
-`packages/data/package.json` exposes this module via the alias:
-```
-"./tabs/game-center/queries": "./src/tabs/gameCenter/queries.ts"
-```
+### Exported via package.json subpath export
+- `data/tabs/game-center/queries` → `./src/tabs/gameCenter/queries.ts`
 
-Consumers import as:
-```ts
-import { loadRecentGames, loadBoxScoreWithTeamDedup, loadGameShots, RecentGameRow, BoxScoreRow, GameShotRow } from 'data/tabs/game-center/queries';
-```
-
-### Web route divergence
-
-The web Game Center route (`packages/web/src/routes/game-center.tsx`) **does not use these canonical query functions**. Instead it duplicates inline SQL:
-
-| Data | `queries.ts` source | Web route source |
-|------|---------------------|------------------|
-| Recent games | `dim_game` (unified_star) via `loadRecentGames` | Inline, identical SQL via `data`'s `query()` export |
-| Box score | `fact_player_game_boxscore` (star schema) via `loadBoxScoreWithTeamDedup` | `main.fact_player_game_stats` (NBA-API schema, different column names: `person_id`, `num_minutes`) |
-| Shot chart | `fact_pbp_events` via `loadGameShots` | Returns `[]` — warehouse does not expose shot columns in current schema |
-
-The route's box score queries the **`main` schema** (NBA-API raw shape) rather than the canonical star-schema `fact_player_game_boxscore`. This means the web UI and any consumer using `queries.ts` will return different column sets for the same `gameId`.
-
-### Schema dependency
-
-All queries resolve against the DuckDB `search_path` set to `unified_star,main` (see `../../core/db.ts`). The CI fixture places tables in `main`, so the team-dedup CTE (which queries `dim_team`) works in both full and CI environments.
+### Consumers
+- **`packages/web`** routes — Game Center route imports from the subpath export

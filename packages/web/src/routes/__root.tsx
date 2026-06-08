@@ -25,6 +25,11 @@ export const Route = createRootRouteWithContext<RouterContext>()({
     meta: [
       { charSet: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+      {
+        name: 'description',
+        content:
+          'BBallGenius — Explore NBA data, player stats, game box scores, shot charts, and career timelines powered by DuckDB.',
+      },
       { title: 'BBallGenius' },
     ],
     links: [

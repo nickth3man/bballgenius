@@ -1,61 +1,52 @@
-# scripts/
-
-Automation root. Houses all non-package shell/TypeScript/Python tooling for CI, DuckDB warehouse curation, chatbot evaluation, BBR screenshot crawling, and ad-hoc dev debugging. Executed via `bun run scripts/...` or direct invocation from `package.json` scripts block.
+# `scripts/` (root)
 
 ## Responsibility
-
-- **CI & pre-commit guards** — `scripts/ci/` enforces no `.only`/`.skip`, Biome zero-warnings, and builds the CI DuckDB fixture.
-- **DuckDB warehouse operations** — `scripts/db/` manages medallion-tier curation: canonical views, entity xref, cross-source accuracy reconciliation, DQ gating, and schema metadata.
-- **Chatbot evaluation** — `scripts/eval/` runs LangGraph smoke tests (fact-checked NBA questions, 100-query broad suite, multi-model matrix) against real OpenRouter API endpoints.
-- **BBR Firecrawl mirror** — `scripts/bbr/` maps, crawls, screenshots, and observes Basketball-Reference.com into the repo-local `bbr-screenshots/` and `.firecrawl/` cache.
-- **Ad-hoc dev debugging** — Root-level `smoke-web.ts` (server health check), `debug-500.ts` (SSR error capture), `quick-test.ts` (multi-model chatbot sanity).
-- **nba_api validation** — `scripts/validation/` provides Mullvad VPN + SOCKS5 proxy rotation for IP-rotated bulk fetches from `stats.nba.com`.
+Top-Level Automation Scripts — miscellaneous debug, smoke-test, and utility scripts that do not belong to any subdirectory (`ci/`, `db/`, `eval/`, `bbr/`, `validation/`). These are ad-hoc or transitional tools.
 
 ## Design
 
-- **No shared framework** — Each subdirectory is self-contained with its own entry points and conventions. Root-level scripts are single-file standalone scripts.
-- **Execution via `package.json`** — Every named operation (`dq:*`, `bbr:*`, `chatbot:smoke:*`, `ci`, `fixture:build`) is a script alias in root `package.json`.
-- **DB scripts run DuckDB via `@duckdb/node-api`** — They follow a consistent pattern: `DuckDBInstance.fromCache(DB_PATH)`, `conn.run('CHECKPOINT')` after writes, and DB path from `process.env.NBA_DUCKDB_PATH` or default.
-- **Eval scripts import chatbot internals** — They reach directly into `packages/data/src/tabs/chatbot/...` (not via workspace alias), which is a deliberate boundary exception for eval tooling.
-- **BBR scripts mix shell and JS** — Shell orchestrates map/crawl lifecycle with `FIRECRAWL_API_KEY`; `.cjs` scripts handle screenshot capture, verification, and observability.
-- **Stub directories** — `dev/` is empty; `_write_temp.py` is a placeholder.
+### Scripts Overview
+
+| Script | Language | Purpose |
+|--------|----------|---------|
+| `debug-500.ts` | TypeScript (Bun) | Captures full SSR 500 error output from the TanStack Start dev server for debugging |
+| `smoke-web.ts` | TypeScript (Bun) | Fast server smoke test: starts web dev, hits `localhost:3000/`, checks HTTP status and stderr for errors |
+| `quick-test.ts` | TypeScript (Bun) | Quick 3-model, 5-question chatbot test (simple, multi, vague questions) for rapid iteration |
+| `tmp-stream-probe.ts` | TypeScript (Bun) | Minimal streaming probe: pipes a question through `streamQuery()` and prints tool starts + reasoning token counts by stage |
+| `takeBbrScreenshots.ts` | TypeScript (Bun + Playwright) | **Deprecated** Playwright-based BBR screenshot browser (superseded by `scripts/bbr/takeBbrScreenshots.cjs` Firecrawl version) |
+| `_write_temp.py` | Python | Trivial placeholder script (`print("hello")`) |
+
+### `validation/` Subdirectory
+Python utilities for nba_api bulk data validation using Mullvad VPN rotation:
+
+| File | Purpose |
+|------|---------|
+| `_shared.py` | MullvadRotator + NbaApiSession — IP rotation via VPN reconnect or SOCKS5 proxy cycling for stats.nba.com bulk fetching |
+| `requirements.txt` | Python deps: `nba_api`, `fake-useragent`, `requests`, `PySocks` |
+
+The `_shared.py` module provides two rotation modes:
+- **VPN Reconnect**: Cycles through 20 US cities via `mullvad reconnect` (~5-10s per rotation).
+- **SOCKS5 Multi-Exit**: Routes through different Mullvad SOCKS5 proxies (instant, no reconnect).
+- **Hybrid** (default): Uses both VPN and SOCKS5.
+- **`NbaApiSession`**: Extends `requests.Session` with rate limiting, retry with exponential backoff, User-Agent rotation, proactive/reactive rotation, and comprehensive stats tracking.
 
 ## Flow
 
-### Development iteration flow
 ```
-quick-test.ts ──> initDb() ──> buildSystemPrompt() ──> for each model:
-                      getChatbotGraph().invoke() ──> PASS/FAIL per question
-                      ──> closeDb()
+Quick iteration:
+  quick-test.ts          → 3 models × 5 questions → pass/fail per model
+  tmp-stream-probe.ts    → 1 question → streaming tool_start + reasoning counts
 
-smoke-web.ts ──> kill-port 3000 ──> spawn `bun run web` ──> poll localhost:3000 ──> PASS/FAIL + error scan
+Server debugging:
+  debug-500.ts           → spawns web dev → fetches / → captures logs → writes temp/debug-500.log
+  smoke-web.ts           → spawns web dev → fetches / → checks status + error count → exits 0/1
 
-debug-500.ts ──> kill-port 3000 ──> spawn `bun run web` ──> capture all stdout/stderr ──> write temp/debug-500.log
+Validation:
+  validation/_shared.py  → MullvadRotator + NbaApiSession → used by external validation scripts
 ```
-
-### Subdirectory flows
-
-| Subdirectory | Flow | Entry points |
-|---|---|---|
-| **bbr/** | `buildBbrUrlMap.sh` → `bbrPreflightCrawl.sh` → `takeBbrScreenshots.cjs` → `verifyBbrScreenshots.cjs` | `bbr:map`, `bbr:crawl`, `bbr:verify`, `bbr:observe` |
-| **ci/** | `ci-guards.sh` → `build-ci-fixture.ts` (subset DB → `CHECKPOINT` → CI fixture) | `ci`, `fixture:build` |
-| **db/** | `verify-dq.ts` (DQ suite) → `build-canonical-*.ts` → `classify-accuracy-discrepancies.ts` → `oracle-resolve-discrepancies.ts` | `dq:*`, `accuracy:*` |
-| **eval/** | `chatbot-smoke.ts` (single/multi-model) → `chatbot-eval-multi-model.ts` (matrix-driven) → `iterate_loop.ts` (multi-run loop) | `chatbot:smoke:*` |
-| **validation/** | Python `MullvadRotator` + `NbaApiSession` for IP-rotated requests to `stats.nba.com` | Manual Python invocation |
 
 ## Integration
-
-- **`scripts/` calls into `packages/data/`** — Root-level and eval scripts import chatbot graph, DB, system prompt, and eval queries from `packages/data/src/tabs/chatbot/...` via source-level relative paths.
-- **`scripts/db/` writes to `data/nba.duckdb`** — Canonical view building, xref resolution, DQ checks all mutate the DuckDB warehouse; the CI fixture at `data/fixtures/nba.ci.duckdb` is a pruned subset built by `scripts/ci/build-ci-fixture.ts`.
-- **`scripts/bbr/` produces `bbr-screenshots/` and `.firecrawl/`** — These artifacts are consumed by the Time Machine feature (`packages/data/src/tabs/timeMachine/utils/bbr/`).
-- **`package.json` bridges** — Every script is wired through root `package.json` `"scripts"` block (42 entries). CI uses `ci`, `fixture:build`, `dq:fixture`. Chatbot eval uses `chatbot:smoke:*`. Warehouse ops use `dq:*` and `accuracy:*`.
-- **Child codemaps** — Each subdirectory (`bbr/`, `ci/`, `db/`, `eval/`) contains its own `codemap.md` for deeper architectural detail.
-
-### Child directory codemap references
-
-| Directory | Codemap |
-|---|---|
-| `scripts/bbr/` | `scripts/bbr/codemap.md` |
-| `scripts/ci/` | `scripts/ci/codemap.md` |
-| `scripts/db/` | `scripts/db/codemap.md` |
-| `scripts/eval/` | `scripts/eval/codemap.md` |
+- **These scripts are not invoked by CI or production code** — they are developer tooling.
+- `quick-test.ts` and `tmp-stream-probe.ts` import from `packages/data` chatbot internals (same as eval scripts).
+- `debug-500.ts` and `smoke-web.ts` spawn the web dev server as a child process.
+- The `validation/` Python scripts are standalone — require Mullvad VPN and nba_api Python package.

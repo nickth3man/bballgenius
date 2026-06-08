@@ -66,7 +66,7 @@
 
   --text-primary: var(--paper-100);
   --text-secondary: var(--paper-400);
-  --text-muted: var(--paper-600);
+  --text-muted: #7a8aa4;
   --text-inverse: var(--ink-900);
 
   --primary: var(--blue-500);
@@ -246,6 +246,18 @@ body {
 .font-mono,
 table {
   font-variant-numeric: tabular-nums;
+}
+
+/* Focus-visible outline for keyboard navigation */
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-xs);
+}
+
+/* Remove focus outline for mouse users */
+:focus:not(:focus-visible) {
+  outline: none;
 }
 
 ::selection {

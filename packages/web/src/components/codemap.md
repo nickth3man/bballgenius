@@ -99,6 +99,25 @@ Reusable UI components for `packages/web`: SQL Sandbox controls, shot charts, Ti
    - Abort controller cancels in-flight queries.
 4. `ResultsTable` reactively renders the results.
 
+### `shotChart/`
+- **Role**: SVG-based half-court shot chart visualization for the Game Center. Renders NBA-regulation court geometry with shot markers (made/missed circles) from play-by-play coordinate data.
+- **Components**: `DualShotChart` (side-by-side team comparison), `HalfCourt` (single-team SVG), `courtGeometry` (pure geometry functions: data-to-SVG coordinate transforms, 3-point/restricted-area/free-throw SVG path builders).
+- **Data flow**: `DualShotChart` receives `GameShotRow[]` and `BoxScoreRow[]` from the parent route, splits shots by team using player→team mapping, and renders two `HalfCourt` instances. Geometry layer converts normalized DB coordinates (0–100, full-court) to folded half-court SVG pixels.
+- **Consumers**: `routes/game-center.tsx` (the shot chart tab panel).
+
+### `timeMachine/`
+- **Role**: Career Time-Machine player search and dossier components. Outer shell (`TimeMachineSearchPanel`, `FeaturedPlayersEmptyState`, `DossierSkeleton`) plus the detailed player dossier (`dossier/` subdirectory).
+- **Components**:
+  - `TimeMachineSearchPanel` — ARIA combobox with debounced search, keyboard navigation, dropdown results, loading/error/no-match states.
+  - `FeaturedPlayersEmptyState` — Initial empty-state grid of featured players, loaded asynchronously via server function.
+  - `DossierSkeleton` — Full-page shimmer skeleton mimicking the dossier layout during data load.
+  - `dossier/` — Player detail sections: `DossierHeader`, `CareerTrajectory`, `AwardsGrouped`, `AwardVotesStrip`, `SeasonTabs` (with 6 stat table variants), `ShotZonesCard`, `GameLogCard`, `DraftCombineCard`. Each wrapped in `<SectionErrorBoundary>`.
+- **Data flow**: The route fetches `PlayerDossier` from DuckDB via `loadPlayerDossierFn`, then distributes data as props to each section component. No component calls server functions directly.
+- **Consumers**: `routes/time-machine.tsx`.
+
+### `ui/`
+See `ui/codemap.md` for the full design system component documentation.
+
 ### Package boundary
 
 These components sit inside `packages/web` and do **not** import from `packages/data` directly — all DB calls are handled by server functions in the route. This keeps the component layer cleanly separated from the data-access layer.

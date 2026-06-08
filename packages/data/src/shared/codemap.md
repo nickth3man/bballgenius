@@ -1,59 +1,85 @@
-# packages/data/src/shared/
+# `packages/data/src/shared/`
 
 ## Responsibility
-
-Cross-cutting utility layer for the `data` package. Owns framework-agnostic primitives that
-both the web package and internal data modules depend on: DB path resolution, terminal/UI
-formatting, theme tokens, and error helpers. Nothing in this folder touches DuckDB or the
-LangGraph agent graph.
+**Shared Utilities Layer** — Framework-agnostic helpers used across the data package and web package. Contains the database path resolver, error formatting, terminal/UI theme, SQL validation, and table/formatting utilities. None of these modules have DuckDB imports, so they are safe to bundle into browser code without pulling in native addons.
 
 ## Design
 
-Four single-purpose modules, no coupling between them:
+### Database Path Resolution (`dbPath.ts`)
 
-| File | Export | Role |
-|------|--------|------|
-| `dbPath.ts` | `resolveDbPath()` | CI-aware DuckDB path resolver (env var → CI fixture → default) |
-| `errors.ts` | `getErrorMessage()` | Type-safe extraction of human-readable messages from `unknown` |
-| `formatters.ts` | `formatTable()`, `drawHalfCourt()`, `stripAnsi()` | Table grid rendering (Unicode borders, smart numeric alignment) + half-court ASCII shot chart |
-| `theme.ts` | `Theme`, `isNoColor()`, ANSI color functions | TokyoNight palette, `NO_COLOR` support, 24-bit ANSI wrap helpers |
+**Strategy Pattern** — `resolveDbPath()` uses a priority-chain strategy:
 
-**Key decisions:**
-- **`resolveDbPath()`** walks up to the monorepo root by scanning for `"workspaces"` in `package.json`, not a hardcoded relative path — portable across package launches.
-- **`formatters.ts`** uses `TableDataRow` from `../core/types.js` but is otherwise dependency-free. ANSI color utilities come from sibling `theme.ts`.
-- **`theme.ts`** respects the [`NO_COLOR`](https://no-color.org/) convention and short-circuits all ANSI wrapping when set.
-- **Exported via `package.json` subpath exports**: `data/dbPath`, `data/formatters`, `data/theme`, `data/errors`, plus the top-level `data` barrel.
+1. `NBA_DUCKDB_PATH` env var (highest priority, for testing/override)
+2. CI fixture at `data/fixtures/nba.ci.duckdb` when `CI=true` or `GITHUB_ACTIONS=true` (CI compatibility)
+3. Default path `data/nba.duckdb` (production)
+
+The monorepo root is discovered by walking up the directory tree from `process.cwd()` looking for a `package.json` with a `"workspaces"` key, making the resolver independent of which package the caller was launched from.
+
+**Key outputs:**
+- `resolveDbPath(): string` — returns the active database path
+- `REPO_ROOT`, `DEFAULT_DB_PATH`, `CI_FIXTURE_PATH` — internal constants
+
+### Theme (`theme.ts`)
+**TokyoNight Color System** — Defines the visual identity for terminal output:
+- `Theme` object with 18 color properties (primary, secondary, accent, success, error, foreground/background variants)
+- `ThemeFgRole` type (union of 9 role strings)
+- `themeFg(role, text)` — 24-bit RGB foreground via ANSI escape codes
+- Named ANSI wrappers: `ansiBold`, `ansiDim`, `ansiItalic`, `ansiUnderline`, `ansiGreen`, `ansiRed`, `ansiYellow`, `ansiCyan`, `ansiMagenta`, `ansiBrightGreen`, `ansiBrightRed`
+- `isNoColor()` — runtime check for `NO_COLOR` env var (https://no-color.org/)
+- `noColor` — static boolean (prefer `isNoColor()` for dynamic checks)
+
+### Formatters (`formatters.ts`)
+**Presentation Layer** — Terminal-friendly grid and shot-chart rendering:
+
+- `formatTable(headers, rows, options?)` — Unicode box-drawing table with automatic numeric alignment detection (if >50% of column values are numeric, right-align). Supports both object arrays (`DbRow[]`) and array-of-arrays. Returns `string[]` (one line per row). Uses `┌─┬─┐` / `│ │` / `└─┴─┘` borders.
+- `drawHalfCourt(shots, activePlayerId?)` — 18×40 ASCII half-court basketball diagram with overlaid shot locations. Makes shown as `o` (green), misses as `x` (red), highlighted player shots use bright variants. Court includes baseline, sidelines, half-court line, paint (key), backboard/hoop, three-point line/arc, and corner-three lines. Database coordinates (0-100) are normalized to grid positions.
+- `stripAnsi(text)` — removes ANSI escape sequences
+
+### SQL Validation (`sqlValidation.ts`)
+**Security Gate** — Read-only SQL enforcement for LLM-generated queries:
+- `validateReadOnlySql(sql)` — returns `null` on pass or an error string on failure. Checks:
+  1. Strips SQL comments (`--` and `/* */`)
+  2. Rejects empty SQL or multi-statement SQL (contains `;`)
+  3. Rejects non-SELECT/WITH/DESCRIBE statements
+  4. Rejects blocked patterns: `INSERT`, `UPDATE`, `DELETE`, `MERGE`, `CREATE`, `DROP`, `ALTER`, `TRUNCATE`, `ATTACH`, `DETACH`, `COPY`, `LOAD`, `INSTALL`, `SET`, `CALL`, `PRAGMA`, `VACUUM`, `CHECKPOINT`, `EXPORT`, `IMPORT`, `read_csv`, `read_json`, `read_parquet`, `read_text`, `glob`, `httpfs`
+- `BLOCKED_SQL_PATTERNS` — exported for external use
+- `stripSqlComments(sql)` — comment-stripping utility
+
+### Error Formatting (`errors.ts`)
+- `getErrorMessage(error: unknown): string` — safe error-to-string conversion (`instanceof Error` check, falls back to `String()`)
 
 ## Flow
 
 ```
-env(NBA_DUCKDB_PATH) ────┐
-CI / GITHUB_ACTIONS  ─────┤──→ resolveDbPath() → DuckDB connection (core/db.ts, chatbot/db.ts)
-monorepo root walk   ─────┘
+resolveDbPath()
+  │
+  ├── NBA_DUCKDB_PATH set? → return that
+  ├── CI/GitHub Actions + fixture exists? → return CI_FIXTURE_PATH
+  └── default → REPO_ROOT + 'data/nba.duckdb'
 
-unknown error ──→ getErrorMessage() ──→ core/errors.ts (re-exported)
+validateReadOnlySql(sql)
+  │
+  ├── strip comments → check empty/multi-stmt → check SELECT/WITH/DESCRIBE → check blocked patterns
+  └── null = pass | string = error message
 
-TableDataRow ──→ formatTable() ──→ string[] (terminal/web table)
-Shot data   ──→ drawHalfCourt() ──→ string[] (ANSI shot chart)
-                          ↑
-                    theme.ts (ansiGreen, ansiRed, …)
+formatTable(headers, rows)
+  │
+  └── measure column widths → detect numeric columns → build Unicode border grid → return string[]
 ```
-
-**No state held.** All functions are stateless/pure (except `resolveDbPath` which reads env + filesystem once at module-load time).
 
 ## Integration
 
-### Consumers (within `packages/data/src`)
+### Consumed by
+- **`core/db.ts`** — imports `resolveDbPath()` for connection initialization
+- **`tabs/chatbot/db.ts`** — imports `resolveDbPath()` for chatbot's own DuckDB instance
+- **`tabs/chatbot/utils/sql.ts`** — imports `validateReadOnlySql()` for the chatbot's SQL safety gate
+- **`tabs/chatbot/utils/theme.ts`** — re-exports `isNoColor`, `Theme` from this module
+- **`tabs/sqlSandbox/autocomplete.ts`** — imports `ansiDim` from theme
+- **`packages/data/src/index.ts`** — re-exports `resolveDbPath`, `formatTable`, `stripAnsi`, `validateReadOnlySql`, `isNoColor`, `Theme`
 
-| Consumer | Shared module imported |
-|----------|----------------------|
-| `core/db.ts` | `dbPath.ts` — `resolveDbPath()` |
-| `core/errors.ts` | `errors.ts` — re-exports `getErrorMessage()` |
-| `tabs/chatbot/db.ts` | `dbPath.ts` — `resolveDbPath()` |
-| `tabs/sqlSandbox/autocomplete.ts` | `theme.ts` — `ansiDim()` |
-| `shared/formatters.ts` (sibling) | `theme.ts` — ANSI color functions |
-
-### Consumers (via `package.json` subpath / barrel)
-
-- **`data/index.ts`** re-exports `resolveDbPath`, `formatTable`, `stripAnsi`, `isNoColor`, `Theme` — the public surface consumed by `packages/web` routes via `import { ... } from 'data'`.
-- Any external consumer can import directly via `import { resolveDbPath } from 'data/dbPath'`.
+### Exported via package.json subpath exports
+- `data/dbPath` → `./src/shared/dbPath.ts`
+- `data/errors` → `./src/shared/errors.ts`
+- `data/sqlValidation` → `./src/shared/sqlValidation.ts`
+- `data/formatters` → `./src/shared/formatters.ts`
+- `data/theme` → `./src/shared/theme.ts`

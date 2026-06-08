@@ -1,57 +1,69 @@
-# packages/data/src/core/
+# `packages/data/src/core/`
 
 ## Responsibility
-
-Database connectivity, type aliases, and error utilities for the `data` workspace package. This folder owns the **runtime DuckDB connections** — it initialises, caches, and teardowns read-only connections to the NBA analytics database (and an optional secondary honors database). Every query in the hub ultimately passes through `query()` exported here. It does **not** execute business queries; those live in `src/tabs/*/queries.ts`.
-
-## Files
-
-| File | Role |
-|------|------|
-| `db.ts` | **Primary connection.** Singleton `DuckDBInstance` + `DuckDBConnection` opened read-only on first `initDb()` call. Exports `query()`, `getTables()`, `getColumns()`, `closeDb()`. Re-exports `resolveDbPath` from `src/shared/dbPath.ts`. |
-| `dbHonors.ts` | **Optional secondary connection.** Same singleton pattern but gated on `NBA_HONORS_DUCKDB_PATH` env var. Used by Time Machine to pull richer accolade data from a separate DuckDB file. Exports `queryHonors()`, `isHonorsDbConfigured()`, `closeHonorsDb()`. |
-| `types.ts` | Three type aliases — `DbRow` (`Record<string, unknown>`), `SqlParam` (`DuckDBValue` for parameterised SQL), `TableDataRow` (union for formatters). |
-| `errors.ts` | Thin re-export: `getErrorMessage` from `src/shared/errors.js`. Present for ergonomic intra-package imports. |
+**Data Access Layer** — Singleton-managed DuckDB connection pool and query execution for the main NBA warehouse (`data/nba.duckdb`), plus an optional secondary honors database (`NBA_HONORS_DUCKDB_PATH`). Provides the foundation all tab queries and the chatbot agent use to read the medallion-architecture warehouse.
 
 ## Design
 
-- **Singleton-with-promise-dedup:** Both `db.ts` and `dbHonors.ts` cache the connection (module-level `let`) and also cache the in-flight promise (`connecting` / `honorsConnecting`). This prevents thundering-herd connection leaks when multiple callers race `initDb()` concurrently. A `.catch()` resets the cached promise so failures are retryable.
-- **Read-only by default:** `DuckDBInstance.fromCache(path, { access_mode: 'READ_ONLY' })` is defense-in-depth — even if the chatbot's SQL-critic node were bypassed, the connection cannot mutate data.
-- **Schema search path:** `SET search_path = 'unified_star,main'` resolves unqualified table names against the canonical star schema first (full production DB), falling back to `main` (CI fixture). The `SET` is wrapped in try/catch so CI works even without `unified_star`.
-- **Browsable schemas:** `BROWSE_SCHEMAS = ['unified_star', 'main']` drives `getTables()` and `getColumns()` introspected by the SQL Sandbox browser. Deduplicated at the table level; column lookup iterates schemas in order and returns on first match.
-- **Optional honors DB:** `dbHonors.ts` returns `[]` from `queryHonors()` when `NBA_HONORS_DUCKDB_PATH` is unset or the file doesn't exist, so callers don't need conditional branching. The primary `closeDb()` automatically calls `closeHonorsDb()`.
+### Singleton Connection Pattern (`db.ts`)
+- **Lazy singleton** via module-scoped `instance`, `connection`, and `connecting` variables.
+- `initDb()` is guarded by a cached promise (`connecting`) so concurrent callers share one initialization — the first caller creates the `DuckDBInstance` from cache (`DuckDBInstance.fromCache`) in read-only mode (`access_mode: 'READ_ONLY'`), all subsequent callers return the same connection.
+- Failed init resets the singleton state (`connecting = null`, `instance = null`) so a retry can succeed.
+- `closeDb()` disconnects synchronously (`disconnectSync()`) and resets all state, then calls `closeHonorsDb()`.
+
+### Schema Search Path
+- `SEARCH_PATH = 'unified_star,main'` — unqualified table names resolve against `unified_star` first, then `main`. This is set via `SET search_path = '...'` on connection.
+- `BROWSE_SCHEMAS = ['unified_star', 'main']` — used by the SQL Sandbox browser for table/column introspection.
+
+### Honors Database (`dbHonors.ts`)
+- Optional secondary DuckDB instance for richer honors data (e.g., basketball-data nba.duckdb with `v_player_honors_full`).
+- Uses the same lazy-singleton pattern as `db.ts` but returns `null` when `NBA_HONORS_DUCKDB_PATH` is unset or the file does not exist.
+- `isHonorsDbConfigured()` returns `true` when the configured env var points at an existing file.
+
+### Key Types (`types.ts`)
+- `DbRow` — `Record<string, unknown>`, the JSON-safe row type returned by DuckDB `getRowObjectsJson()`.
+- `SqlParam` — `DuckDBValue`, the parameter type for parameterized queries (`$1`, `$2`, etc.).
+- `TableDataRow` — `DbRow | unknown[]`, accepted by `formatTable` (array or object rows).
+
+### Error Re-export (`errors.ts`)
+- Simply re-exports `getErrorMessage` from `../shared/errors.js` — a one-liner `error instanceof Error ? error.message : String(error)`.
 
 ## Flow
 
 ```
-          ┌─────────────────┐
-          │  src/shared/    │
-          │  dbPath.ts      │──── resolveDbPath() ──── env / CI / default
-          └─────────────────┘
-                   │
-          ┌────────▼────────┐    first call            ┌──────────────────┐
-          │    db.ts        │──── initDb() ────────────▶│ DuckDBInstance   │
-          │    query()      │    caches promise+conn    │ (READ_ONLY)      │
-          │    getTables()  │◀─────── conn ─────────────│ conn.connect()   │
-          │    getColumns() │                           └──────────────────┘
-          └────────┬────────┘
-                   │ query(sql, params?) → DbRow[]
-                   │
-          ┌────────▼────────┐    if NBA_HONORS_DUCKDB_PATH set
-          │  dbHonors.ts    │──── queryHonors() ───────▶ secondary DuckDB
-          │  queryHonors()  │◀────────────────────────── (optional)
-          └────────┬────────┘
-                   │
-          ┌────────▼────────┐
-          │   src/tabs/     │  Business queries import `query` / `queryHonors`
-          │  */queries.ts   │  and call with SQL strings + optional params.
-          └─────────────────┘
+Web route / agent tool  ──►  query<T>(sql, params?)  ──►  initDb()  ──► DuckDBInstance.fromCache
+                                        │                                    │
+                                        ▼                                    ▼
+                               conn.runAndReadAll()                  resolveDbPath() → data/nba.duckdb
+                                        │                             or data/fixtures/nba.ci.duckdb
+                                        ▼
+                               reader.getRowObjectsJson()
+                                        │
+                                        ▼
+                               T[] (typed row objects)
 ```
+
+1. `resolveDbPath()` checks env var → CI fixture → default path.
+2. `initDb()` creates a read-only DuckDB connection (singleton).
+3. `query()` runs the SQL, optionally with bound parameters, and returns typed JSON row objects.
+4. `getTables()` / `getColumns()` introspect `information_schema` for the SQL Sandbox.
+5. `closeDb()` tears down both the main and honors DB connections.
+
+For the honors DB: `queryHonors()` mirrors `query()` but returns `[]` when the secondary DB is not configured.
 
 ## Integration
 
-- **`src/tabs/*/queries.ts`** — Every tab (gameCenter, timeMachine, sqlSandbox, chatbot) imports `query` from `../core/db.js` (or `data/core/db` via workspace alias) to execute DuckDB SQL.
-- **`src/shared/dbPath.ts`** — `resolveDbPath()` is the single source of truth for the DB path; `db.ts` re-exports it so consumers can import from one place.
-- **`src/shared/errors.ts`** — `getErrorMessage` is re-exported via `errors.ts` for ergonomic access from tab code.
-- **`packages/web/src/routes/api/copilotkit.ts`** — The chat endpoint calls `closeDb()` on shutdown via the agent lifecycle.
-- **Time Machine** — `dbHonors.ts` provides the optional richer-honors connection; callers use `isHonorsDbConfigured()` to decide whether to render extra accolade columns.
+### Consumes
+- `@duckdb/node-api` — `DuckDBInstance`, `DuckDBConnection`, `DuckDBValue`
+- `../shared/dbPath.js` — `resolveDbPath()` for CI-safe path resolution
+
+### Exports (public surface)
+- `initDb()`, `closeDb()`, `query()`, `getTables()`, `getColumns()` — primary DB access
+- `resolveDbPath` — re-exported from shared
+- `getErrorMessage` — re-exported from shared/errors
+- `DbRow`, `SqlParam`, `TableDataRow` — types
+
+### Consumers
+- **All tab query modules** (`tabs/gameCenter/queries.ts`, `tabs/timeMachine/queries.ts`, `tabs/sqlSandbox/queries.ts`) import `query` from `../../core/db.js`
+- **`packages/data/src/index.ts`** re-exports core functions as the package's public surface
+- **`packages/web`** imports the subpath export `data/db` which maps to `./src/core/db.ts`

@@ -1,72 +1,133 @@
-# packages/data/src/tabs/chatbot/utils/
+# `packages/data/src/tabs/chatbot/utils/`
 
 ## Responsibility
-
-Shared utility layer for the LangGraph chatbot agent. Provides SQL safety validation/extraction/execution, retry with error categorization, structured metrics/telemetry, async-local correlation IDs, error capture, and terminal/stream formatting. All files are pure logic with zero graph-node dependencies.
+**Chatbot Infrastructure Utilities** — Supporting modules for the LangGraph agent: SQL extraction/validation/execution, retry with exponential backoff, metrics logging and aggregation, error capture, stream formatting, terminal formatting, markdown-to-ANSI conversion, and spinner animation. These modules handle the mechanics that the agent graph orchestrates.
 
 ## Design
 
-| File | Exports | Role |
-|------|---------|------|
-| `sql.ts` | `validateReadOnlySql`, `extractSql`, `extractSqlFromMarkdown`, `validateSchemaReferences`, `checkSql`, `executeSql`, `formatResultsPretty` | SQL safety validation (blocks writes, multi-statement, external-access functions), extraction from LLM markdown output, schema-reference verification against live `getTables()`, and full execute pipeline with retry delegation |
-| `retry.ts` | `withRetry`, `categorizeDbError`, `isRetryableError`, `formatErrorForUser`, `formatErrorForLLM`, `ERROR_PREFIX`, `RetryOptions` | Exponential-backoff retry wrapper; error classification into `transient`/`schema`/`syntax`/`permanent` via keyword heuristics; distinct error formatters for end-user vs. LLM re-prompt (prefixed strings the `sql_critic` node parses) |
-| `correlation.ts` | `withRun`, `withRunContext`, `currentRun`, `updateRunContext`, `RunContext` | `AsyncLocalStorage`-based request-scoped context carrying `runId`, `turn`, `intent`, `model`. Used by metrics and error capture to correlate all events in a single chat turn |
-| `metrics.ts` | `MetricsSession` class + module-level singletons (`startMetrics`, `recordToken`, `recordToolCall`, `recordToolEnd`, `recordError`, `recordUsage`, `recordChainStage`, `flushMetrics`, `getMetricsSession`, `getMetricsSummary`, `logMetric`) | Two NDJSON output streams: `chatbot-metrics.ndjson` (per-query `MetricsEntry` with duration, tool latencies, token counts, SQL complexity, success) and `chatbot-events.ndjson` (arbitrary structured events with `runId`/`turn`). `getMetricsSummary` aggregates across all entries. Configurable via `CHATBOT_LOG_LEVEL`, `CHATBOT_LOG_STDERR`, `CHATBOT_METRICS_DIR` |
-| `errorCapture.ts` | `captureError`, `ErrorContext` | One-stop structured error capture: writes `level:error` event to NDJSON with `errName`, `errMessage`, `stack`, `sqlPreview` (truncated 500 chars), and optionally updates the in-memory `runId` on the async-local context |
-| `tableFormatter.ts` | `formatResultsTable` | Converts `Record<string, unknown>[]` to an ASCII box-drawing table (Unicode `┌┬┐├┼┤└┴┘`). Auto-column-width, numeric right-alignment, 20-row cap with overflow notice |
-| `markdown.ts` | `markdownToAnsi` | Converts markdown to ANSI escape sequences for terminal output. Handles code blocks (cyan), inline code, bold, headings, bullet lists, blockquotes, italic. Preserves `NO_COLOR` env var |
-| `streamFormatting.ts` | `formatChainStageStatus`, `summarizeToolInput`, `summarizeToolOutput`, `formatToolStartBlock`, `formatToolEndBlock`, `truncateMiddle` | Maps internal `ChainStageName` enum to human-readable status strings; truncates tool inputs/outputs with center-ellipsis for compact streaming UI |
-| `spinner.ts` | `SPINNER_FRAMES`, `getSpinnerFrame` | Braille spinner frame sequence for terminal progress indication |
-| `theme.ts` | `dimOrPlain`, `statusText`, `bold`, `label`, `youLabel`, `aiLabel`, `sqlLabel`, `errorLabel` | Re-exports `Theme`/`isNoColor` from `shared/theme` and adds convenience ANSI wrappers for chatbot-specific labels |
-| `index.ts` | — | Barrel re-export of all public modules except `correlation` and `errorCapture` (consumed internally by `metrics`). |
+### SQL Pipeline (`sql.ts`)
 
-### Key Patterns
+**Three-stage pipeline** controlled by the `check_nba_sql` and `query_nba_db` tools:
 
-- **No cross-tab imports**: Utilities never import sibling chatbot modules (agent, db, systemPrompt). Only `sql.ts` imports `../db.js` for `getTables()`/`query()` and `retry.ts`/`tableFormatter.ts` for error/result formatting.
-- **Singleton metrics session**: `MetricsSession` is instantiated once as `defaultSession`; module-level functions delegate to it. `getMetricsSession()` allows graph code to access the singleton directly.
-- **Structured NDJSON logging**: Both metrics and events land in `data/` (configurable via `CHATBOT_METRICS_DIR`) as append-only NDJSON. Events carry required `runId`/`turn` from async-local context.
-- **Error prefix contract**: `ERROR_PREFIX` constants are the shared protocol between utility error formatters and the `sql_critic` graph node. The node checks whether tool output starts with a known prefix to decide retry vs. proceed.
+1. **Extraction** — `extractSql(text)` extracts SQL from LLM output (fenced blocks ` ```sql ` first, then fallback regex for bare SELECT/WITH/DESCRIBE). `extractSqlFromMarkdown(text)` extracts all SQL blocks from markdown.
+
+2. **Validation** — `checkSql(sql)` runs two gates:
+   - `validateReadOnlySql(sql)` from `shared/sqlValidation.js` — blocks mutating statements and external-access functions
+   - `validateSchemaReferences(sql)` — parses FROM/JOIN clauses to extract table references, checks each against `getTables()` result. Supports `main.` prefix stripping for normalized comparison. Returns `SchemaValidationError[]` with `missing_table` / `missing_column` types.
+   - Returns `"OK: SQL passed read-only safety and schema checks."` on pass, or an error string prefixed with `ERROR_PREFIX` values.
+
+3. **Execution** — `executeSql(sql)` calls `checkSql()` first, then runs the query via `withRetry(() => query(sql), ...)` (max 2 attempts, 500ms base delay). Converts results via `formatResultsPretty` → `formatResultsTable`.
+
+### Retry with Backoff (`retry.ts`)
+
+**Exponential Backoff Pattern** — `withRetry<T>(fn, options?)`:
+- `maxAttempts: 3` (default), `baseDelayMs: 1000`, `maxDelayMs: 10000`
+- Only retries on `transient` errors (timeout, connection, lock, network, rate limit)
+- Error categorization via `categorizeDbError(err)`: returns `'transient' | 'schema' | 'syntax' | 'permanent'`
+- `isRetryableError(err)` — true for transient only
+- `formatErrorForUser(err)` — user-facing messages for auth errors, rate limits, timeouts, network errors
+- `formatErrorForLLM(err)` — LLM-facing messages with `ERROR_PREFIX` tags for schema/syntax/transient/permanent errors
+- `ERROR_PREFIX` constants: `SQL_ERROR`, `SCHEMA_ERROR`, `SYNTAX_ERROR`, `TRANSIENT_ERROR`, `SCHEMA_VALIDATION_FAILED`
+
+### Table Formatter (`tableFormatter.ts`)
+
+`formatResultsTable(results)` — Converts `Record<string, unknown>[]` to a Unicode box-drawing table string:
+- Max 20 rows displayed
+- Auto-detects numeric columns for right-alignment
+- Uses `┌─┬─┐` / `│ │` / `└─┴─┘` borders
+- Shows row count header when >20 rows
+
+### Stream Formatting (`streamFormatting.ts`)
+
+Human-readable status and tool summaries for the streaming UI:
+- `formatChainStageStatus(stage)` — maps `ChainStageName` to descriptive text (e.g., `'classify_intent'` → `'Classifying question...'`)
+- `truncateMiddle(text, maxChars)` — ellipsis-in-the-middle truncation
+- `summarizeToolInput(input)` — SQL preview (175 chars) or generic input summary
+- `summarizeToolOutput(output)` — output preview (215 chars)
+- `formatToolStartBlock(name, input)` / `formatToolEndBlock(name, output, durationMs?)` — structured terminal blocks
+
+### Metrics (`metrics.ts`)
+
+**Session-based logging to NDJSON files:**
+
+- `MetricsSession` class — accumulates per-query metrics in memory and flushes to `chatbot-metrics.ndjson`
+- `logMetric(rec)` — low-level event logger writes to `chatbot-events.ndjson`, respects `CHATBOT_LOG_LEVEL` filter
+- Session tracks: tool calls with latencies, SQL complexity (table/join count per statement), token counts (input/output), chain stages, success/error status
+- `getMetricsSummary(metricsFile?)` — reads NDJSON file and computes aggregates: total queries, tool calls, avg duration, token totals, success rate, SQL complexity averages, model breakdown
+- Default `MetricsSession` singleton accessed via `getMetricsSession()` and convenience functions: `startMetrics`, `recordToken`, `recordToolCall`, `recordToolEnd`, `recordError`, `recordUsage`, `recordChainStage`, `flushMetrics`
+
+### Correlation (`correlation.ts`)
+
+**AsyncLocalStorage-based run context** — Assigns a unique `runId` and `turn` number to each agent execution:
+- `withRun(turn, fn)` — creates a new `RunContext` with `runId = randomUUID()`
+- `withRunContext(ctx, fn)` — merges with existing context
+- `currentRun()` — returns current `{ runId, turn }` (or `{ runId: 'no-run', turn: -1 }` outside a context)
+- `updateRunContext(patch)` — modifies the current context in-place
+
+### Error Capture (`errorCapture.ts`)
+
+`captureError(err, ctx?)` — Structured error recording:
+- Accepts `ErrorContext` with `intent`, `model`, `sql`, `toolName`, `retryCount`, `stage`, `question`, `runId`
+- Logs via `logMetric` with `level: 'error'`, `event: 'error'`
+- Includes error name, message, stack trace, and SQL preview (500 chars)
+- Returns the Error object (ensuring it's always an Error)
+
+### Theme (`theme.ts`)
+
+Terminal labeling utilities with `NO_COLOR` support:
+- `isNoColor`, `Theme` — re-exported from `shared/theme.js`
+- `dimOrPlain(text)`, `bold(text)` — ANSI dim/bold wrappers
+- `label(text, colorCode)` — colored label with bold
+- `youLabel()` — `[You]` in blue
+- `aiLabel()` — `[AI]` in green
+- `sqlLabel()` — `[SQL]` in cyan
+- `errorLabel()` — `[Error]` in red
+- `statusText(text)` — dimmed status text
+
+### Markdown-to-ANSI (`markdown.ts`)
+
+`markdownToAnsi(text)` — Converts markdown to ANSI-colored terminal output:
+- Code blocks → wrapped in cyan
+- Inline code → cyan
+- Bold → bold
+- Headings → bold
+- Unordered lists → bullet character
+- Blockquotes → dim with vertical bar
+- Italic → dim
+
+### Spinner (`spinner.ts`)
+- `SPINNER_FRAMES` — 10 Braille spinner characters
+- `getSpinnerFrame(tick, text?)` — returns current frame with optional status text
 
 ## Flow
 
+### SQL Execution Pipeline
 ```
-LLM output ──► extractSql() ──► validateReadOnlySql() ──► validateSchemaReferences()
-                                       │                         │
-                              [blocks writes]           [checks table existence]
-                                       ▼                         ▼
-                                 checkSql() ──► "OK:" or error prefix
-                                       │
-                                       ▼
-                               executeSql()
-                                       │
-                              withRetry() ──► query() (DB)
-                                       │
-                              ┌────────┴────────┐
-                              ▼                  ▼
-                     formatResultsTable()   formatErrorForLLM()
-                     (tableFormatter.ts)    (retry.ts) ──► ERROR_PREFIX.*
-                                                   │
-                              MetricsSession singleton:
-                              recordToolCall / recordToolEnd / recordToken /
-                              recordUsage / recordChainStage / recordError
-                                       │
-                              flush() ──► chatbot-metrics.ndjson
-                              logMetric() ──► chatbot-events.ndjson
-                                       │
-                              captureError() ──► chatbot-events.ndjson (level:error)
+LLM output → extractSql()
+  → checkSql()
+    → validateReadOnlySql() (safety gate)
+    → validateSchemaReferences() (table existence)
+  → executeSql() [via tool]
+    → checkSql() again (defense-in-depth)
+    → withRetry(query) → formatResultsTable()
+```
 
-Streaming UI path:
-  formatChainStageStatus(stage) ──► human status string
-  formatToolStartBlock(name, input) ──► ["Tool X started", "SQL: ..."]
-  formatToolEndBlock(name, output, ms) ──► ["Tool X completed in Nms", "Result: ..."]
+### Metrics Flow
+```
+streamQuery() events
+  → session.recordToken() / recordToolCall() / recordToolEnd()
+  → session.recordUsage() / recordChainStage()
+  → session.flush() → appendFileSync('chatbot-metrics.ndjson')
 ```
 
 ## Integration
 
-- **Graph nodes** (`graph.ts`, `tools.ts`) import `executeSql`, `checkSql`, `extractSql` from this folder to safely run LLM-generated SQL and validate it before execution.
-- **sql_critic node** reads `ERROR_PREFIX` strings in tool output to decide whether the LLM should retry with corrected SQL.
-- **Streaming module** (`streaming.ts`) uses `formatChainStageStatus`, `summarizeToolInput`/`summarizeToolOutput`, `formatToolStartBlock`/`formatToolEndBlock` to produce human-readable streaming event text for the web UI.
-- **Tool implementations** (`tools.ts`) call `captureError` and the `MetricsSession` singleton (`recordToolCall`, `recordToolEnd`) to instrument each tool invocation.
-- **Graph entry point** (`processQuestion.ts`) calls `withRun` from `correlation.ts` to scope each chat turn, and `startMetrics`/`flushMetrics` on the session.
-- **System prompt** (`systemPrompt.ts`) references the SQL retry/prefix contract implicitly: the prompt instructs the LLM to fix errors when it sees error-prefixed messages.
-- **External consumers**: Eval scripts (`scripts/eval/`) import `markdownToAnsi` and table formatters for CLI output formatting.
+### Consumed by
+- **`agent/tools.ts`** — imports `executeSql`, `checkSql` for `query_nba_db` and `check_nba_sql` tools
+- **`agent/graph.ts`** — imports `captureError`, `ERROR_PREFIX` for guard nodes
+- **`agent/streaming.ts`** — imports `captureError`, `logMetric`, `updateRunContext`, `formatErrorForUser`
+- **`agent/orchestrator.ts`** — imports `captureError`
+- **`packages/web`** — may import `data/tabs/chatbot/utils` via subpath export
+
+### Exported via package.json subpath export
+- `data/tabs/chatbot/utils` → `./src/tabs/chatbot/utils/index.ts` (barrel exports all modules)

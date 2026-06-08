@@ -1,175 +1,141 @@
-# scripts/db/
+# `scripts/db/`
 
 ## Responsibility
+DuckDB Warehouse Tooling — the main data quality assurance, cross-source reconciliation, canonical view/materialization, and warehouse maintenance suite for the NBA medallion-architecture database.
 
-Owns the **warehouse operations layer** for `data/nba.duckdb`: data-quality (DQ) verification suites, cross-source accuracy framework, entity-resolution (xref) layer, golden-record merge views, source registry, metric catalog, staging quarantine, and pipeline orchestration. All scripts are `bun run` executables that connect via `@duckdb/node-api` with `fromCache` and call `CHECKPOINT` after writes.
+## Design
 
-Does **not** touch runtime (`packages/data/`) or UI (`packages/web/`). Child codemap at `sources/codemap.md`.
+### DuckDB Scripting Conventions
+All scripts follow consistent patterns:
+- **Connection**: `const db = await DuckDBInstance.fromCache(DB_PATH); const conn = await db.connect();` — uses `fromCache` for read-only singleton access.
+- **DB path**: `process.env['NBA_DUCKDB_PATH'] ?? './data/nba.duckdb'` — configurable via env var.
+- **CHECKPOINT after writes**: `await conn.run('CHECKPOINT')` flushes the WAL to avoid cross-process replay bugs on Windows.
+- **Query helper**: `const q = async (sql: string) => (await conn.runAndReadAll(sql)).getRowObjectsJson();`
+- **Dry run pattern**: `--apply` flag gates writes; default is dry-run with read-only validation.
 
----
+### CLI Pattern
+All verification/build scripts accept:
+- `--dry-run` / no flag = read-only validation (default).
+- `--apply` = persist changes to DB.
+- `--filter=<substring>` = subset checks by name.
+- `--gate=<SEVERITY>` = fail the process on violations at or above this level (default: CRITICAL).
 
-## Groups
+### Shared DQ Core (`dq-core.ts`)
+Central module imported by 4+ verification scripts:
+- **`CheckSpec` interface**: `name`, `table`, `severity`, `dimension`, `rule`, `countSql`.
+- **Check builders**: `violations()`, `duplicateGrain()`, `orphans()`, `requiredColumns()`.
+- **Runner**: `runCountChecks()` executes each check's `countSql` and captures errors.
+- **Persistence**: `persistResults()` writes to `audit.dq_results` table with a shared `runId` timestamp.
+- **Gating**: `applyGate()` filters outcomes by severity rank, sets `process.exitCode = 1` on failures at or above gate level.
+- **Severity ladder**: CRITICAL > HIGH > MEDIUM > LOW > INFO.
 
-### 1. DQ Core Framework
+### Cross-Source Reconciliation Pipeline (Phased Plan)
+The scripts implement a documented 6-phase plan (see `.claude/plans/i-would-like-to-serialized-lake.md`):
 
-| File | Role |
-|------|------|
-| `dq-core.ts` | Shared primitives: `CheckSpec`/`Outcome` types, `runCountChecks()`, `persistResults()`, `printReport()`, `applyGate()`, SQL builders (`violations`, `duplicateGrain`, `orphans`, `requiredColumns`). All DQ verification scripts import from here. Writes to `audit.dq_results`. |
+| Phase | Script(s) | Output |
+|-------|-----------|--------|
+| 0 | `sync-crosswalk-to-db.ts` | `meta.stat_crosswalk` table from CSV, `meta.v_column_semantic_catalog`, `meta.v_unmapped_columns` |
+| 1 | `build-source-registry.ts` | `meta.source`, `meta.source_entity`, `meta.source_column_map` |
+| 2 | `build-xref.ts` | `xref.*_xref` tables (player, team, game, official) seeded from `unified_star` dims |
+| 3 | `resolve-entities.ts` | Generic entity resolution for new sources (e.g. ESPN) via deterministic + fuzzy matching |
+| 4 | `build-canonical-metric-registry.ts` | `meta.canonical_metric`, `meta.metric_source_authority`, `meta.canonical_metric_proposal` |
+| 5 | `build-canonical-merge.ts` + `build-canonical-merge-game.ts` + `build-canonical-merge-team.ts` | `api.v_golden_player_season_totals`, `api.v_golden_player_game`, `api.v_golden_team_season` views + `audit.metric_discrepancy` rows |
+| 6 | `onboard-espn-sample.ts` | Acceptance test: end-to-end source onboarding |
 
-### 2. DQ Verification Suites (internal consistency)
+### Verification Suites (DQ Pipeline)
 
-| File | Phase | Scope |
-|------|-------|-------|
-| `verify-dq.ts` | Single-table | ~60 checks on `nbadb` star tier: uniqueness (grain dupes), referential integrity (orphan FKs), consistency (made≤attempted, reb=oreb+dreb, pts formula), validity (percentages in [0,1], `season_year` format), completeness (required keys non-null). |
-| `verify-cross-table.ts` | Cross-table | Box-score summation (player→team), aggregate continuity (game logs→season totals), record vs standings, agg_season total_× vs avg_××gp. Writes offending keys to `audit.cross_table_discrepancy`. |
-| `verify-advanced-recompute.ts` | Recompute | Recomputes eFG%, TS%, USG% from raw box-score columns in `main.fact_player_game_stats`. Writes mismatches to `audit.advanced_stat_recompute`. Per-metric tolerance overridable via `--tol-<metric>=`. |
-| `verify-historical.ts` | Boundary scan | NBA rule timeline checks (pre-1979 3PT, pre-1973 blk/stl) and player bio sanity (draft age, height/weight bounds). |
-| `verify-dq-fixture.ts` | CI smoke | Lightweight check that the committed CI fixture (`data/fixtures/nba.ci.duckdb`) has required tables, non-empty dims, unique games, and no orphan regressions. |
-| `dq-trend.ts` | Trend analysis | Queries `audit.dq_results` history for 7d/30d averages, trend direction, and regression detection. Exit non-zero on degrading CRITICAL checks. |
+| Suite | Script | Focus | Tables Checked |
+|-------|--------|-------|----------------|
+| Internal consistency | `verify-dq.ts` | Uniqueness, referential integrity, consistency, validity, completeness | `nbadb.fact_player_game_traditional`, `fact_team_game`, `fact_game_result`, dim tables |
+| Cross-table | `verify-cross-table.ts` | Box-score summation, aggregate continuity, record vs standings | Multiple `nbadb` tables, `unified_star.fact_player_season_stats`, `main.fact_bref_team_season_summary` |
+| Advanced recompute | `verify-advanced-recompute.ts` | eFG%, TS%, USG% recomputed from raw stats vs stored values | `main.fact_player_game_stats` (~1.67M rows) |
+| Historical boundary | `verify-historical.ts` | NBA rule timelines (3pt pre-1979, blk/stl pre-1973), player bio sanity | `nbadb.fact_player_game_traditional`, `main.dim_player` |
+| Xref coverage | `verify-xref-coverage.ts` | Source IDs mapped in xref layer across raw tables | `xref.*_xref`, `raw_bref.*`, `raw_sqlite.*`, `raw_espn.*` |
+| DQ trend | `dq-trend.ts` | Historical analysis of `audit.dq_results` over time | `audit.dq_results` |
+| Fixture smoke | `verify-dq-fixture.ts` | Lightweight check for CI fixture (table existence, grain, FK contracts) | `main.*` tables in CI fixture |
+| Meta schema | `verify-meta-schema.ts` | Validates expected meta tables, views, and indexes exist and are queryable | `meta.*`, `api.*` catalog objects |
 
-### 3. DQ Remediation
+### Remediation & Maintenance Scripts
 
-| File | Action |
-|------|--------|
-| `remediate-phase1-dq.ts` | Fixes impossible shot counts (make>attempt → null), rebound splits (null when oreb+dreb≠reb), swapped period components in `fact_game_result`, All-Star game `season_year` mis-parsed as 20xx. Inserts placeholder dim rows for special-event/international teams and orphan players. |
-| `backfill-dimension-placeholders.ts` | Finds team_ids/player_ids referenced in facts but missing from dims, logs to `audit.placeholder_backfill_log`, inserts unnamed placeholder rows. |
-| `backfill-bref-person-id.ts` | Propagates already-resolved xref `bref->master_id` mappings into `main.fact_bref_player_season_totals.person_id` where NULL (deterministic, 1:1 only). |
+| Script | Purpose |
+|--------|---------|
+| `remediate-phase1-dq.ts` | Curated-layer data fixes: nulls impossible shot attempts, fixes swapped period components, inserts placeholder dimension rows for special-event teams |
+| `backfill-dimension-placeholders.ts` | Finds orphan team_ids/player_ids in fact tables, captures violating keys to audit, inserts placeholder dim rows |
+| `backfill-bref-person-id.ts` | Propagates resolved xref identities to `fact_bref_player_season_totals.person_id` where NULL |
+| `quarantine-review.ts` | Review/resolve quarantined staging rows — supports review, promote, purge, export actions |
+| `classify-accuracy-discrepancies.ts` | 3-way classification of cross-source disagreements (agree, known_divergence, genuine_defect_candidate) |
+| `oracle-resolve-discrepancies.ts` | Firecrawl oracle for unresolved discrepancy candidates (currently empty queue) |
+| `validate-staging-fk.ts` | Pre-ingest FK validation — report or quarantine orphan rows |
+| `build-player-season-3p-unified-view.ts` | Canary cross-source 3PM merge (predecessor to phase 5 golden record) |
+| `build-canonical-views.ts` | Creates `api.v_canonical_*` views from `meta.stat_crosswalk` mapping |
+| `sync-crosswalk-to-db.ts` | Syncs `master-stat-crosswalk.csv` into `meta.stat_crosswalk`, validates no drift |
+| `extend-master-stat-crosswalk.ts` | Programmatically add column mappings to the CSV crosswalk (e.g., advanced metrics) |
+| `fetch-accuracy-sources.ts` | Firecrawl-backed BBR source fetcher for accuracy check generation |
+| `accuracy.ts` | Core accuracy check types, BBR page parser (cheerio), check builder, comparison logic |
 
-### 4. Accuracy / Cross-Source Verification
+### Accuracy Verification
+- **`accuracy-checks.json`**: JSON manifest of ~80+ known-value checks (career totals, season leaders) with expected values, comparison mode (exact/gte/lte/range/approx), and source attribution.
+- **`accuracy.test.ts`**: Bun tests for `accuracy.ts` functions (loader, BBR parser, check builder, draft pick parser).
+- **`verify-accuracy.ts`**: Runner that executes all checks against the live DB and reports pass/fail.
+- **`fetch-accuracy-sources.ts`**: Generates new checks from Firecrawl-scraped BBR player pages.
+- **`bbr-accuracy-players.json`**: Seed list of players for BBR accuracy check generation.
 
-| File | Role |
-|------|------|
-| `accuracy.ts` | Core engine: `AccuracyCheck` type, `compareActual()` with 5 modes (exact/gte/lte/range/approx), `parseBbrCareerTotals()` (cheerio parser on BBR totals table), `buildCareerChecks()`, `parseBbrDraftPick()`, `buildDraftCheck()`. |
-| `accuracy.test.ts` | Unit tests for accuracy.ts (check loader, BBR HTML parsing, check builder). |
-| `verify-accuracy.ts` | Runs the JSON accuracy-check suite (`accuracy-checks.json`) against the DB. Prints PASS/FAIL per check with expected vs actual. |
-| `fetch-accuracy-sources.ts` | Firecrawl CLI wrapper that scrapes BBR player pages, generates candidate accuracy checks from career-totals tables + draft meta, validates against DB, optionally appends passing candidates to `accuracy-checks.json`. |
-| `classify-accuracy-discrepancies.ts` | Classifies `audit.metric_discrepancy` rows into *known_divergence* (documented source-rule variance e.g. pre-1974 ORB/DRB) vs *genuine_defect_candidate*. Writes 3-class classification surface + run summary. |
-| `oracle-resolve-discrepancies.ts` | Queue-driven Firecrawl oracle. Reads HIGH genuine-defect candidates, resolves via xref to BBR slugs, scrapes BBR pages to `.firecrawl/oracle/`, logs to `audit.oracle_resolution`. Currently always empty (zero discrepancies). |
-| `accuracy-checks.json` | Hand-curated JSON check definitions (79+ checks: career totals, draft picks, season milestones). |
-| `accuracy-candidates.generated.json` | Auto-generated passing candidates from `fetch-accuracy-sources.ts`. |
-| `bbr-accuracy-players.json` | BBR player seed list for the source fetcher. |
+### DQ Pipeline Orchestrator (`run-dq-pipeline.ts`)
+Sequential runner that executes stages in dependency order as child processes (`bun run <script>`):
+1. validate-staging-fk (critical)
+2. backfill-dimension-placeholders
+3. build-xref (critical)
+4. resolve-entities (espn)
+5. verify-xref-coverage (critical)
+6. build-canonical-merge
+7. build-canonical-merge-game
+8. build-canonical-merge-team
+9. verify-dq (critical)
+10. verify-cross-table
+11. verify-advanced-recompute
+12. verify-historical
 
-### 5. Golden-Record Merge Views
-
-| File | View Created | Sources Merged |
-|------|-------------|----------------|
-| `build-player-season-3p-unified-view.ts` | `api.v_player_season_3p_unified` | `main.fact_bref_player_season_totals` × `nbadb.fact_player_career` via `main.bridge_player_source_id` (3PM canary). |
-| `build-canonical-merge.ts` | `api.v_golden_player_season_totals` | BBR × NBA for 17 counting stats. BBR wins by precedence. Disagreements written to `audit.metric_discrepancy`. |
-| `build-canonical-merge-game.ts` | `api.v_golden_player_game` | NBA-only (no BBR game-level table). Single-source golden record. |
-| `build-canonical-merge-team.ts` | `api.v_golden_team_season` | BBR team totals+summary × NBA aggregated team games. Joined via `xref.team_xref`. |
-| `build-canonical-views.ts` | `api.v_canonical_*` (5 views) | Column-renaming views mapped through `meta.stat_crosswalk` (source→canonical stat rename). Non-destructive; coexists with golden views. |
-
-### 6. Cross-Reference & Entity Resolution
-
-| File | Phase | Function |
-|------|-------|----------|
-| `build-xref.ts` | Phase 2 | Seeds `xref.{player,team,game,official}_xref` from `unified_star` master dims. Replays `xref.match_override` manual fixes. Validates 1:1 invariant per (source, key). |
-| `resolve-entities.ts` | Phase 3 | Generic player entity resolution for *new* sources (ESPN, Spotrac). 3-tier matching: exact (name+DOB) → destripped → fuzzy (jaro_winkler, birth-date gated). Writes matches to `xref.player_xref`, misses to `xref.player_unresolved`, near-misses to `audit.match_candidates`. |
-| `onboard-espn-sample.ts` | Phase 6 | Lands `sources/espn_player_sample.csv` into `raw_espn.player` as an acceptance test for the onboarding path. |
-| `verify-xref-coverage.ts` | — | Checks every source's raw-table IDs have mappings in xref tables. Gated on HIGH. |
-
-### 7. Source Registry & Metric Catalog
-
-| File | Function |
-|------|----------|
-| `build-source-registry.ts` | Phase 1. Loads TypeScript source manifests (`sources/`) into `meta.source` and `meta.source_entity`. Validates every declared raw-table column against the live catalog. Derives `meta.source_column_map` from `meta.stat_crosswalk`. |
-| `sync-crosswalk-to-db.ts` | Syncs `master-stat-crosswalk.csv` → `meta.stat_crosswalk`. Creates `meta.v_column_semantic_catalog` and `meta.v_unmapped_columns`. Supports `--check-drift` for read-only drift reporting. |
-| `extend-master-stat-crosswalk.ts` | Adds advanced-stat column mappings (e_off_rating, e_def_rating, pct_ast, etc.) to the crosswalk CSV. Can apply DuckDB `COMMENT ON COLUMN` via `--apply-comments`. |
-| `build-canonical-metric-registry.ts` | Phase 4. From the crosswalk, creates `meta.canonical_metric` (one row per canonical stat), `meta.metric_source_authority` (per-metric×source precedence+tolerance), and `meta.canonical_metric_proposal` (auto-classified unmapped columns for review). |
-| `verify-meta-schema.ts` | Validates expected meta tables, canonical views, and indexes exist and are queryable. |
-
-### 8. Staging / Quarantine
-
-| File | Function |
-|------|----------|
-| `validate-staging-fk.ts` | Pre-ingest FK validation. Checks `stg_*` tables for orphan FKs against parent staging tables. Supports `--quarantine` mode that moves orphans into `stg_*.quarantine_*` tables. Exit non-zero when CRITICAL orphan rate exceeds threshold (default 0.1%). |
-| `quarantine-review.ts` | Interactive review of quarantine tables. Supports actions: `review` (default, show stats+sample), `promote` (insert back to source table), `purge` (delete older than N days), `export` (CSV dump). Logs to `audit.quarantine_review_log`. |
-
-### 9. Pipeline Orchestration
-
-| File | Function |
-|------|----------|
-| `run-dq-pipeline.ts` | Orchestrates 12 stages as child processes in dependency order: validate-staging-fk → backfill-dimension-placeholders → build-xref → resolve-entities → verify-xref-coverage → build-canonical-merge (×3) → verify-dq → verify-cross-table → verify-advanced-recompute → verify-historical. Aborts on critical-failure. Logs to `data/pipeline-run-log.jsonl`. |
-
-### 10. Source Manifests (`sources/` subdirectory)
-
-See `sources/codemap.md`. Declares source metadata (trust tier, entity grains, natural/blocking keys) for bref, nba_api_sqlite, nba_stats, and espn. Used by `build-source-registry.ts`.
-
----
+Stages marked `critical` abort the pipeline on failure. Results logged to `data/pipeline-run-log.jsonl`. Supports `--apply` and `--dry-run`.
 
 ## Flow
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                   PIPELINE (run-dq-pipeline.ts)              │
-│                                                              │
-│  1. validate-staging-fk ─── pre-ingest FK gate (stg→stg)     │
-│  2. backfill-dimension-placeholders ─── fix orphan FKs       │
-│  3. build-xref ─── seed xref from unified_star dims          │
-│  4. resolve-entities ─── tiered match for new sources        │
-│  5. verify-xref-coverage ─── gate on unmapped source IDs     │
-│  6. build-canonical-merge (×3) ─── golden-record views       │
-│     ├── build-canonical-merge.ts       (player-season)       │
-│     ├── build-canonical-merge-game.ts  (player-game)         │
-│     └── build-canonical-merge-team.ts  (team-season)         │
-│  7. DQ gates (verify-dq, verify-cross-table,                 │
-│     verify-advanced-recompute, verify-historical)            │
-└─────────────────────────────────────────────────────────────┘
+── BUILD PIPELINE ──
+  master-stat-crosswalk.csv
+    → sync-crosswalk-to-db.ts       → meta.stat_crosswalk, meta.v_* views
+    → extend-master-stat-crosswalk.ts (optional)
+    → build-canonical-views.ts      → api.v_canonical_* views
+    → build-source-registry.ts      → meta.source + meta.source_entity (from sources/)
+    → build-xref.ts                 → xref.*_xref tables (seeded from unified_star)
+    → resolve-entities.ts           → xref.player_xref (new sources)
+    → build-canonical-metric-registry.ts  → meta.canonical_metric + metric_source_authority
+    → build-canonical-merge.ts      → api.v_golden_player_season_totals + audit.metric_discrepancy
+    → build-canonical-merge-game.ts  → api.v_golden_player_game
+    → build-canonical-merge-team.ts  → api.v_golden_team_season
+    → classify-accuracy-discrepancies.ts  → audit.accuracy_run_summary
 
-┌─────────────────────────────────────────────────────────────┐
-│              SOURCE ONBOARDING (new source path)             │
-│                                                              │
-│  * source.manifest.ts (sources/)                             │
-│  → build-source-registry.ts ─── validate + persist meta      │
-│  → resolve-entities.ts (3-tier match)                        │
-│  → build-xref.ts (replay to xref layer)                      │
-└─────────────────────────────────────────────────────────────┘
+── DQ PIPELINE (run-dq-pipeline.ts) ──
+  1. validate-staging-fk
+  2. backfill-dimension-placeholders
+  3. build-xref
+  4. resolve-entities
+  5. verify-xref-coverage
+  6. build-canonical-merge
+  7. build-canonical-merge-game
+  8. build-canonical-merge-team
+  9. verify-dq
+  10. verify-cross-table
+  11. verify-advanced-recompute
+  12. verify-historical
 
-┌─────────────────────────────────────────────────────────────┐
-│              ACCURACY / CROSS-SOURCE                         │
-│                                                              │
-│  accuracy-checks.json ──→ verify-accuracy.ts                 │
-│  bbr-accuracy-players.json ──→ fetch-accuracy-sources.ts     │
-│  build-canonical-merge.ts ──→ audit.metric_discrepancy       │
-│    → classify-accuracy-discrepancies.ts                      │
-│    → oracle-resolve-discrepancies.ts (queue-driven)          │
-└─────────────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────────────┐
-│              CROSSWALK → METRIC CATALOG                     │
-│                                                              │
-│  master-stat-crosswalk.csv                                   │
-│  → sync-crosswalk-to-db.ts ― meta.stat_crosswalk             │
-│    → v_column_semantic_catalog, v_unmapped_columns           │
-│  → extend-master-stat-crosswalk.ts (add advanced stats)      │
-│  → build-canonical-metric-registry.ts                        │
-│    → meta.canonical_metric                                   │
-│    → meta.metric_source_authority                            │
-│    → meta.canonical_metric_proposal                          │
-└─────────────────────────────────────────────────────────────┘
+── ACCURACY ──
+  BBR player pages (Firecrawl)
+    → fetch-accuracy-sources.ts    → accuracy-candidates.generated.json
+    → verify-accuracy.ts           → pass/fail report
 ```
 
----
-
 ## Integration
-
-- **DB schemas read/written**: `nbadb`, `unified_star`, `main`, `stg_*`, `raw_*`, `xref`, `meta`, `audit`, `api`
-- **Primary output tables**:
-  - `audit.dq_results` — DQ check history (all verify-* scripts write here)
-  - `audit.cross_table_discrepancy` — cross-table mismatch keys
-  - `audit.advanced_stat_recompute` — recompute mismatch rows
-  - `audit.metric_discrepancy` — cross-source value disagreements (from golden merges)
-  - `audit.xref_coverage` — xref build coverage snapshot
-  - `audit.placeholder_backfill_log` — placeholder dim row insertions
-  - `audit.match_candidates` — fuzzy-resolve near-misses
-  - `audit.discrepancy_known_divergence` — documented source-rule variances
-  - `audit.metric_discrepancy_classification` — 3-way classification surface
-  - `audit.oracle_resolution` — Firecrawl scrape artifacts
-  - `audit.quarantine_review_log` — quarantine action history
-  - `xref.{player,team,game,official}_xref` — entity cross-reference
-  - `meta.{source,source_entity,source_column_map,stat_crosswalk,canonical_metric,metric_source_authority,canonical_metric_proposal}`
-  - `api.v_golden_*` — canonical merge views consumed by `packages/data/src/tabs/`
-  - `api.v_canonical_*` — column-renaming views through `meta.stat_crosswalk`
-- **CI integration**: `verify-dq-fixture.ts` runs in Actions against `data/fixtures/nba.ci.duckdb`; `verify-meta-schema.ts` validates meta layer is intact.
-- **Downstream consumption**: `api.v_golden_*` and `api.v_canonical_*` views queried by `packages/data/src/tabs/` runtime code. `xref` and `meta` schemas underpin the chatbot's entity-aware query engine.
-- **Crosswalk CSV** (`master-stat-crosswalk.csv`) is the system-of-record for column→concept mapping; `sync-crosswalk-to-db.ts` propagates it to DuckDB. All four crosswalk scripts (`sync-crosswalk-to-db.ts`, `extend-master-stat-crosswalk.ts`, `build-source-registry.ts`, `build-canonical-metric-registry.ts`) participate in the crosswalk→catalog pipeline.
+- **Consumed by**: `packages/data` runtime code reads `api.v_golden_*` views, `xref.*` tables, and `meta.*` registry.
+- **Invoked via**: `bun run dq`, `bun run dq:*` aliases in root `package.json` (verify-dq, cross-table, recompute, historical, etc.).
+- **Data sources**: `data/nba.duckdb` (production), `data/fixtures/nba.ci.duckdb` (CI).
+- **No external API dependencies**: Except `fetch-accuracy-sources.ts` and `oracle-resolve-discrepancies.ts` which require Firecrawl CLI.

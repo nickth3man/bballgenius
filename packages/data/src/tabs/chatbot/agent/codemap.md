@@ -1,157 +1,198 @@
-# packages/data/src/tabs/chatbot/agent/
+# `packages/data/src/tabs/chatbot/agent/`
 
 ## Responsibility
-
-Implements the LangGraph-based chatbot agent for NBA analytics. Contains two parallel graph architectures:
-
-- **Single-agent worker graph** (`graph.ts`): A monolithic LLM + tools loop with SQL error correction, tool budget enforcement, loop detection, and hallucination validation. Used directly when `CHATBOT_ORCHESTRATION=0`, or as the SQL worker inside the orchestrator.
-- **Multi-agent orchestrator** (`orchestrator.ts`): A planner/workers/synthesizer pipeline that decomposes complex questions into parallel sub-tasks, dispatches independent SQL worker agents, and merges findings.
-
-The streaming layer (`streaming.ts`) wraps graph execution into an async-generator yielding typed `StreamEvent` objects consumed by the web chat route.
+**LangGraph Agent Layer** — Defines the chatbot's state graph, tools, model binding, streaming event system, and multi-agent orchestrator. This is the core reasoning engine that processes NBA questions by classifying intent, injecting schema context, executing SQL tools with retry/validation guards, and optionally decomposing complex questions across parallel SQL worker agents.
 
 ## Design
 
-### Graph State (`state.ts`)
+### Graph Architecture (StateGraph)
 
-`ChatbotState` defined via LangGraph's `StateSchema`:
+The agent uses **LangGraph's `StateGraph`** with two interchangeable graph configurations:
 
-- **`messages`** (`MessagesValue`) — BaseMessage array (shared reducer).
-- **`sqlRetryCount`**, **`totalToolCalls`**, **`validateAnswerRetries`** — counters for guard nodes.
-- **`intentCategory`** — deterministic regex classification result (12 categories: `career_leaders`, `season_leaders`, `awards`, `team_seasons`, `games`, `shot_charts`, `play_by_play`, `identity`, `draft`, `data_quality`, `cross_schema`, `general`).
-- **`originalQuestion`**, **`planMode`** (`'single'|'multi'|'clarify'`), **`subtasks`**, **`workerBasePrompt`**, **`activeSubtask`** — orchestrator planning fields.
-- **`workerFindings`** — `ReducedValue` with custom array-append reducer (accepts `Overwrite` for reset).
+#### Single-Agent Worker Graph (`graph.ts` → `buildGraph()`)
+```
+START
+  → prepare_turn (reset retry counters)
+  → classify_intent (keyword-based intent detection)
+  → inject_schema (inject context-appropriate schema prompt)
+  → llm (call model with bound tools)
+     ├── tools (ToolNode) → tool_budget_guard → sql_error_guard → llm (retry loop, max 3)
+     └── END → validate_answer (hallucination check) → finalize_turn → END
+```
+
+#### Multi-Agent Orchestrator Graph (`orchestrator.ts` → `buildOrchestratorGraph()`)
+```
+START
+  → orch_plan (planner agent decomposes question → N sub-tasks)
+  → Send dispatch → orch_worker × N (parallel SQL worker agents)
+  → orch_synthesize (merge findings into final answer)
+  → END
+```
+
+**`getChatbotGraph()`** returns the orchestrator when `CHATBOT_ORCHESTRATION !== '0'`, otherwise the single-agent worker graph. Both expose the same `{ getState, streamEvents, invoke }` interface.
+
+### State Schema (`state.ts`)
+
+Uses **`zod/v4`** for runtime validation with LangGraph's `StateSchema`:
+
+```typescript
+ChatbotState = {
+  messages: MessagesValue,           // LangGraph message accumulator
+  sqlRetryCount?: number,            // SQL retry attempts (max 3)
+  intentCategory?: string,           // classified intent label
+  totalToolCalls?: number,           // cumulative tool call counter (max 10)
+  validateAnswerRetries?: number,    // hallucination check retries (max 2)
+  originalQuestion?: string,         // saved for orchestrator
+  planMode?: 'single' | 'multi' | 'clarify',
+  subtasks?: Subtask[],             // decomposed sub-questions
+  workerBasePrompt?: string,         // base prompt for workers
+  activeSubtask?: Subtask,          // per-worker dispatch
+  workerFindings: ReducedValue<WorkerFinding[]>,  // accumulated via custom reducer
+}
+```
+
+**Key types:** `IntentCategory` (12-value union), `Subtask` (id/focus/question), `WorkerFinding` (id/focus/finding/toolCalls), `PlanMode`.
+
+### Intent Classification (`graph.ts` → `classifyQuestion()`)
+
+**Keyword Pattern Matching** — Deterministic (no LLM call), using `RegExp` patterns mapped to 12 categories:
+- `career_leaders` — triple-doubles, career stats, all-time, most points/rebounds/etc.
+- `season_leaders` — season leader, per game, led the NBA
+- `awards` — MVP, ROY, DPOY, All-NBA, All-Star, etc.
+- `team_seasons` — team record, team rating, specific team names
+- `cross_schema` — cross-check, between schemas
+- `games` — finals, box score, playoff, game_id
+- `shot_charts` — shot chart, three pointer, mid-range
+- `play_by_play` — play-by-play, turnover, made shot
+- `identity` — player ID, basketball-reference ID, bridge
+- `draft` — draft pick, first overall
+- `data_quality` — DQ, row count, audit
+- `general` — fallback when no pattern matches
+
+### Tools (`tools.ts`)
+
+**5 tools** defined using `@langchain/core/tools` with `zod/v4` schemas:
+
+| Tool Name | Function | Schema | Description |
+|-----------|----------|--------|-------------|
+| `query_nba_db` | `executeSql(sql)` | `{ sql: string }` | Execute read-only SQL on NBA database |
+| `check_nba_sql` | `checkSql(sql)` | `{ sql: string }` | Validate SQL without executing |
+| `get_schema_info` | `getColumns(qualifiedName)` | `{ tableName: string }` | Discover table/column definitions |
+| `list_nba_tables` | `getTableRefs()` | `{ search?: string }` | List available tables/views |
+| `find_stat_columns` | Canonical stat crosswalk query on `meta.stat_crosswalk` | `{ canonicalName, family?, limit? }` | Find columns mapped to a stat name |
+
+### Schema Injection (`schemaFilter.ts`)
+
+After intent classification, the `inject_schema` node builds a context-specific schema prompt:
+- Maps intent category → relevant tables via `INTENT_TABLE_MAP` (e.g., `career_leaders` → `[fact_bref_player_season_totals, player_totals, dim_player]`)
+- Resolves best-qualified table names using `SCHEMA_PRIORITY` (`[main, stg_bref, unified_star, nbadb, api, audit]`)
+- Fetches column metadata (up to 24 columns per table) and appends SQL templates from `INTENT_SQL_TEMPLATES`
+
+### Schema Catalog (`schemaCatalog.ts`)
+- `buildSchemaCatalog()` — compact listing of EVERY schema and table (no columns), cached for the orchestrator planner prompt.
+- `invalidateSchemaCatalogCache()` — clears the cache (called by `resetGraph()`).
+
+### Schema Constants (`schemaConstants.ts`)
+- `DETAILED_COLUMN_LIMIT = 24` — max columns shown in schema prompts
+- `SCHEMA_PRIORITY` — ordered schema list for table resolution
+- `CORE_TABLE_PATTERNS` — 37 canonical table names for system prompt inclusion
+
+### Guard Mechanisms (`graph.ts`)
+
+1. **Tool Budget Guard** (`tool_budget_guard`): Caps total tool calls at `MAX_TOTAL_TOOL_CALLS = 10`. Detects loops by checking if the same tool signature repeats `LOOP_DETECTION_THRESHOLD = 3` times in the current batch. Routes to `finalize_turn` on violation.
+
+2. **SQL Error Guard** (`sql_error_guard`): Checks tool outputs for error prefixes (`SQL Error`, `Schema error`, `SQL syntax error`, `Transient error`, `Schema validation failed`). On error with retries < 3, routes back to `llm` with increment. On ≥ 3 retries, routes to `finalize_turn` with a system error message.
+
+3. **Hallucination Guard** (`validate_answer`): Extracts numbers ≥ `HALLUCINATION_NUMBER_THRESHOLD = 500` from the AI answer and cross-checks against numbers present in tool message outputs. Numbers ≥ 500 not found in tool outputs (and not years 1900-2099) are flagged as hallucinations. Routes back to `llm` for correction (max `MAX_VALIDATE_ANSWER_RETRIES = 2`).
+
+4. **Message Trimming** (`trimMessagesForModel`): Retains up to 5 system messages and 40 non-system messages to avoid context window overflow.
+
+5. **Loop Detection**: Within `toolBudgetGuard`, compares tool call signatures (name + first 80 chars of content) and triggers forced finalization when the same signature appears 3+ times.
 
 ### Model Binding (`model.ts`)
+- `createModel()` — creates `ChatOpenRouter` instance with:
+  - Model from `getModel()` (env `MODEL`, default `deepseek/deepseek-r1`)
+  - Temperatures from env `TEMPERATURE` / `LLM_TEMPERATURE` / `OPENROUTER_TEMPERATURE` (default 0.3)
+  - Reasoning config via `REASONING_EFFORT` env (off/low/medium/high, default medium)
+  - `parallel_tool_calls: true` in `modelKwargs`
 
-`createModel()` returns a `ChatOpenAI` instance pointed at `https://openrouter.ai/api/v1`. Configured via env vars: `OPENROUTER_API_KEY` (required), `MODEL` (default `openai/gpt-oss-120b`), `TEMPERATURE`/`LLM_TEMPERATURE`/`OPENROUTER_TEMPERATURE` (default 0.3). 2-minute timeout, `parallel_tool_calls: true`. Tools are bound at graph construction time via `model.bindTools([...nbaTools])`.
-
-### Tools (`tools.ts`, `toolNames.ts`)
-
-Five Zod-v4-defined LangChain `tool()` wrappers:
-
-| Tool | Name constant | Purpose |
-|------|---------------|---------|
-| `queryNbaDb` | `query_nba_db` | Execute read-only SQL on DuckDB |
-| `checkNbaSql` | `check_nba_sql` | Validate SQL without executing (safety + schema check) |
-| `getSchemaInfo` | `get_schema_info` | Column discovery for a table (partial match) |
-| `listNbaTables` | `list_nba_tables` | List schemas/tables, optionally filtered |
-| `findStatColumns` | `find_stat_columns` | Semantic column search via `meta.stat_crosswalk` |
-
-### Intent Classification (`graph.ts`)
-
-`classifyQuestion()` scans the human message with 11 regex patterns (lines 36–78) and returns an `IntentCategory`. This is deterministic — no LLM call. Used by the `classify_intent` graph node to select schema prompts.
-
-### Schema Injection (`schemaFilter.ts`, `schemaConstants.ts`)
-
-`buildIntentSchemaPrompt(intentCategory)` maps each non-general category to:
-1. A curated list of table patterns (e.g. `career_leaders` → `['fact_bref_player_season_totals', 'player_totals', 'dim_player']`)
-2. Resolves qualified names via `SCHEMA_PRIORITY` (`main`, `stg_bref`, `unified_star`, `nbadb`, `api`, `audit`)
-3. Fetches up to `DETAILED_COLUMN_LIMIT` (24) columns per table
-4. Injects intent-specific SQL templates (e.g. career total patterns, award vote patterns)
-
-The result is injected as a `SystemMessage` after intent classification. Returns `null` for `general` and `cross_schema`.
-
-### Orchestrator Schema Catalog (`schemaCatalog.ts`)
-
-`buildSchemaCatalog()` enumerates ALL non-system tables/views (no columns) for the planner's context. Cached per session, invalidated via `resetGraph()`.
-
-### Abort Signal (`abort.ts`)
-
-Shared module-level `AbortSignal` holder to avoid circular dependency between `graph.ts` and `orchestrator.ts`. Set by `streaming.ts` before graph invocation, read by both graph implementations for model calls.
-
-## Flow
-
-### Single-Agent Worker Graph (default when `CHATBOT_ORCHESTRATION=0`)
-
-```
-START → prepare_turn → classify_intent → inject_schema → llm
-                                                          │
-                                                  toolsCondition
-                                                         ╱ ╲
-                                                       ╱     ╲
-                                                   tools     validate_answer
-                                                     │           │
-                                                     ▼           │
-                                            tool_budget_guard     │
-                                                     │           │
-                                                     ▼           │
-                                            sql_error_guard       │
-                                                   ╱ ╲            │
-                                                 ╱     ╲          │
-                                              llm     finalize_turn ←─┘
-                                                              │
-                                                              ▼
-                                                             END
-```
-
-1. **`prepare_turn`** — Resets `sqlRetryCount`, `totalToolCalls`, `validateAnswerRetries` to 0.
-2. **`classify_intent`** — Deterministic regex on last human message → `intentCategory`.
-3. **`inject_schema`** — Builds intent-specific `SystemMessage` with table columns + SQL templates.
-4. **`llm`** — Invokes model with `trimMessagesForModel()` (keeps last 5 system + 40 non-system messages). Tools already bound.
-5. **`tools`** — `ToolNode` executes parallel tool calls.
-6. **`tool_budget_guard`** — Checks `totalToolCalls > 10` or loop detection (same tool+args 3×). Routes to `finalize_turn` on breach, otherwise continues.
-7. **`sql_error_guard`** — Scans trailing `ToolMessage`s for error prefixes (`SQL_ERROR|SCHEMA_ERROR|SYNTAX_ERROR|TRANSIENT_ERROR|SCHEMA_VALIDATION_FAILED`). On error: routes back to `llm` with correction system message if retries < 3, else routes to `finalize_turn`. On success: routes to `llm`.
-8. **`validate_answer`** — Extracts numbers ≥500 (excluding years 1900–2099) from AI answer. Cross-references against numbers in tool outputs. On hallucinated numbers: routes back to `llm` with correction (max 2 retries). Otherwise routes to `finalize_turn`.
-9. **`finalize_turn`** — Resets all counters, reaches `END`.
-
-### Multi-Agent Orchestrator (default when `CHATBOT_ORCHESTRATION` ≠ 0)
-
-```
-START → orch_plan → conditional dispatch
-                       │
-               ┌───────┴───────┐
-               │               │
-         orch_worker × N   orch_synthesize (clarify)
-               │               │
-               └───────┬───────┘
-                       ▼
-               orch_synthesize
-                       │
-                       ▼
-                      END
-```
-
-1. **`orch_plan`** — Reads the full schema catalog, calls planner LLM with instructions to emit JSON `{mode, subtasks}`. `parsePlan()` extracts 1–4 subtasks. Handles LLM failure by falling back to single-task plan.
-2. **`orch_worker`** — Dispatched via LangGraph `Send()` fan-out. Each worker runs an independent tool-calling loop (max 6 rounds) with the full NBA toolset. Workers share no message history. On tool budget exhaustion, forces a summary call. Returns `WorkerFinding`.
-3. **`orch_synthesize`** — Merges findings via synthesizer LLM. For `clarify` mode, asks one clarification question. For missing data, emits exact phrase: `"I do not have that information in the database."`
+### Checkpointing (`graph.ts` → `getCheckpointer()`)
+- **Singleton pattern**: `MemorySaver` by default; `SqliteSaver` when `CHATBOT_PERSIST_DIR` is set (loaded via dynamic `require()`).
 
 ### Streaming (`streaming.ts`)
 
-`streamQuery(messages, threadId, signal?, opts?)` is an `AsyncGenerator<StreamEvent>`:
+**AsyncGenerator-based** — `streamQuery()` yields `StreamEvent` union:
 
-1. Sets abort signal on shared holder.
-2. Calls `getChatbotGraph().streamEvents()` with version `v2` and `recursionLimit: 40`.
-3. Maps LangGraph runtime events to typed `StreamEvent` union:
-   - `on_chain_start` for known graph node names → `chain_stage`
-   - `on_chat_model_stream` → `token`
-   - `on_tool_start` → `tool_start`
-   - `on_tool_end` → `tool_end` (with duration)
-   - `on_tool_error` → `tool_error` (tracks SQL errors separately)
-   - `on_chat_model_end` → `usage` (token counts)
-4. After stream completes: reads final state via `graph.getState()` → yields `done` with messages.
-5. On error: yields `error` event with formatted user message.
+```typescript
+type StreamEvent =
+  | { type: 'token'; content: string }           // LLM token
+  | { type: 'reasoning'; content: string }        // thinking/reasoning tokens
+  | { type: 'tool_start'; name, input, runId }   // tool invocation started
+  | { type: 'tool_end'; name, output, runId, durationMs? }
+  | { type: 'tool_error'; name, error, runId? }
+  | { type: 'chain_stage'; stage: ChainStageName } // 13 graph node names
+  | { type: 'usage'; usage: { inputTokens, outputTokens } }
+  | { type: 'done'; messages: BaseMessage[] }      // final
+  | { type: 'error'; message, runId, toolName?, stage? }
+```
 
-Span metrics (token count, tool starts/errors, SQL errors, chain stages, usage) are logged to `logMetric`.
+- Spans track `tokenCount`, `toolStarts`, `toolErrors`, `sqlErrors`, `chainStages`, `usage` for metrics logging.
+- `extractReasoningChunk()` handles provider-specific reasoning keys (`reasoning`, `reasoning_content`, `reasoning_details`).
+- `normalizeToolInput()` unwraps LangGraph's v2 `{ input: JSON.stringify(args) }` format.
+
+### Abort Signal (`abort.ts`)
+- Module-scoped holder `_abortSignal` shared between worker graph and orchestrator to avoid circular imports.
+- `setAbortSignal(signal)` / `getAbortSignal()` / `abortOptions()`
+
+## Flow
+
+### Single-Agent Flow
+```
+User question → streamQuery(messages, threadId)
+  → graph.streamEvents (v2)
+    → prepare_turn (reset counters)
+    → classify_intent (regex → IntentCategory)
+    → inject_schema (fetch relevant table schemas as SystemMessage)
+    → llm (invoke ChatOpenRouter with bound tools)
+      ├── tool call → ToolNode → toolBudgetGuard → sqlErrorGuard
+      │   └── (retry ≤3) → llm
+      │   └── (max retries or budget) → finalize_turn
+      └── no tool call → validate_answer
+          ├── hallucination detected (≤2 retries) → llm
+          └── clean → finalize_turn
+```
+
+### Multi-Agent Orchestrator Flow
+```
+streamQuery → orchestrator graph
+  → orch_plan: planner LLM reads full schema catalog, emits JSON plan { mode, subtasks }
+  → dispatchWorkers: Send('orch_worker', { activeSubtask }) × N
+    → orch_worker: each runs runWorker() with independent message history, tool loop (max 6 rounds)
+  → orch_synthesize: LLM merges worker findings → final AI message
+```
 
 ## Integration
 
-### Consumed by
-- **`packages/data/src/tabs/chatbot/`** — `processQuestion.ts` and eval harnesses import from `./agent/`.
-- **`packages/web/src/routes/api/copilotkit.ts`** — Web chat route calls `streamQuery()`.
-- **`scripts/eval/chatbot-smoke.ts`** — Smoke test imports `getChatbotGraph()`, `streamQuery()`.
+### Consumes
+- `../db.js` — `query`, `getTables`, `getTableRefs`, `getColumns`, `invalidateSchemaCache`
+- `../openrouter.js` — `getModel()`
+- `../utils/sql.js` — `executeSql`, `checkSql`
+- `../utils/errorCapture.js` — `captureError`
+- `../utils/retry.js` — `ERROR_PREFIX`, `formatErrorForUser`
+- `../utils/correlation.js` — `updateRunContext`
+- `../utils/metrics.js` — `logMetric`
+- `../systemPrompt.js` — `buildSystemPrompt` (orchestrator worker base)
 
-### Depends on
-- **`packages/data/src/tabs/chatbot/db.ts`** — `getColumns()`, `getTableRefs()`, `query()` for all DB access.
-- **`packages/data/src/tabs/chatbot/utils/sql.ts`** — `executeSql()`, `checkSql()` for tool implementations.
-- **`packages/data/src/tabs/chatbot/utils/metrics.ts`** — `logMetric()` for span telemetry.
-- **`packages/data/src/tabs/chatbot/utils/errorCapture.ts`** — `captureError()` for error logging.
-- **`packages/data/src/tabs/chatbot/utils/correlation.ts`** — `updateRunContext()` for run ID correlation.
-- **`packages/data/src/tabs/chatbot/utils/retry.ts`** — `ERROR_PREFIX`, `formatErrorForUser()`.
-- **`packages/data/src/tabs/chatbot/openrouter.ts`** — `getModel()` for model name resolution.
-- **`packages/data/src/tabs/chatbot/systemPrompt.ts`** — `buildSystemPrompt()` for base system prompt.
+### Exports
+- `getChatbotGraph()` — main entry point (orchestrator or worker)
+- `getWorkerGraph()` — worker graph directly
+- `resetGraph()` — clears all caches and graph instances
+- `classifyQuestion()` — exported for testing
+- `streamQuery()` — async generator of StreamEvent
+- `setAbortSignal()` — for external cancellation
+- All state types: `ChatbotStateType`, `ChatbotUpdateType`, `IntentCategory`, `Subtask`, `WorkerFinding`
 
-### Graph selection
-`getChatbotGraph()` in `graph.ts` is the single entry point. When `CHATBOT_ORCHESTRATION` env var is not `'0'`, it returns the orchestrator graph; otherwise the worker graph. Both graphs compile over `ChatbotState` and expose the same `streamEvents`/`getState`/`invoke` surface so the streaming layer is agnostic to which graph runs.
-
-### Checkpointing
-Worker graph uses `MemorySaver` by default, or `SqliteSaver` when `CHATBOT_PERSIST_DIR` is set (with graceful fallback if the sqlite package is missing). Orchestrator always uses `MemorySaver`.
+### Consumers
+- **`../eval/matrixHarness.ts`** — imports `streamQuery`, `resetGraph` for evaluation
+- **`packages/web/src/routes/api/copilotkit.ts`** — uses `streamQuery` for the chat API endpoint
+- **`scripts/eval/chatbot-smoke.ts`** — imports from agent barrel for smoke testing
