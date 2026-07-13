@@ -76,12 +76,12 @@
   "devDependencies": {
     "@biomejs/biome": "^2.4.16",
     "@types/bun": "^1.3.14",
-    "@types/node": "^25.9.1",
+    "@types/node": "^26.1.1",
     "bun-types": "^1.3.14",
     "cheerio": "^1.2.0",
     "lefthook": "^2.1.9",
     "markdownlint-cli2": "^0.22.1",
-    "typescript": "^6.0.3"
+    "typescript": "^7.0.2"
   },
   "overrides": {
     "prismjs": "^1.30.0",
