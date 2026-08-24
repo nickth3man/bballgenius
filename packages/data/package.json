@@ -37,7 +37,7 @@
     "@langchain/openai": "^1.4.6",
     "cheerio": "^1.2.0",
     "langchain": "^1.4.1",
-    "openai": "^6.38.0",
+    "openai": "^7.5.0",
     "parse5": "^8.0.1",
     "parse5-htmlparser2-tree-adapter": "^8.0.1",
     "uuid": "^11.1.1",
